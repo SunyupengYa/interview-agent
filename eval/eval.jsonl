@@ -1,0 +1,10 @@
+{"q": "主从复制原理", "expect_source": "mysql-cluster-handbook.html"}
+{"q": "Redis 持久化 RDB 和 AOF 区别", "expect_source": "redis-handbook.html"}
+{"q": "缓存穿透击穿雪崩怎么解决", "expect_source": "redis-handbook.html"}
+{"q": "Kafka 消息丢失怎么避免", "expect_source": "消息队列知识手册.html"}
+{"q": "TCP 三次握手为什么不能两次", "expect_source": "HTTP与网络面试手册.html"}
+{"q": "Spring Bean 生命周期", "expect_source": "框架高频面试题手册.html"}
+{"q": "分库分表后数据迁移怎么做", "expect_source": "mysql-cluster-handbook.html"}
+{"q": "分布式锁怎么实现", "expect_source": "redis-handbook.html"}
+{"q": "线程池核心参数和工作流程", "expect_source": "java-interview-sprint.html"}
+{"q": "服务熔断降级限流", "expect_source": "spring-cloud组件面试手册.html"}

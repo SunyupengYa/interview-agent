@@ -1,0 +1,2073 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>5 年 Java 开发 · 面试冲刺手册（中厂/独角兽 · 4 周）</title>
+<style>
+:root{
+  --bg:#f6f6f4; --card:#ffffff; --card2:#fbfbfa; --line:#e6e6e2; --line2:#d8d8d3;
+  --tx:#1f2328; --tx2:#5c6570; --tx3:#8b939c;
+  --accent:#1d4ed8; --accent-bg:#eef3ff;
+  --must:#b42318; --must-bg:#fef3f2;
+  --hot:#b54708; --hot-bg:#fffaeb;
+  --plus:#067647; --plus-bg:#ecfdf3;
+  --ok:#067647;
+  --radius:12px;
+}
+html[data-theme="dark"]{
+  --bg:#16181a; --card:#1e2124; --card2:#232629; --line:#2e3236; --line2:#3a3f45;
+  --tx:#e7e9ea; --tx2:#a3aab2; --tx3:#767d85;
+  --accent:#7ba4ff; --accent-bg:#1c2536;
+  --must:#ff9b93; --must-bg:#33201e;
+  --hot:#ffc46b; --hot-bg:#332a1a;
+  --plus:#79dba9; --plus-bg:#16301f;
+  --ok:#79dba9;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--tx);
+  font:14px/1.7 -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--accent);text-decoration:none}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;
+  background:var(--card2);border:1px solid var(--line);border-radius:4px;padding:1px 5px;color:var(--tx)}
+b{font-weight:600}
+.hide{display:none !important}
+
+.layout{display:flex;align-items:flex-start;gap:0}
+
+/* ---------- sidebar ---------- */
+.sidebar{
+  width:264px;flex:0 0 264px;height:100vh;position:sticky;top:0;
+  background:var(--card);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;overflow-y:auto;
+}
+.sb-head{padding:18px 18px 14px;border-bottom:1px solid var(--line)}
+.sb-head h1{margin:0 0 4px;font-size:14px;font-weight:600;letter-spacing:.2px}
+.sb-head p{margin:0;font-size:11.5px;color:var(--tx3);line-height:1.6}
+.sb-prog{margin-top:12px}
+.sb-prog .row{display:flex;justify-content:space-between;font-size:11.5px;color:var(--tx2);margin-bottom:5px}
+.track{height:6px;border-radius:99px;background:var(--line);overflow:hidden}
+.track>span{display:block;height:100%;width:0;background:var(--accent);border-radius:99px;transition:width .25s}
+
+.sb-tools{padding:12px 14px;border-bottom:1px solid var(--line);display:flex;gap:6px;flex-wrap:wrap}
+.sb-tools input[type=search]{
+  width:100%;padding:7px 10px;border:1px solid var(--line2);border-radius:8px;
+  background:var(--card2);color:var(--tx);font-size:12.5px;outline:none;font-family:inherit;
+}
+.sb-tools input[type=search]:focus{border-color:var(--accent)}
+.mini{
+  padding:5px 9px;border:1px solid var(--line2);border-radius:7px;background:var(--card2);
+  color:var(--tx2);font-size:11.5px;cursor:pointer;font-family:inherit;
+}
+.mini:hover{border-color:var(--accent);color:var(--accent)}
+#search-hint{width:100%;font-size:11px;color:var(--tx3);min-height:14px}
+
+nav{padding:8px 8px 40px}
+nav a{
+  display:block;padding:9px 10px;border-radius:9px;color:var(--tx);font-size:12.5px;
+  border:1px solid transparent;margin-bottom:2px;
+}
+nav a:hover{background:var(--card2);border-color:var(--line)}
+nav a .l1{display:flex;justify-content:space-between;align-items:center;gap:8px}
+nav a .nm{font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+nav a .nav-pct{font-size:11px;color:var(--tx3);flex:0 0 auto}
+nav a .w{font-size:11px;color:var(--tx3);margin-top:1px}
+nav a .track{height:4px;margin-top:6px}
+nav a.group{padding:14px 10px 6px;font-size:11px;color:var(--tx3);text-transform:none;cursor:default;border:0;background:none}
+nav a.group:hover{background:none}
+
+/* ---------- main ---------- */
+main{flex:1;min-width:0;padding:0 0 120px}
+.topbar{
+  position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--bg) 88%,transparent);
+  backdrop-filter:saturate(180%) blur(10px);border-bottom:1px solid var(--line);
+  padding:12px 34px;display:flex;justify-content:space-between;align-items:center;gap:16px;
+}
+.topbar .t{font-size:12.5px;color:var(--tx2)}
+.topbar .t b{color:var(--tx)}
+select.mini{padding:5px 8px}
+.wrap{max-width:960px;padding:0 34px}
+
+/* ---------- hero ---------- */
+.hero{padding:38px 0 8px}
+.hero h1{font-size:26px;line-height:1.35;margin:0 0 12px;font-weight:600;letter-spacing:-.2px}
+.hero .sub{color:var(--tx2);font-size:13.5px;max-width:720px}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.pill{
+  font-size:12px;padding:4px 11px;border-radius:99px;border:1px solid var(--line2);
+  background:var(--card);color:var(--tx2);
+}
+.pill.a{background:var(--accent-bg);border-color:color-mix(in srgb,var(--accent) 30%,transparent);color:var(--accent)}
+
+/* ---------- module ---------- */
+.module{padding:34px 0 10px;border-top:1px solid var(--line);margin-top:30px}
+.mod-tag{font-size:11.5px;color:var(--tx3);letter-spacing:.4px}
+.module h2{font-size:21px;margin:6px 0 10px;font-weight:600;letter-spacing:-.2px}
+.mod-desc{color:var(--tx2);font-size:13.5px;max-width:780px;margin:0 0 14px}
+.mod-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.mod-meta span{font-size:11.5px;color:var(--tx2);background:var(--card);border:1px solid var(--line);border-radius:7px;padding:3px 9px}
+.mod-prog{display:flex;align-items:center;gap:10px;margin:14px 0 4px;max-width:420px}
+.mod-prog .track{flex:1}
+.mod-pct{font-size:11.5px;color:var(--tx2);min-width:34px;text-align:right}
+
+.sub{margin-top:26px}
+.sub h3{font-size:14.5px;margin:0 0 12px;font-weight:600;display:flex;align-items:center;gap:8px}
+.sub h3::before{content:"";width:3px;height:14px;border-radius:2px;background:var(--accent);display:inline-block}
+
+/* ---------- checklist ---------- */
+.checklist{display:grid;grid-template-columns:1fr 1fr;gap:6px 18px}
+@media(max-width:820px){.checklist{grid-template-columns:1fr}}
+.ck{display:flex;gap:9px;align-items:flex-start;padding:7px 10px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--tx)}
+.ck:hover{background:var(--card)}
+.ck input{margin:4px 0 0;accent-color:var(--accent);flex:0 0 auto;cursor:pointer}
+.ck input:checked+span{color:var(--tx3);text-decoration:line-through}
+
+/* ---------- questions ---------- */
+details.q{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  margin-bottom:8px;overflow:hidden;
+}
+details.q[open]{border-color:var(--line2)}
+details.q>summary{
+  list-style:none;cursor:pointer;padding:13px 16px;display:flex;gap:11px;align-items:flex-start;
+  font-size:13.5px;font-weight:500;line-height:1.6;
+}
+details.q>summary::-webkit-details-marker{display:none}
+details.q>summary:hover{background:var(--card2)}
+.q-no{color:var(--tx3);font-size:12px;font-family:ui-monospace,monospace;flex:0 0 auto;padding-top:2px;min-width:26px}
+.q-tx{flex:1;min-width:0}
+.lv{font-size:10.5px;padding:2px 7px;border-radius:99px;font-weight:500;flex:0 0 auto;white-space:nowrap;margin-top:1px}
+.lv-must{background:var(--must-bg);color:var(--must);border:1px solid color-mix(in srgb,var(--must) 25%,transparent)}
+.lv-hot{background:var(--hot-bg);color:var(--hot);border:1px solid color-mix(in srgb,var(--hot) 25%,transparent)}
+.lv-plus{background:var(--plus-bg);color:var(--plus);border:1px solid color-mix(in srgb,var(--plus) 25%,transparent)}
+.ans{padding:2px 16px 16px 53px;font-size:13.3px;color:var(--tx);border-top:1px solid var(--line);margin-top:0}
+.ans>p{margin:13px 0}
+.ans ul{margin:10px 0;padding-left:20px}
+.ans li{margin:5px 0}
+.follow,.pitfall{
+  margin-top:12px;padding:10px 13px;border-radius:9px;font-size:12.8px;line-height:1.75;
+  border-left:3px solid var(--accent);background:var(--accent-bg);
+}
+.pitfall{border-left-color:var(--must);background:var(--must-bg)}
+.follow b,.pitfall b{font-size:11.5px;letter-spacing:.3px}
+.ans .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:10px 0}
+.ans .kv dt{font-weight:600;font-size:12.8px;color:var(--tx2);white-space:nowrap}
+.ans .kv dd{margin:0;font-size:12.8px}
+
+/* ---------- resources ---------- */
+.res{margin:0;padding-left:20px;font-size:13px;color:var(--tx2)}
+.res li{margin:5px 0}
+.res b{color:var(--tx)}
+
+/* ---------- plan table ---------- */
+table{width:100%;border-collapse:collapse;font-size:12.8px;margin:8px 0 4px;
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--card2);font-weight:600;font-size:12.3px;color:var(--tx2);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.nw{white-space:nowrap;font-weight:600;color:var(--tx)}
+
+footer{padding:40px 0 0;color:var(--tx3);font-size:12px;border-top:1px solid var(--line);margin-top:40px}
+
+@media(max-width:900px){
+  .sidebar{display:none}
+  .wrap{padding:0 18px}
+  .topbar{padding:12px 18px}
+}
+@media print{
+  .sidebar,.topbar{display:none}
+  body{background:#fff}
+  .ans{display:block!important}
+  details.q{break-inside:avoid;border-color:#ccc}
+  details.q:not([open]) .ans{display:block}
+  .module{break-before:auto}
+}
+/* 修复：行内 code 底纹样式(.q .bd code 优先级高于 pre code)会污染代码块，此规则强制清除 */pre code,.q .bd pre code,.bd pre code,.glossary pre code{background:none!important;border:none!important;padding:0!important;border-radius:0!important;color:inherit;font-size:14.5px;line-height:1.75}</style>
+</head>
+<body>
+<div class="layout">
+
+<aside class="sidebar">
+  <div class="sb-head">
+    <h1>5 年 Java 面试冲刺</h1>
+    <p>中厂 / 独角兽高级开发 · 4 周冲刺包</p>
+    <div class="sb-prog">
+      <div class="row"><span>总进度</span><span id="overall-pct">0%</span></div>
+      <div class="track"><span id="overall-bar"></span></div>
+    </div>
+  </div>
+  <div class="sb-tools">
+    <input type="search" id="search" placeholder="搜索考点 / 题目 / 答案…">
+    <span id="search-hint"></span>
+    <button class="mini" id="expand">全部展开</button>
+    <button class="mini" id="collapse">全部收起</button>
+    <button class="mini" id="theme">切换主题</button>
+    <button class="mini" id="reset">清空进度</button>
+  </div>
+  <nav>
+    <a href="#plan"><div class="l1"><span class="nm">4 周冲刺计划</span><span class="nav-pct">—</span></div><div class="w">先看这个，再往下刷</div></a>
+    <a href="#m-jvm"><div class="l1"><span class="nm">01 JVM 与并发</span><span class="nav-pct">0%</span></div><div class="track"><span class="nav-bar"></span></div></a>
+    <a href="#m-spring"><div class="l1"><span class="nm">02 框架源码</span><span class="nav-pct">0%</span></div><div class="track"><span class="nav-bar"></span></div></a>
+    <a href="#m-storage"><div class="l1"><span class="nm">03 中间件与存储</span><span class="nav-pct">0%</span></div><div class="track"><span class="nav-bar"></span></div></a>
+    <a href="#m-dist"><div class="l1"><span class="nm">04 分布式与系统设计</span><span class="nav-pct">0%</span></div><div class="track"><span class="nav-bar"></span></div></a>
+    <a href="#m-ops"><div class="l1"><span class="nm">05 工程化与运维</span><span class="nav-pct">0%</span></div><div class="track"><span class="nav-bar"></span></div></a>
+    <a href="#m-talk"><div class="l1"><span class="nm">06 项目复盘与表达</span><span class="nav-pct">0%</span></div><div class="track"><span class="nav-bar"></span></div></a>
+  </nav>
+</aside>
+
+<main>
+  <div class="topbar">
+    <div class="t">筛选：<b id="lv-label">全部难度</b> · 共 <b id="q-count">—</b> 道题 · 进度实时保存在本机浏览器</div>
+    <div>
+      <select class="mini" id="lv-filter">
+        <option value="all">全部难度</option>
+        <option value="must">只看必考</option>
+        <option value="hot">必考 + 高频</option>
+        <option value="plus">只看加分</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+  <div class="hero">
+    <h1>5 年 Java 开发 · 面试冲刺手册</h1>
+    <p class="sub">
+      按你的定位定制：<b>中厂 / 独角兽高级开发</b>，准备周期 <b>1 个月</b>，四个核心模块（JVM 与并发、框架源码、中间件与存储、分布式与系统设计）全部标为薄弱 —— 所以这版手册的策略是：
+      <b>把 85% 的时间压在四大核心模块上</b>，工程化与表达只做「不踩雷」的最低要求。
+    </p>
+    <div class="pills">
+      <span class="pill a">中厂 / 独角兽 · 高级开发</span>
+      <span class="pill a">4 周冲刺</span>
+      <span class="pill">6 大模块 · 80 道题</span>
+      <span class="pill">每题含追问 + 踩坑点</span>
+      <span class="pill">进度自动保存</span>
+    </div>
+  </div>
+
+  <section class="module" id="plan" data-title="4 周冲刺计划">
+    <div class="mod-tag">先读这一节</div>
+    <h2>4 周冲刺计划</h2>
+    <p class="mod-desc">
+      1 个月的现实约束是：<b>不可能所有模块都吃透</b>。所以顺序不是按目录，而是按「性价比」——先啃最容易被深挖、且你自评最弱的四大模块；
+      工程化与表达放在最后一周收口，因为这两块靠"准备话术"就能拿到分数，不需要长期积累。
+    </p>
+
+    <div class="sub">
+      <h3>时间分配（总计约 80 小时）</h3>
+      <table>
+        <thead><tr><th>周次</th><th>主攻</th><th>每天节奏</th><th>本周产出（必须可交付）</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="nw">W1</td>
+            <td><b>JVM 与并发</b><br><span style="color:var(--tx3)">权重 25%，最容易被深挖</span></td>
+            <td>早 1.5h 原理精读 → 午 1h 敲代码验证 → 晚 30min 合上书复述</td>
+            <td>能白纸画出 JVM 内存图 + AQS 队列图 + 线程池流程图；整理出 3 个"我排查过 JVM/并发问题"的素材</td>
+          </tr>
+          <tr>
+            <td class="nw">W2</td>
+            <td><b>框架源码 + 中间件与存储</b><br><span style="color:var(--tx3)">权重 40%，面试必问但深度可控</span></td>
+            <td>上午 Spring/MyBatis 源码链路 → 下午 MySQL/Redis 动手（写 SQL 看 explain、压 Redis）</td>
+            <td>能画 Spring refresh 12 步 + 三级缓存流转图；能讲清一条慢 SQL 的完整优化过程</td>
+          </tr>
+          <tr>
+            <td class="nw">W3</td>
+            <td><b>分布式与系统设计</b><br><span style="color:var(--tx3)">权重 20%，高级开发的胜负手</span></td>
+            <td>每天 1 道设计题，<b>口头讲并录音</b>，回听找卡壳点</td>
+            <td>6 道设计题的完整白板稿（秒杀 / 订单 / 短链 / IM / 分布式 ID / 定时任务）；方案对比表 1 张</td>
+          </tr>
+          <tr>
+            <td class="nw">W4</td>
+            <td><b>收口：简历话术 + 模拟面试</b><br><span style="color:var(--tx3)">工程化与表达 + 补漏</span></td>
+            <td>D1-D3 简历逐条过（每条能讲 3 分钟）；D4-D5 全真模拟；D6-D7 只看速记卡</td>
+            <td>简历每条经历都能扛住 3 层追问；3 个"难点故事"的 3 分钟版本；反问清单</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="sub">
+      <h3>四条硬规则</h3>
+      <div class="checklist">
+        <label class="ck"><input type="checkbox" id="plan-01"><span><b>能讲出来才算会</b>：每道题合上书用自己的话复述 3 分钟，卡住的地方就是没懂的地方</span></label>
+        <label class="ck"><input type="checkbox" id="plan-02"><span><b>答案要能往下扛两层</b>：每个知识点至少准备一个"追问答案"，面试官问"为什么"就是分水岭</span></label>
+        <label class="ck"><input type="checkbox" id="plan-03"><span><b>技术题必须绑自己的项目</b>：讲完原理补一句"我们线上是怎么用的 / 踩过什么坑"</span></label>
+        <label class="ck"><input type="checkbox" id="plan-04"><span><b>不会的别硬编</b>：直接说"这块我没在生产用过，我理解是……" —— 编造会被连续追问击穿</span></label>
+      </div>
+    </div>
+
+    <div class="sub">
+      <h3>刷题顺序建议（按投入产出比）</h3>
+      <ul class="res">
+        <li><b>Day 1-2</b>：先把本手册所有「必考」标签的题通读一遍（不背，建立地图）</li>
+        <li><b>Day 3-20</b>：按模块逐题精刷，边刷边勾选上面的考点清单</li>
+        <li><b>Day 21-25</b>：只刷「高频」+ 自己标记不熟的</li>
+        <li><b>Day 26-30</b>：速记卡 + 模拟面试 + 简历话术，不再学新知识</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="module" id="m-jvm" data-title="JVM 与并发">
+    <div class="mod-tag">模块 01 · 面试权重 25% · 建议投入 8 天</div>
+    <h2>JVM 与并发</h2>
+    <p class="mod-desc">
+      这是中厂面试的「筛人层」。特征是：<b>每个问题后面都藏着一层追问</b>，而且面试官很爱让你结合线上排查经验讲。
+      策略上，JVM 要"能讲清原理 + 会看图排查"，并发要"能讲清原理 + 能写出正确代码"。
+    </p>
+    <div class="mod-meta"><span>高频题 18 道</span><span>必考 12 道</span><span>JVM 占 8 题</span><span>并发占 10 题</span></div>
+    <div class="mod-prog"><span class="track"><span class="mod-bar"></span></span><span class="mod-pct">0%</span></div>
+
+    <div class="sub">
+      <h3>考点清单（勾选即代表"能脱离资料讲 3 分钟"）</h3>
+      <div class="checklist">
+        <label class="ck"><input type="checkbox" id="jvm-01"><span>运行时数据区：线程私有/共享，各自会抛什么异常</span></label>
+        <label class="ck"><input type="checkbox" id="jvm-02"><span>对象创建过程、内存布局、TLAB、指针压缩</span></label>
+        <label class="ck"><input type="checkbox" id="jvm-03"><span>可达性分析、GC Roots 组成、四种引用类型</span></label>
+        <label class="ck"><input type="checkbox" id="jvm-04"><span>三种基础 GC 算法与分代收集理论</span></label>
+        <label class="ck"><input type="checkbox" id="jvm-05"><span>CMS / G1 / ZGC 的停顿模型与选型依据</span></label>
+        <label class="ck"><input type="checkbox" id="jvm-06"><span>G1 的 Region、RSet、SATB、Mixed GC</span></label>
+        <label class="ck"><input type="checkbox" id="jvm-07"><span>GC 日志解读与常用调优参数</span></label>
+        <label class="ck"><input type="checkbox" id="jvm-08"><span>类加载过程、双亲委派与三次"被破坏"</span></label>
+        <label class="ck"><input type="checkbox" id="jvm-09"><span>JIT 分层编译、逃逸分析、标量替换、锁消除</span></label>
+        <label class="ck"><input type="checkbox" id="jvm-10"><span>OOM 类型区分与 jmap / jstat / MAT 定位</span></label>
+        <label class="ck"><input type="checkbox" id="jvm-11"><span>CPU 100% / 频繁 Full GC 的线上排查流程</span></label>
+        <label class="ck"><input type="checkbox" id="jvm-12"><span>JMM、happens-before、volatile 与内存屏障</span></label>
+        <label class="ck"><input type="checkbox" id="jvm-13"><span>synchronized 锁升级、对象头 Mark Word</span></label>
+        <label class="ck"><input type="checkbox" id="jvm-14"><span>AQS 原理、CLH 队列、ReentrantLock 公平/非公平</span></label>
+        <label class="ck"><input type="checkbox" id="jvm-15"><span>线程池 7 参数、执行流程、参数怎么定</span></label>
+        <label class="ck"><input type="checkbox" id="jvm-16"><span>ThreadLocal 原理与内存泄漏、TTL</span></label>
+        <label class="ck"><input type="checkbox" id="jvm-17"><span>ConcurrentHashMap 1.8 并发设计、CAS 与 ABA</span></label>
+        <label class="ck"><input type="checkbox" id="jvm-18"><span>并发容器与工具类选型、虚拟线程</span></label>
+      </div>
+    </div>
+
+    <div class="sub">
+      <h3>高频面试题</h3>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q1</span><span class="q-tx">JVM 内存区域怎么划分？哪些是线程私有的？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p><b>线程私有</b>：程序计数器、虚拟机栈、本地方法栈；<b>线程共享</b>：堆、方法区。</p>
+          <dl class="kv">
+            <dt>程序计数器</dt><dd>记录当前线程执行到哪条字节码，线程切换后靠它恢复现场。<b>唯一不会抛 OOM 的区域</b>。</dd>
+            <dt>虚拟机栈</dt><dd>每个方法一个栈帧：局部变量表、操作数栈、动态链接、返回地址。递归太深抛 <code>StackOverflowError</code>，栈无法扩展抛 <code>OOM</code>。</dd>
+            <dt>本地方法栈</dt><dd>为 native 方法服务，HotSpot 里和虚拟机栈合并实现。</dd>
+            <dt>堆</dt><dd>对象实例的主战场，分新生代（Eden + 2 个 Survivor）和老年代。JDK7 起字符串常量池、静态变量已经挪到堆里。</dd>
+            <dt>方法区</dt><dd>JDK7 叫永久代（在堆内），JDK8 换成<b>元空间</b>（在本地内存），所以元空间溢出报的是 <code>Metaspace</code> 而不是 heap space。</dd>
+          </dl>
+          <div class="follow"><b>追问 · JDK8 为什么用元空间替代永久代？</b>① 永久代大小难预估，调参靠猜；② 永久代的回收和 Full GC 绑定，效率低；③ 合并 JRockit 后统一实现。换成元空间后默认只受物理内存限制（<code>-XX:MaxMetaspaceSize</code> 可限制）。</div>
+          <div class="pitfall"><b>踩坑 · 别说"方法区就是永久代"</b>。方法区是规范里的概念，永久代/元空间是 HotSpot 的两种实现。这是在考察你有没有版本意识。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q2</span><span class="q-tx">一个对象从 new 出来到进入堆，经历了什么？</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <p>五步：<b>类加载检查 → 分配内存 → 内存置零 → 设置对象头 → 执行构造方法</b>。</p>
+          <ul>
+            <li>分配内存用<b>指针碰撞</b>（内存规整，Serial/ParNew）或<b>空闲列表</b>（内存碎片化，CMS）。</li>
+            <li>并发分配靠 <b>CAS + 失败重试</b>，或者 <b>TLAB</b>（Thread Local Allocation Buffer）：每个线程在 Eden 里预划一小块私有区域，分配不用加锁。默认占 Eden 的 1%，<code>-XX:±UseTLAB</code> 控制。</li>
+            <li>对象头 = Mark Word（哈希码 + GC 分代年龄 + 锁状态，32/64 位）+ 类型指针（指向 Class）。数组对象多一个长度字段。</li>
+            <li>实例数据会按类型重排（long/double 在前，减少 padding），最后对齐填充到 8 字节倍数。</li>
+          </ul>
+          <div class="follow"><b>追问 · 为什么堆不要设成 32G 以上？</b>因为 <code>-XX:+UseCompressedOops</code> 指针压缩在堆大于 32G 时失效，对象引用从 4 字节变 8 字节，对象变大、缓存命中率下降，性能反而倒退。这是很典型的"以为加内存就能解决问题"的反例。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q3</span><span class="q-tx">怎么判断一个对象可以回收？为什么不用引用计数？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p>HotSpot 用<b>可达性分析</b>：从 GC Roots 出发遍历引用链，遍历不到的就可以回收。</p>
+          <p><b>GC Roots 包括</b>：虚拟机栈中的局部变量、本地方法栈中 JNI 引用、方法区静态属性、常量引用、被 synchronized 持有的对象、Class 对象、JVM 内部引用。</p>
+          <p><b>为什么不用引用计数</b>：① 循环引用无法回收（A 引用 B、B 引用 A，计数都不为 0）；② 每次赋值都要增减计数，写操作开销大、还要保证原子性。</p>
+          <div class="follow"><b>追问 · 不可达就一定回收吗？</b>不是。要经历两次标记：不可达后判断是否重写了 <code>finalize()</code>，若重写则放入 F-Queue 尝试自救，第二次标记仍不可达才真正回收。<code>finalize()</code> 在 JDK9 已标记废弃，面试可以主动提一句"现在基本用 try-with-resources / Cleaner 替代"。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q4</span><span class="q-tx">强、软、弱、虚四种引用分别用在哪？</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <ul>
+            <li><b>强引用</b>：<code>new</code> 出来的默认引用，只要可达就不回收。内存不足时宁可 OOM 也不回收。</li>
+            <li><b>软引用 SoftReference</b>：内存<b>不足时</b>才回收，适合做缓存。<b>但生产上做缓存更推荐 Caffeine/Guava Cache</b>，能精确控制容量和淘汰策略。</li>
+            <li><b>弱引用 WeakReference</b>：<b>下次 GC 必定回收</b>。典型用途：<code>ThreadLocalMap</code> 的 key、<code>WeakHashMap</code>、Tomcat 的类加载器泄漏检测。</li>
+            <li><b>虚引用 PhantomReference</b>：唯一目的是对象被回收时收到通知（配合 ReferenceQueue），用于管理堆外内存 —— DirectByteBuffer 的 Cleaner 就是这么做的。</li>
+          </ul>
+          <div class="follow"><b>追问 · 软引用做缓存有什么问题？</b>回收时机完全由 GC 决定，不可控。可能出现"刚放进缓存就被清掉"或者"堆积到内存快满才一次性清光"的抖动。所以还是要用带 LRU/LFU 的成熟缓存库。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q5</span><span class="q-tx">CMS 和 G1 的区别？线上你会怎么选？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p><b>CMS</b>（并发标记清除，JDK9 已废弃、JDK14 移除）：</p>
+          <ul>
+            <li>四阶段：初始标记(STW) → 并发标记 → 重新标记(STW) → 并发清除。只有两次短暂 STW，追求低延迟。</li>
+            <li>老年代用<b>标记-清除</b> → 产生内存碎片 → 大对象分配失败触发 <code>Concurrent Mode Failure</code>，退化成 <b>Serial Old 单线程 Full GC</b>，停顿可能好几秒。</li>
+            <li>还有"浮动垃圾"问题（并发清理期间用户线程又产生的垃圾只能等下次）。</li>
+          </ul>
+          <p><b>G1</b>（JDK9 起默认）：</p>
+          <ul>
+            <li>堆切成等大的 <b>Region</b>（1-32MB），逻辑分代、物理不分代。</li>
+            <li>整体是<b>标记-整理</b>，Region 间是<b>复制</b> → 没有碎片问题。</li>
+            <li>可预测停顿：<code>-XX:MaxGCPauseMillis</code> 设定目标，G1 按回收收益排序选出本次要回收的 Region 集合（<b>Garbage First</b> 名字的来源）。</li>
+            <li>Mixed GC 会同时回收年轻代和部分老年代 Region。</li>
+          </ul>
+          <div class="follow"><b>选型话术</b>：堆 4-16G、要求停顿可控 → G1；超大堆（几十 G）+ 极致低延迟 → ZGC（JDK17 后可生产用，停顿 &lt;1ms，代价是吞吐略降和内存占用略高）；小堆（&lt;4G）+ 吞吐优先 → Parallel Scavenge + Parallel Old。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q6</span><span class="q-tx">G1 的 RSet、SATB、TAMS 分别解决什么问题？</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <p>这三个是 G1 能"分 Region 却还能只扫部分区域"的关键。</p>
+          <ul>
+            <li><b>RSet（记忆集）</b>：记录"哪些<b>别的</b> Region 有引用指向我"。回收单个 Region 时不用扫全堆找引用，直接查 RSet。代价是每个 Region 要占约 5-10% 的内存。</li>
+            <li><b>SATB（Snapshot At The Beginning）</b>：并发标记期间，以标记开始那一刻的对象图为快照。通过写前屏障（pre-write barrier）把被覆盖的旧引用记进队列，保证不漏标。<b>代价是产生浮动垃圾</b>（快照后新产生的垃圾本轮不收）。</li>
+            <li><b>TAMS（Top At Mark Start）指针</b>：每个 Region 记两个指针，标记期间新分配的对象默认就是存活的，不用再标记 —— 这就是 SATB 漏标问题在 G1 里的具体补法。</li>
+          </ul>
+          <div class="follow"><b>对比记忆</b>：CMS 用增量更新（incremental update，记新引用）解决漏标，G1 用 SATB（记旧引用）。问法是"三色标记为什么会漏标、怎么解决"，答"漏标要同时满足：黑对象新增指向白对象的引用 + 灰对象到白对象的引用被删除；增量更新破坏前者，SATB 破坏后者"。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q7</span><span class="q-tx">线上 CPU 飙到 100%，你怎么排查？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p><b>标准四步（背下来）</b>：</p>
+          <ol>
+            <li><code>top</code> 找到高 CPU 的进程 PID</li>
+            <li><code>top -Hp &lt;pid&gt;</code> 找到该进程里高 CPU 的线程 TID</li>
+            <li><code>printf "%x\n" &lt;tid&gt;</code> 把 TID 转成 16 进制</li>
+            <li><code>jstack &lt;pid&gt; | grep -A 30 &lt;hex&gt;</code> 定位到具体代码栈</li>
+          </ol>
+          <p><b>先判断是哪一类</b>：</p>
+          <ul>
+            <li><b>业务线程忙</b>：栈里能看到业务代码 → 死循环、正则灾难性回溯、超大 JSON 序列化、频繁对象创建。</li>
+            <li><b>GC 线程忙</b>：<code>jstat -gcutil &lt;pid&gt; 1000</code> 看 FGC 次数和耗时，或 <code>top -Hp</code> 看到 "GC task thread"。→ 定位到内存问题。</li>
+            <li><b>上下文切换高</b>：<code>vmstat 1</code> 看 cs 列、<code>pidstat -w</code>。→ 线程数过多、锁竞争激烈。</li>
+          </ul>
+          <div class="follow"><b>有 Arthas 就更简单</b>：<code>thread -n 5</code> 直接列出最忙的 5 个线程栈，<code>dashboard</code> 看整体。开口说 Arthas 是加分的，说明真上过生产。</div>
+          <div class="pitfall"><b>踩坑</b>：只答"用 jstack 看"是半步。面试官想听的是<b>你如何区分"业务死循环"和"GC 打满"</b>，因为这两条的后续动作完全不同。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q8</span><span class="q-tx">OOM 有哪些类型？分别怎么定位？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <table>
+            <thead><tr><th>错误信息</th><th>典型原因</th><th>定位手段</th></tr></thead>
+            <tbody>
+              <tr><td>Java heap space</td><td>内存泄漏或一次性加载大量数据</td><td><code>-XX:+HeapDumpOnOutOfMemoryError</code> 拿 dump → MAT 看支配树和 Leak Suspects</td></tr>
+              <tr><td>Metaspace</td><td>动态代理/CGLIB 生成过多类；热部署重复加载</td><td><code>jmap -clstats</code> 看类加载器数量；检查反射、Groovy、热部署工具</td></tr>
+              <tr><td>GC overhead limit exceeded</td><td>GC 花了 98% 时间却只回收不到 2%，本质还是泄漏</td><td>同上，按堆内存泄漏处理</td></tr>
+              <tr><td>unable to create new native thread</td><td>线程数超系统限制，或线程池无界</td><td><code>ulimit -u</code> 查限制；<code>jstack | grep -c "java.lang.Thread.State"</code> 数线程</td></tr>
+              <tr><td>Direct buffer memory</td><td>堆外内存泄漏（NIO 直接缓冲未释放）</td><td><code>-XX:MaxDirectMemorySize</code> 限制；查 Netty 的 ByteBuf 是否 release</td></tr>
+              <tr><td>unable to create new native thread / Map failed</td><td>物理内存或 swap 不足</td><td><code>free -h</code>、<code>vmstat</code> 看 swap 使用</td></tr>
+            </tbody>
+          </table>
+          <div class="follow"><b>追问 · dump 文件 20G 打不开怎么办？</b>先用 <code>jmap -histo:live &lt;pid&gt;</code> 看对象直方图，按实例数/占用排序，锁定嫌疑类；再针对性只 dump 那部分。或者用 <code>jmap -dump:live,format=b,file=xxx</code> 只 dump 存活对象（会触发一次 Full GC，注意影响）。</div>
+          <div class="pitfall"><b>踩坑</b>：OOM 不等于内存泄漏。也可能是单次查询没分页、一次性查出 100 万行 —— 这类要答"加游标分页 / 流式查询"，才显得你处理过真实场景。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q9</span><span class="q-tx">双亲委派模型是什么？它被"破坏"过几次？</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <p><b>机制</b>：类加载器收到加载请求时，先委派给父加载器；父加载器加载不了，自己才尝试加载。</p>
+          <p><b>好处</b>：① 保证核心类库不被篡改（你自己写一个 <code>java.lang.String</code> 永远不会被加载）；② 避免同一个类被重复加载。</p>
+          <p><b>层级</b>：Bootstrap（C++ 实现，加载 java.base 等）→ Platform/Extension → Application → 自定义。</p>
+          <p><b>三次被破坏</b>：</p>
+          <ul>
+            <li><b>第一次（JDK1.2 之前）</b>：为了兼容老代码，允许子类覆写 <code>loadClass()</code>。后来通过新增 <code>findClass()</code> 让用户只覆写它来规避。</li>
+            <li><b>第二次（SPI）</b>：像 JDBC 的 <code>DriverManager</code> 由 Bootstrap 加载，但它要加载厂商实现类（Application 层）—— 父加载器看不到子加载器的类。解法是<b>线程上下文类加载器</b> <code>Thread.currentThread().getContextClassLoader()</code>。</li>
+            <li><b>第三次（热部署 / OSGi / Tomcat）</b>：Tomcat 给每个 webapp 一个 <code>WebappClassLoader</code>，<b>优先加载自己 WEB-INF/lib 下的类</b>，实现应用间隔离和不同版本共存。</li>
+          </ul>
+          <div class="follow"><b>追问 · 为什么要破坏双亲委派？</b>因为"父加载器无法访问子加载器的类"这个方向性是单向的，而实际场景里父子都需要互相可见（SPI 是父要子，Tomcat 是相互隔离）。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="plus">
+        <summary><span class="q-no">Q10</span><span class="q-tx">逃逸分析能给代码带来什么优化？</span><span class="lv lv-plus">加分</span></summary>
+        <div class="ans">
+          <p>JIT（C2）分析方法内 new 的对象是否会"逃逸"出方法或线程，不会逃逸就能做三件事：</p>
+          <ul>
+            <li><b>栈上分配</b>：对象随栈帧销毁，减轻 GC 压力。注意：HotSpot 里这个其实<b>很少真正落地</b>。</li>
+            <li><b>标量替换</b>：把对象拆成若干个基本类型变量放在栈上 —— <b>这才是实际生效、收益最大的那个</b>。所以"小对象分配没那么贵"。</li>
+            <li><b>锁消除</b>：对象只被本线程访问，synchronized 直接去掉。典型例子：<code>StringBuffer</code> 局部变量拼字符串，锁会被消除。</li>
+          </ul>
+          <p>默认开启：<code>-XX:+DoEscapeAnalysis</code>。</p>
+          <div class="follow"><b>追问 · 为什么你的代码里锁消除没生效？</b>因为要 C2 编译后才有，解释执行阶段还是走原逻辑 —— 别用它来解释压测性能差异。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q11</span><span class="q-tx">volatile 保证原子性吗？它靠什么实现？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p><b>保证可见性和有序性，不保证原子性。</b></p>
+          <ul>
+            <li><b>可见性</b>：写 volatile 变量后立即刷回主内存，并使其他 CPU 的缓存行失效（底层是 lock 前缀指令 + MESI 缓存一致性协议）。</li>
+            <li><b>有序性</b>：通过<b>内存屏障</b>禁止指令重排。写前插 StoreStore、写后插 StoreLoad；读后插 LoadLoad、读前插 LoadStore。</li>
+            <li><b>不保证原子性</b>：<code>i++</code> 是"读-改-写"三步，volatile 只能保证每步读到最新值，不能保证三步不可分割。要原子性得用 <code>AtomicInteger</code> 或加锁。</li>
+          </ul>
+          <div class="follow"><b>必被追问 · DCL 单例为什么必须加 volatile？</b>因为 <code>new</code> 分三步：分配内存 → 初始化对象 → 把引用赋给变量。② 和 ③ 可能重排，导致另一个线程在 ③ 完成后、② 未完成时拿到一个"非 null 但字段全是初始值"的对象。volatile 禁止了这个重排。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q12</span><span class="q-tx">说一下 synchronized 的锁升级过程</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p><b>无锁 → 偏向锁 → 轻量级锁 → 重量级锁</b>，状态记录在对象头 Mark Word 里。</p>
+          <ul>
+            <li><b>偏向锁</b>：Mark Word 记录持有线程 ID，同一线程再进来只需比对 ID，不用任何同步操作。有第二个线程来竞争时撤销（撤销要 STW，代价不小）。<b>JDK15 起默认禁用，JDK18 已彻底移除</b> —— 原因是撤销成本高于收益。</li>
+            <li><b>轻量级锁</b>：CAS 把 Mark Word 指向当前线程栈中的 Lock Record。失败则自旋重试（自适应自旋）。</li>
+            <li><b>重量级锁</b>：竞争激烈时膨胀成 ObjectMonitor，未抢到的线程进入 EntryList 阻塞挂起，依赖操作系统 mutex → <b>涉及用户态/内核态切换，开销大</b>。</li>
+          </ul>
+          <p><b>两个优化</b>：锁消除（JIT 判定无共享就不加锁）、锁粗化（相邻的加锁操作合并成一次）。</p>
+          <div class="follow"><b>追问 · 锁能降级吗？</b>基本不能。偏向锁撤销后不可逆；重量级锁理论上可在 safepoint 降为轻量级，但实际极少发生。<b>所以设计上应该避免让锁频繁升级到重量级</b>（减少临界区、降低竞争）。</div>
+          <div class="pitfall"><b>踩坑</b>：提一句"JDK18 移除了偏向锁"，说明你在跟进版本 —— 这是很廉价但很有效的加分点。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q13</span><span class="q-tx">AQS 的原理讲一下</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p><b>核心三件套</b>：一个 volatile int <code>state</code> + 一个 CLH 变体的双向 FIFO 队列 + 一套模板方法。</p>
+          <ul>
+            <li>state 语义由子类定义：ReentrantLock 里 0/1 表示是否被占、&gt;1 表示重入次数；Semaphore 里表示可用许可数；CountDownLatch 里表示剩余计数。</li>
+            <li>子类只需实现 <code>tryAcquire/tryRelease</code>（独占）或 <code>tryAcquireShared</code>（共享），AQS 负责排队、阻塞、唤醒。</li>
+            <li>节点 waitStatus：<code>SIGNAL(-1)</code> 表示"我的后继需要我唤醒"、<code>CANCELLED(1)</code>、<code>CONDITION(-2)</code>、<code>PROPAGATE(-3)</code>。</li>
+          </ul>
+          <p><b>公平 vs 非公平（ReentrantLock）</b>：非公平锁进来先抢一次，抢不到才入队 —— 吞吐高但可能饥饿；公平锁会先检查队列里有没有等待者。</p>
+          <p><b>Condition</b>：每个 Condition 有独立的等待队列。<code>await()</code> 把节点从同步队列移到等待队列并释放锁；<code>signal()</code> 移回同步队列。这就是 <code>BlockingQueue</code> 的实现基础。</p>
+          <div class="follow"><b>一次答全（体现体系感）</b>：AQS 的共享模式还支撑了 CountDownLatch、Semaphore、ReentrantReadWriteLock（高 16 位表示读锁、低 16 位表示写锁）。<b>面试只要说"我读过 AQS 源码"，就一定会被问到 ReentrantLock 的非公平锁抢锁逻辑</b>，提前准备好。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q14</span><span class="q-tx">线程池的执行流程？核心线程数怎么定？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p><b>7 个参数</b>：corePoolSize、maximumPoolSize、keepAliveTime、unit、workQueue、threadFactory、handler。</p>
+          <p><b>执行流程</b>（顺序不能错）：</p>
+          <ul>
+            <li>核心线程未满 → 直接新建核心线程执行</li>
+            <li>核心线程已满 → 任务<b>先入队列</b>，而不是创建新线程（这是最容易答错的点）</li>
+            <li>队列也满 → 创建非核心线程直到 maximumPoolSize</li>
+            <li>线程数到上限且队列满 → 触发拒绝策略</li>
+          </ul>
+          <p><b>四种拒绝策略</b>：AbortPolicy（默认，抛 RejectedExecutionException）、CallerRunsPolicy（<b>调用者线程自己执行，天然背压</b>，最推荐用于不能丢任务的场景）、DiscardPolicy（静默丢弃，危险）、DiscardOldestPolicy（丢队列最老的）。</p>
+          <p><b>核心线程数怎么定</b>：CPU 密集 N+1、IO 密集 2N —— 但这只是起点。<b>靠谱答案是"压测 + 监控"</b>：看 activeCount、queueSize、completedTaskCount、rejectCount，找到吞吐拐点。</p>
+          <div class="follow"><b>追问 · 为什么不用 Executors 的工厂方法？</b><code>newFixedThreadPool</code> 用 <code>LinkedBlockingQueue</code> 无界队列 → 任务堆积导致 OOM；<code>newCachedThreadPool</code> 最大线程数是 Integer.MAX_VALUE → 可能创建海量线程。所以<b>必须手写 ThreadPoolExecutor 并显式指定有界队列</b>，同时自定义线程名（方便 jstack 定位）。</div>
+          <div class="follow"><b>追问 · 线程池里的任务抛异常会怎样？</b>线程会终止并被移除，然后新建一个线程。<code>execute()</code> 的异常会走到 UncaughtExceptionHandler；<code>submit()</code> 会包进 Future，<b>不调用 get() 就永远看不到异常</b> —— 这是很隐蔽的坑。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q15</span><span class="q-tx">ThreadLocal 为什么会内存泄漏？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p><b>结构</b>：每个 <code>Thread</code> 内部持有一个 <code>ThreadLocalMap</code>，<b>key 是 ThreadLocal 的弱引用，value 是强引用</b>。</p>
+          <p><b>泄漏路径</b>：ThreadLocal 对象被回收后，key 变成 null，但 value 还挂在 Thread 的 map 里 → 线程不死（线程池里的线程是长期存活的）→ value 越积越多 → 直到 OOM。</p>
+          <p><b>正确写法</b>：</p>
+          <ul>
+            <li><b>必须 try-finally 里 remove()</b>，这是唯一的可靠做法。</li>
+            <li>ThreadLocalMap 在 get/set/remove 时会顺带清理一些 key 为 null 的 Entry，但这是<b>启发式清理</b>，不能依赖。</li>
+          </ul>
+          <div class="follow"><b>追问 · key 为什么设计成弱引用？</b>算是一种兜底：让 ThreadLocal 对象本身能被回收，不然连 key 都永远留着。但 value 还是强引用，所以依然要手动 remove。</div>
+          <div class="follow"><b>追问 · InheritableThreadLocal 能用在线程池里吗？</b>不能。它只在<b>创建子线程那一刻</b>拷贝父线程的值，线程池的线程是复用的，会拿到上一个任务的残留值。解法是阿里开源的 <b>TransmittableThreadLocal（TTL）</b>，配合 <code>TtlExecutors</code> 包装线程池。</div>
+          <div class="pitfall"><b>踩坑</b>：MDC（日志链路 traceId）也是 ThreadLocal 实现，异步任务/线程池里会丢 —— 这是真实生产问题，主动说出来非常加分。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q16</span><span class="q-tx">ConcurrentHashMap 1.8 为什么放弃分段锁？</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <p><b>1.7 的做法</b>：Segment 数组（继承 ReentrantLock），每个 Segment 锁住一部分 HashEntry，并发度 = Segment 数量（默认 16），扩容也只能段内进行。</p>
+          <p><b>1.8 的做法</b>：</p>
+          <ul>
+            <li>Node 数组 + CAS 初始化头节点 + <b>synchronized 锁单个桶（链表头）</b></li>
+            <li>链表长度 ≥ 8 且数组长度 ≥ 64 时转红黑树（否则先扩容）</li>
+            <li>并发粒度从"段"细化到"桶"，理论上并发度 = 数组长度</li>
+            <li>size() 用 <code>baseCount + CounterCell[]</code> 分散计数，避免热点</li>
+            <li>扩容支持<b>多线程协助迁移</b>，用 ForwardingNode 标记已迁移的桶</li>
+          </ul>
+          <div class="follow"><b>追问 · 为什么用 synchronized 而不是 ReentrantLock？</b>① 1.8 后 synchronized 有锁升级优化，单桶粒度下竞争不激烈，性能足够；② 每个桶一个 ReentrantLock 对象会浪费大量内存（几百万个桶的场景）；③ 代码更简洁。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q17</span><span class="q-tx">CAS 有什么问题？LongAdder 为什么比 AtomicLong 快？</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <p><b>CAS 三大问题</b>：</p>
+          <ul>
+            <li><b>ABA 问题</b>：值从 A 改成 B 又改回 A，CAS 认为没变过。解法：<code>AtomicStampedReference</code> 加版本号，或 <code>AtomicMarkableReference</code> 加布尔标记。</li>
+            <li><b>自旋开销大</b>：竞争激烈时大量线程空转，CPU 白白消耗。</li>
+            <li><b>只能保证一个变量的原子性</b>：多变量要 <code>AtomicReference</code> 包装成对象，或者直接加锁。</li>
+          </ul>
+          <p><b>LongAdder 的思路</b>：把热点拆开 —— 内部维护一个 <code>Cell[]</code> 数组，不同线程 CAS 到不同的 Cell 上，<code>sum()</code> 时把所有 Cell 累加。这样竞争被分散，吞吐大幅提升。</p>
+          <div class="follow"><b>追问 · 那什么时候还用 AtomicLong？</b>需要<b>强一致的实时值</b>时。LongAdder 的 sum() 是弱一致的（累加过程中可能读到中间态），适合做统计计数，不适合做序列号或需要精确判断的阈值。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="plus">
+        <summary><span class="q-no">Q18</span><span class="q-tx">并发容器怎么选？虚拟线程了解吗？</span><span class="lv lv-plus">加分</span></summary>
+        <div class="ans">
+          <p><b>容器选型</b>：</p>
+          <ul>
+            <li><code>CopyOnWriteArrayList</code>：写时复制，读完全无锁。适合<b>读极多写极少</b>（配置、监听器列表）。写多会频繁复制且内存瞬时翻倍。</li>
+            <li><code>ConcurrentLinkedQueue</code>：CAS 无锁队列，无界，适合高并发入队。</li>
+            <li><code>BlockingQueue</code> 家族：<code>ArrayBlockingQueue</code>（有界，一把锁两个 Condition）、<code>LinkedBlockingQueue</code>（默认无界，读写分离两把锁）、<code>SynchronousQueue</code>（不存储直接移交）、<code>DelayQueue</code>（延迟任务）、<code>PriorityBlockingQueue</code>。</li>
+          </ul>
+          <p><b>工具类</b>：<code>CountDownLatch</code>（一次性，一等多）、<code>CyclicBarrier</code>（可重用，互相等）、<code>Semaphore</code>（限流/连接池）。</p>
+          <p><b>虚拟线程（JDK21 正式）</b>：由 JVM 调度的轻量级线程，挂载到少量平台线程上。阻塞时会自动卸载（unmount）释放载体线程，所以<b>能支持百万级线程</b>。</p>
+          <div class="follow"><b>追问 · 虚拟线程能解决什么、不能解决什么？</b>能解决的是"IO 阻塞导致线程数不够，只能靠异步回调把代码写复杂"的问题 —— 用同步写法拿到异步吞吐。不能解决的是 CPU 密集和同步块（<code>synchronized</code> 会 pin 住载体线程，JDK21+ 建议换 ReentrantLock）。另一个坑是 ThreadLocal：百万虚拟线程各持一份会爆内存，官方建议改用 ScopedValue。预置线程池也不再需要（<code>Executors.newVirtualThreadPerTaskExecutor()</code>）。</div>
+        </div>
+      </details>
+    </div>
+
+    <div class="sub">
+      <h3>资料</h3>
+      <ul class="res">
+        <li><b>《深入理解 Java 虚拟机》周志明（第 3 版）</b> —— 第 2/3 章内存与 GC、第 7 章类加载、第 12/13 章并发，这是本模块的权威依据，读两遍</li>
+        <li><b>《Java 并发编程的艺术》</b> —— AQS、锁、并发容器讲得最细，适合配合源码读</li>
+        <li><b>JDK 源码</b>：<code>AbstractQueuedSynchronizer</code>、<code>ThreadPoolExecutor</code>、<code>ConcurrentHashMap</code>、<code>ThreadLocal</code> 四个类是必读</li>
+        <li><b>美团技术博客</b>搜"Java 线程池"、"G1"，有生产级调优案例</li>
+        <li><b>Arthas 官方文档</b> —— <code>thread</code>、<code>trace</code>、<code>watch</code>、<code>jad</code> 四个命令练熟</li>
+        <li><b>动手验证</b>：本地用 <code>-Xmx</code> 限制堆造一次 OOM 并用 MAT 分析；写一个死循环线程跑 <code>top -Hp</code> + <code>jstack</code>，把流程走一遍</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="module" id="m-spring" data-title="框架源码">
+    <div class="mod-tag">模块 02 · 面试权重 20% · 建议投入 5 天</div>
+    <h2>框架源码</h2>
+    <p class="mod-desc">
+      中厂对框架的要求是：<b>不用背源码细节，但必须能讲清关键链路和"为什么这样设计"</b>。
+      最高频的三个点是：<b>Bean 生命周期、循环依赖的三级缓存、事务/AOP 失效场景</b>。最后一个尤其重要，因为它直接对应你有没有写错过代码。
+    </p>
+    <div class="mod-meta"><span>高频题 14 道</span><span>必考 8 道</span><span>Spring 占 11 题</span><span>MyBatis 占 3 题</span></div>
+    <div class="mod-prog"><span class="track"><span class="mod-bar"></span></span><span class="mod-pct">0%</span></div>
+
+    <div class="sub">
+      <h3>考点清单</h3>
+      <div class="checklist">
+        <label class="ck"><input type="checkbox" id="sp-01"><span>Spring 启动流程 refresh() 12 步</span></label>
+        <label class="ck"><input type="checkbox" id="sp-02"><span>Bean 完整生命周期（含 AOP 代理注入点）</span></label>
+        <label class="ck"><input type="checkbox" id="sp-03"><span>循环依赖与三级缓存，为什么必须是三级</span></label>
+        <label class="ck"><input type="checkbox" id="sp-04"><span>@Autowired / @Resource 的区别与注入原理</span></label>
+        <label class="ck"><input type="checkbox" id="sp-05"><span>AOP 的 JDK 动态代理 vs CGLIB，选型依据</span></label>
+        <label class="ck"><input type="checkbox" id="sp-06"><span>AOP 失效场景全集（自调用等）</span></label>
+        <label class="ck"><input type="checkbox" id="sp-07"><span>@Transactional 失效 9 种场景</span></label>
+        <label class="ck"><input type="checkbox" id="sp-08"><span>7 种事务传播行为，REQUIRES_NEW vs NESTED</span></label>
+        <label class="ck"><input type="checkbox" id="sp-09"><span>Spring MVC 一次请求的完整链路</span></label>
+        <label class="ck"><input type="checkbox" id="sp-10"><span>Spring Boot 自动装配原理与 imports 文件</span></label>
+        <label class="ck"><input type="checkbox" id="sp-11"><span>内嵌 Tomcat 是怎么启动的</span></label>
+        <label class="ck"><input type="checkbox" id="sp-12"><span>MyBatis 一二级缓存的机制与坑</span></label>
+        <label class="ck"><input type="checkbox" id="sp-13"><span>MyBatis #{} 与 ${}、SQL 注入防护</span></label>
+        <label class="ck"><input type="checkbox" id="sp-14"><span>手写一个 Spring Boot Starter</span></label>
+      </div>
+    </div>
+
+    <div class="sub">
+      <h3>高频面试题</h3>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q1</span><span class="q-tx">Spring 的启动流程（refresh 方法）讲一下</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <p>核心是 <code>AbstractApplicationContext#refresh()</code> 的 12 步，<b>不用全背，记住 5 个关键步骤</b>：</p>
+          <ol>
+            <li><b>prepareRefresh</b>：准备上下文，记录启动时间、初始化属性源</li>
+            <li><b>obtainFreshBeanFactory</b>：创建并配置 BeanFactory（Boot 中复用已有的）</li>
+            <li><b>prepareBeanFactory</b>：设置 ClassLoader、SpEL 解析器、注册 BeanPostProcessor、添加忽略依赖（Aware 接口）</li>
+            <li>postProcessBeanFactory：子类扩展点（如 MVC 注册 RequestMappingHandlerMapping）</li>
+            <li><b>invokeBeanFactoryPostProcessors</b> ← <b>关键 ①</b>：执行 <code>ConfigurationClassPostProcessor</code>，扫描 <code>@Component</code>、解析 <code>@Bean</code>、<code>@Import</code>，生成 BeanDefinition；并给 <code>@Configuration</code> 类生成 CGLIB 代理，保证 <code>@Bean</code> 方法返回单例</li>
+            <li>registerBeanPostProcessors ← 注册 AOP、@Autowired、@EventListener 等后置处理器（按 PriorityOrdered → Ordered → 普通 排序）</li>
+            <li>initMessageSource / initApplicationEventMulticaster：国际化、事件广播器</li>
+            <li><b>onRefresh</b>：创建内嵌容器（Spring Boot 在这里启动 Tomcat）</li>
+            <li>registerListeners：注册监听器</li>
+            <li><b>finishBeanFactoryInitialization</b> ← <b>关键 ②</b>：实例化所有非懒加载单例（Bean 生命周期在这里跑）</li>
+            <li><b>finishRefresh</b>：发布 ContextRefreshedEvent、启动 LifecycleProcessor</li>
+          </ol>
+          <div class="follow"><b>记忆锚点</b>：准备上下文 → 造工厂 → 扫 BeanDefinition → 装后置处理器 → 造单例 → 完工。<b>两个"关键"是面试官真正想听的</b>：BeanDefinition 什么时候来的、单例什么时候造的。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q2</span><span class="q-tx">Bean 的完整生命周期</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <ol>
+            <li><b>实例化</b>：调用构造器 / 工厂方法</li>
+            <li><b>属性填充</b>：<code>@Autowired</code>、<code>@Value</code> 注入；回调 <code>Aware</code> 系列（BeanNameAware → BeanFactoryAware → ApplicationContextAware）</li>
+            <li><b>初始化</b>（顺序很重要）：
+              <ul>
+                <li><code>BeanPostProcessor.postProcessBeforeInitialization</code>（<code>@PostConstruct</code> 在这一步由 CommonAnnotationBeanPostProcessor 触发）</li>
+                <li><code>InitializingBean.afterPropertiesSet()</code></li>
+                <li><code>init-method</code>（<code>@Bean(initMethod=...)</code>）</li>
+                <li><code>BeanPostProcessor.postProcessAfterInitialization</code> ← <b>AOP 代理在这里生成</b></li>
+              </ul>
+            </li>
+            <li>使用中（放进单例池）</li>
+            <li><b>销毁</b>：<code>@PreDestroy</code> → <code>DisposableBean.destroy()</code> → <code>destroy-method</code></li>
+          </ol>
+          <div class="follow"><b>最容易被追问的点</b>：AOP 代理是在 <b>postProcessAfterInitialization</b> 生成的。这意味着——<b>你注入到别的 Bean 里的是代理对象，不是原始对象</b>。这一条同时解释了"自调用为什么会让 AOP 失效"。</div>
+          <div class="pitfall"><b>踩坑</b>：<code>@PostConstruct</code> 和 <code>afterPropertiesSet</code> 的顺序别搞反。<code>@PostConstruct</code> 在前（它由 BeanPostProcessor 的 before 阶段触发），<code>afterPropertiesSet</code> 在后。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q3</span><span class="q-tx">Spring 怎么解决循环依赖？为什么需要三级缓存而不是二级？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p><b>先说结论</b>：只能解决<b>单例 + setter/字段注入</b>的循环依赖。</p>
+          <p><b>三级缓存</b>：</p>
+          <ul>
+            <li><code>singletonObjects</code>（一级）：完整的成品 Bean</li>
+            <li><code>earlySingletonObjects</code>（二级）：半成品，属性还没填完</li>
+            <li><code>singletonFactories</code>（三级）：ObjectFactory 工厂，<b>延迟生产</b>早期引用</li>
+          </ul>
+          <p><b>流程（A 依赖 B、B 依赖 A）</b>：A 实例化后，把"生产 A 早期引用的工厂"放进三级缓存 → 填充 A 的属性时发现要 B → 创建 B → B 填充属性时发现要 A → 从三级缓存拿到工厂并调用 <code>getObject()</code>，得到 A 的早期引用（此时如果需要 AOP，就提前生成代理）→ B 创建完成 → A 完成。</p>
+          <div class="follow"><b>为什么不能只有二级？</b>如果把"早期引用"直接放二级缓存，那就必须在 A 刚实例化完、还没走到 <code>postProcessAfterInitialization</code> 时就决定"要不要给它生成 AOP 代理"。而这个判断依赖后置处理器，此刻还没轮到。三级缓存的工厂把<b>"是否代理"的决策推迟到真正被依赖的那一刻</b>，并且保证同一个 Bean 只生成一次代理。</div>
+          <div class="follow"><b>追问 · 为什么构造器注入解决不了？</b>构造器注入要求"实例化时就得拿到依赖"，而 A 的实例化本身依赖 B → 形成死锁，Spring 直接抛 <code>BeanCurrentlyInCreationException</code>。<b>prototype 作用域也无解</b>（官方明确不解决）。</div>
+          <div class="pitfall"><b>踩坑 · 这是送分也是送命题</b>：Spring Boot 2.6+ <b>默认禁止循环依赖</b>（<code>spring.main.allow-circular-references=false</code>）。所以正确的收尾是"机制是这么实现的，但生产上应该通过重构（抽公共服务、用 <code>@Lazy</code>）来消除循环依赖，而不是依赖这个兜底"。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q4</span><span class="q-tx">@Autowired 和 @Resource 有什么区别？</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <dl class="kv">
+            <dt>来源</dt><dd>@Autowired 是 Spring 的注解；@Resource 是 JSR-250 标准（JDK 自带，<code>jakarta.annotation</code>）</dd>
+            <dt>装配方式</dt><dd>@Autowired 默认 <b>byType</b>，多个候选时配合 <code>@Qualifier</code> 指定名字；@Resource 默认 <b>byName</b>，找不到才 byType</dd>
+            <dt>可选性</dt><dd>@Autowired 有 <code>required=false</code> 可允许为空；@Resource 无此属性</dd>
+            <dt>适用范围</dt><dd>@Autowired 可用于构造器、方法、字段、参数；@Resource 主要用于字段和方法</dd>
+            <dt>实现</dt><dd>@Autowired 由 <code>AutowiredAnnotationBeanPostProcessor</code> 处理；@Resource 由 <code>CommonAnnotationBeanPostProcessor</code> 处理</dd>
+          </dl>
+          <div class="follow"><b>追问 · @Autowired 注入集合会怎样？</b>会把所有实现类都注入进来（<code>List&lt;XxxService&gt;</code>、<code>Map&lt;String, XxxService&gt;</code>，Map 的 key 是 Bean 名）。这是实现<b>策略模式</b>的常用技巧，主动说出来是加分项。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q5</span><span class="q-tx">AOP 有哪两种代理方式？Spring Boot 默认用哪个？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <dl class="kv">
+            <dt>JDK 动态代理</dt><dd><code>Proxy.newProxyInstance</code>，基于<b>接口</b>生成代理类。<b>只能代理接口中声明的方法</b>，目标类必须实现接口。</dd>
+            <dt>CGLIB</dt><dd>通过 ASM 生成目标类的<b>子类</b>并覆写方法。<b>无法代理 final 类、final 方法、private 方法</b>（子类看不到）。JDK17+ 上 CGLIB 也需要 <code>--add-opens</code> 处理反射限制。</dd>
+          </dl>
+          <p><b>Spring Boot 2.0 起默认 <code>spring.aop.proxy-target-class=true</code>，即 CGLIB。</b>原因是：避免"注入时用实现类类型、但代理只实现了接口"导致的类型转换异常，开发者也不用被迫写接口。</p>
+          <div class="follow"><b>追问 · 什么情况下 AOP 会失效？</b>① 方法<b>不是 public</b>（默认只拦截 public）；② <b>自调用</b>（<code>this.xxx()</code> 走的是原始对象）；③ <b>final 方法/类</b>（CGLIB 无法覆写）；④ static 方法；⑤ 对象不是 Spring 管理的（自己 new 出来的）；⑥ 类内部用了 <code>@Transactional</code> 但类本身没被代理。这六条要一口气说出来。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q6</span><span class="q-tx">同一个类里方法互相调用，为什么事务/AOP 会失效？怎么解决？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p><b>根因</b>：AOP 的拦截发生在<b>代理对象</b>上。外部调用 <code>aService.methodA()</code> 走的是代理，代理再转发给目标对象。但目标对象内部执行 <code>this.methodB()</code> 时，<code>this</code> 是<b>原始对象</b>，不经过代理，所以 methodB 上的所有切面（事务、缓存、异步、日志）全部失效。</p>
+          <p><b>三种解法</b>：</p>
+          <ol>
+            <li><b>注入自己</b>：<code>@Autowired private XxxService self;</code> 然后 <code>self.methodB()</code>。注意：Spring 4.3+ 支持自注入，但会产生循环依赖警告，可用 <code>@Lazy</code> 缓解。</li>
+            <li><b>暴露代理</b>：<code>@EnableAspectJAutoProxy(exposeProxy = true)</code> 后用 <code>AopContext.currentProxy()</code> 调用。<b>不优雅，但不用改结构。</b></li>
+            <li><b>拆成两个 Bean</b>（最推荐）：把 methodB 挪到另一个 Service 里，由 Spring 自然注入代理。<b>这也是面试官最想听的答案 —— 因为它是"设计问题用设计解决"。</b></li>
+          </ol>
+          <div class="follow"><b>追问 · @Async 也一样吗？</b>完全一样，同一个根因。顺便提一句：<code>@Async</code> 还有另一个坑 —— <b>它的返回值必须是 void 或 Future/CompletableFuture</b>，返回普通对象拿不到异步结果。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q7</span><span class="q-tx">@Transactional 有哪些失效场景？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p>这是<b>必问题，也是最能体现实战经验的题</b>。九种场景：</p>
+          <ol>
+            <li>方法<b>不是 public</b>（默认只对 public 生效，其余静默失效，不报错）</li>
+            <li><b>自调用</b>（上面 Q6）</li>
+            <li><b>异常被 try-catch 吞掉</b>了，没往外抛</li>
+            <li>抛的是<b>受检异常</b>（默认只回滚 RuntimeException 和 Error）→ 必须写 <code>rollbackFor = Exception.class</code></li>
+            <li>在 <code>catch</code> 里 <code>return</code> 了或者重新抛了别的异常类型</li>
+            <li>类没被 Spring 管理，或者你拿到的是原始对象不是代理</li>
+            <li>传播行为设成了 <code>NOT_SUPPORTED</code> / <code>NEVER</code></li>
+            <li><b>多数据源没指定事务管理器</b>（<code>@Transactional(transactionManager = "xxx")</code>）</li>
+            <li>数据库引擎不支持事务（MyISAM），或者方法里操作的是多个不同的数据源</li>
+          </ol>
+          <div class="follow"><b>追问 · 为什么受检异常默认不回滚？</b>Spring 的设计假设是：受检异常属于"可预期的业务异常"，调用方应该处理；而 RuntimeException 属于"程序错误"，应当回滚。这是设计哲学，不是 bug。<b>实际项目里统一写 <code>rollbackFor = Exception.class</code></b> 更省心。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q8</span><span class="q-tx">事务传播行为有哪些？REQUIRES_NEW 和 NESTED 的区别？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p><b>7 种</b>：REQUIRED（默认，有则加入、无则新建）、REQUIRES_NEW（挂起当前，新建独立事务）、SUPPORTS、NOT_SUPPORTED、MANDATORY、NEVER、NESTED。</p>
+          <p><b>面试真正想考的是这两个的区别</b>：</p>
+          <dl class="kv">
+            <dt>REQUIRES_NEW</dt><dd>开启一个<b>完全独立的新事务</b>（新数据库连接）。内外事务互不影响：外层回滚不影响内层（内层已提交），内层回滚也不影响外层。</dd>
+            <dt>NESTED</dt><dd>在<b>同一个事务</b>里打一个 savepoint。内层回滚只回滚到 savepoint，外层不受影响；但<b>外层回滚会连带内层一起回滚</b>。只对 JDBC 数据源生效，且需要数据库支持保存点。</dd>
+          </dl>
+          <div class="pitfall"><b>踩坑 · 一定要主动说这个</b>：<code>REQUIRES_NEW</code> 会占用<b>两条数据库连接</b>。如果外层方法在一个大循环里调用 REQUIRES_NEW 方法，或者并发量高，<b>连接池很容易被打满</b>，表现为获取连接超时。这是非常经典的生产事故，主动说出来直接拉高评价。</div>
+          <div class="follow"><b>追问 · 记录操作日志为什么常用 REQUIRES_NEW？</b>因为业务回滚时日志需要保留。但更稳的做法是"日志走异步 + 独立数据源 + 本地消息表"，避免连接占用和日志丢失。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q9</span><span class="q-tx">Spring MVC 一次请求的完整流程</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <p>入口是 <code>DispatcherServlet</code>（前端控制器），核心九步：</p>
+          <ol>
+            <li>请求到达 DispatcherServlet</li>
+            <li><b>HandlerMapping</b> 根据 URL 找到 HandlerExecutionChain（Handler + 拦截器链）</li>
+            <li><b>HandlerAdapter</b> 适配调用（<code>RequestMappingHandlerAdapter</code>）</li>
+            <li><b>参数解析</b>：<code>HandlerMethodArgumentResolver</code> 逐个解析方法参数（<code>@RequestParam</code>、<code>@PathVariable</code>、<code>@RequestBody</code>…）</li>
+            <li>执行拦截器的 <code>preHandle</code></li>
+            <li>调用 Controller 方法</li>
+            <li><b>返回值处理</b>：<code>HandlerMethodReturnValueHandler</code>。<code>@ResponseBody</code> 走 <code>RequestResponseBodyMethodProcessor</code> → <code>HttpMessageConverter</code>（Jackson）序列化</li>
+            <li>非 @ResponseBody 则走 <b>ViewResolver</b> 解析视图并渲染</li>
+            <li>拦截器 <code>postHandle</code> → <code>afterCompletion</code></li>
+          </ol>
+          <p><b>异常处理</b>：<code>HandlerExceptionResolver</code>，<code>@ControllerAdvice</code> + <code>@ExceptionHandler</code> 就是通过 <code>ExceptionHandlerExceptionResolver</code> 生效的。</p>
+          <div class="follow"><b>追问 · @RequestBody 只能读一次流，为什么？</b>因为 Servlet 的 <code>getInputStream()</code> 只能读一次。<code>AbstractMessageConverterMethodArgumentResolver</code> 会检查 request 是否已经被包装成可重复读（<code>ContentCachingRequestWrapper</code>），没包装就只读一次。<b>这就是"在拦截器里读 body 后 Controller 拿不到参数"的原因</b>，解法是自定义 Filter 包一层 RequestWrapper。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q10</span><span class="q-tx">Spring Boot 自动装配的原理</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p><code>@SpringBootApplication</code> = <code>@SpringBootConfiguration</code> + <code>@ComponentScan</code> + <code>@EnableAutoConfiguration</code>。</p>
+          <p><b>链路</b>：<code>@EnableAutoConfiguration</code> → <code>@Import(AutoConfigurationImportSelector.class)</code> → 读取 <code>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</code>（Spring Boot 2.7 起；之前是 <code>spring.factories</code>）拿到所有自动配置类的全限定名 → 用 <code>@Conditional</code> 系列注解逐个过滤 → 符合条件的注册为 BeanDefinition。</p>
+          <p><b>关键条件注解</b>：<code>@ConditionalOnClass</code>（类路径有才生效）、<code>@ConditionalOnMissingBean</code>（用户没自己定义才生效，这是"用户配置优先"的实现）、<code>@ConditionalOnProperty</code>、<code>@ConditionalOnWebApplication</code>。</p>
+          <div class="follow"><b>追问 · 怎么调试自动装配？</b>启动加 <code>--debug</code>，会打印自动配置报告：<code>Positive matches</code>（生效了）和 <code>Negative matches</code>（为什么没生效）。<b>这是排查"我的配置为什么不生效"最快的方法</b>，说出这个命令说明你真调试过。</div>
+          <div class="follow"><b>追问 · 2.7 为什么换 imports 文件？</b>原来 <code>spring.factories</code> 承载了太多职责（自动配置、监听器、初始化器、环境后置处理器都挤在一起），启动时要全部解析，很多无关类被提前加载。拆出独立的 imports 文件后，职责单一、加载更精准、启动更快。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="plus">
+        <summary><span class="q-no">Q11</span><span class="q-tx">内嵌 Tomcat 是怎么启动起来的？</span><span class="lv lv-plus">加分</span></summary>
+        <div class="ans">
+          <p>Spring Boot 不是"打包成 war 丢进外部容器"，而是<b>把容器当普通对象来启动</b>：</p>
+          <ul>
+            <li>应用类型判定为 Servlet → 创建 <code>ServletWebServerApplicationContext</code></li>
+            <li><code>refresh()</code> 走到 <b>onRefresh()</b> → 调用 <code>createWebServer()</code></li>
+            <li>通过 <code>ServletWebServerFactory</code>（默认 <code>TomcatServletWebServerFactory</code>）创建 Tomcat 实例</li>
+            <li>把 <code>DispatcherServlet</code> 注册进 ServletContext</li>
+            <li><code>tomcat.start()</code> 绑定端口，开始接收请求</li>
+            <li>refresh 的 <code>finishRefresh()</code> 启动 LifecycleProcessor，触发 WebServer 完全就绪事件</li>
+          </ul>
+          <div class="follow"><b>追问 · 怎么改成部署到外部 Tomcat？</b>主类继承 <code>SpringBootServletInitializer</code> 并覆写 <code>configure()</code>，pom 里把 packaging 改成 war 且 tomcat 依赖 scope 设 provided。<b>知道这个说明你处理过传统企业的部署环境</b>（国企/银行常要求）。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q12</span><span class="q-tx">MyBatis 的一级缓存和二级缓存有什么坑？</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <p><b>一级缓存（SqlSession 级）</b>：默认开启，同一 SqlSession 内相同 SQL + 参数只查一次数据库。任何 <code>insert/update/delete</code> 都会清空缓存。</p>
+          <p><b>二级缓存（namespace 级）</b>：需显式开启（<code>&lt;cache/&gt;</code> 或 <code>@CacheNamespace</code>），跨 SqlSession 共享。</p>
+          <p><b>二级缓存的三个坑（这就是面试官要的答案）</b>：</p>
+          <ul>
+            <li><b>必须提交事务才写入缓存</b>，未提交的查询不进缓存</li>
+            <li><b>多表关联时不同 namespace 的缓存不会同步</b> → 在 A 表改了数据，B 表 namespace 的缓存还是旧的 → <b>脏读</b></li>
+            <li>缓存里存的是<b>对象引用</b>，返回给调用方后被修改，缓存里的值也跟着变了</li>
+          </ul>
+          <div class="follow"><b>结论（可以直接当答案收尾）</b>：<b>生产上基本不开二级缓存</b>，需要缓存就用 Redis 自己封装（缓存 key 自己控制、能设 TTL、跨服务共享）。要关的话设 <code>mybatis.configuration.cache-enabled=false</code>。</div>
+          <div class="pitfall"><b>踩坑</b>：说"一级缓存会导致脏读"是不准确的 —— 一级缓存是 SqlSession 级的，Spring 里一个事务一个 SqlSession，事务内的可见性是符合预期的。真正的风险在<b>跨 SqlSession</b>，也就是二级缓存。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q13</span><span class="q-tx">MyBatis 的 #{} 和 ${} 有什么区别？</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <dl class="kv">
+            <dt>#{}</dt><dd>生成 PreparedStatement 的占位符 <code>?</code>，参数由 JDBC 做类型处理和转义 → <b>防 SQL 注入</b>，且能复用执行计划。</dd>
+            <dt>${}</dt><dd>字符串直接拼接进 SQL → <b>有注入风险</b>。</dd>
+          </dl>
+          <p><b>${} 只能用在无法参数化的地方</b>：表名、列名、动态排序字段（ORDER BY）、部分 LIMIT 场景。</p>
+          <div class="follow"><b>追问 · ORDER BY 为什么不能用 #{}？</b>因为预编译后它变成字符串常量，<code>ORDER BY 'create_time'</code> 等价于"按常量排序"，等于没排序。<b>用 ${} 时必须加 Java 侧白名单校验</b>（只允许枚举里的字段名），这是标准答案 —— 光说"用 ${}"会被继续追问注入风险。</div>
+          <div class="follow"><b>追问 · LIKE 怎么写？</b><code>CONCAT('%', #{keyword}, '%')</code>，不要用 <code>'%${keyword}%'</code>。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="plus">
+        <summary><span class="q-no">Q14</span><span class="q-tx">你写过 Spring Boot Starter 吗？怎么实现的？</span><span class="lv lv-plus">加分</span></summary>
+        <div class="ans">
+          <p>四步，<b>模块要拆成两个</b>：</p>
+          <ol>
+            <li><b>autoconfigure 模块</b>：写 <code>XxxAutoConfiguration</code>，用 <code>@Configuration</code> + <code>@ConditionalOnClass</code> + <code>@ConditionalOnMissingBean</code> 保证按需生效、且用户可覆盖</li>
+            <li>写 <code>XxxProperties</code>，用 <code>@ConfigurationProperties(prefix = "xxx")</code>，通过 <code>@EnableConfigurationProperties</code> 或 <code>@ConfigurationPropertiesScan</code> 注册</li>
+            <li>在 <code>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</code> 里写自动配置类的全限定名</li>
+            <li><b>starter 模块</b>：只做依赖聚合（依赖 autoconfigure + 第三方 SDK），用户只引 starter 就不用操心版本</li>
+          </ol>
+          <div class="follow"><b>加分细节</b>：命名规范 —— 官方的叫 <code>spring-boot-starter-xxx</code>，第三方的叫 <code>xxx-spring-boot-starter</code>。另外提一句"配置类上加 <code>@ConditionalOnMissingBean</code> 是为了给用户留覆盖的口子，这是 Spring Boot 一贯的'约定优于配置、但允许覆盖'思路"。</div>
+        </div>
+      </details>
+    </div>
+
+    <div class="sub">
+      <h3>资料</h3>
+      <ul class="res">
+        <li><b>《Spring 揭秘》</b>（王福强）—— 想彻底搞懂 IoC 容器实现的最佳选择，比直接啃源码友好</li>
+        <li><b>Spring 官方文档</b>的 Core Container 章节，特别是循环依赖和 AOP 部分</li>
+        <li><b>源码必读类</b>：<code>AbstractApplicationContext#refresh</code>、<code>DefaultSingletonBeanRegistry</code>（三级缓存）、<code>AbstractAutowireCapableBeanFactory#doCreateBean</code>、<code>AbstractAutoProxyCreator</code></li>
+        <li><b>调试利器</b>：在 <code>getSingleton()</code>、<code>getEarlyBeanReference()</code> 打断点，自己造一个 A↔B 循环依赖，一步步看缓存怎么流转 —— 比看十篇文章都管用</li>
+        <li><b>MyBatis 官方文档</b>的 Configuration 和 Caching 章节（坑都在文档的小字里）</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="module" id="m-storage" data-title="中间件与存储">
+    <div class="mod-tag">模块 03 · 面试权重 20% · 建议投入 6 天</div>
+    <h2>中间件与存储</h2>
+    <p class="mod-desc">
+      这是<b>最容易拉分也最容易露怯</b>的模块。中厂面试的特点是：MySQL 会问到锁和 MVCC 的细节，Redis 会问到大 key / 缓存一致性，
+      MQ 会问到"你怎么保证不丢、怎么处理积压"。<b>所有问题最终都会落到"你线上怎么做的"</b>，所以要准备好真实场景。
+    </p>
+    <div class="mod-meta"><span>高频题 16 道</span><span>必考 8 道</span><span>MySQL 占 9 题</span><span>Redis / MQ 占 7 题</span></div>
+    <div class="mod-prog"><span class="track"><span class="mod-bar"></span></span><span class="mod-pct">0%</span></div>
+
+    <div class="sub">
+      <h3>考点清单</h3>
+      <div class="checklist">
+        <label class="ck"><input type="checkbox" id="st-01"><span>B+ 树结构、为什么不用 B 树/哈希/红黑树</span></label>
+        <label class="ck"><input type="checkbox" id="st-02"><span>聚簇索引、二级索引、回表、覆盖索引</span></label>
+        <label class="ck"><input type="checkbox" id="st-03"><span>联合索引最左前缀、索引下推</span></label>
+        <label class="ck"><input type="checkbox" id="st-04"><span>索引失效的 8 种场景，隐式类型转换</span></label>
+        <label class="ck"><input type="checkbox" id="st-05"><span>explain 关键字段解读</span></label>
+        <label class="ck"><input type="checkbox" id="st-06"><span>MVCC 与 ReadView，RR / RC 的差异</span></label>
+        <label class="ck"><input type="checkbox" id="st-07"><span>记录锁 / 间隙锁 / 临键锁、死锁排查</span></label>
+        <label class="ck"><input type="checkbox" id="st-08"><span>redo / undo / binlog 与两阶段提交</span></label>
+        <label class="ck"><input type="checkbox" id="st-09"><span>分库分表：分片键、跨库分页、扩容</span></label>
+        <label class="ck"><input type="checkbox" id="st-10"><span>慢 SQL 优化方法论</span></label>
+        <label class="ck"><input type="checkbox" id="st-11"><span>Redis 数据结构与底层编码</span></label>
+        <label class="ck"><input type="checkbox" id="st-12"><span>RDB / AOF / 混合持久化与选型</span></label>
+        <label class="ck"><input type="checkbox" id="st-13"><span>穿透 / 击穿 / 雪崩及对应方案</span></label>
+        <label class="ck"><input type="checkbox" id="st-14"><span>缓存与数据库一致性方案对比</span></label>
+        <label class="ck"><input type="checkbox" id="st-15"><span>Redis 分布式锁、Redisson 看门狗、RedLock 争议</span></label>
+        <label class="ck"><input type="checkbox" id="st-16"><span>大 key / 热 key 的发现与治理</span></label>
+        <label class="ck"><input type="checkbox" id="st-17"><span>MQ 消息可靠性三段论、幂等、顺序、事务消息</span></label>
+        <label class="ck"><input type="checkbox" id="st-18"><span>消息积压的定位与处理</span></label>
+      </div>
+    </div>
+
+    <div class="sub">
+      <h3>高频面试题</h3>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q1</span><span class="q-tx">为什么 MySQL 索引用 B+ 树？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p>四个理由，<b>按重要性排列</b>：</p>
+          <ul>
+            <li><b>树矮 → IO 少</b>。B+ 树非叶子节点只存 key 不存数据，一页 16KB 能放约 1170 个 key，三层结构能索引约 2000 万行，查任意一行最多 3 次磁盘 IO。</li>
+            <li><b>叶子节点双向链表 → 范围查询快</b>。<code>where id between 100 and 200</code> 只需定位起点然后顺着链表扫，B 树则要中序遍历回溯。</li>
+            <li><b>查询性能稳定</b>。所有数据都在叶子层，每次查询的 IO 次数一致。</li>
+            <li><b>天然有序 → 支持排序和分组</b>，也能做最左前缀匹配。</li>
+          </ul>
+          <div class="follow"><b>对比记忆（一句话一个）</b>：B 树每个节点都存数据 → 同样页大小装的 key 更少 → 树更高；哈希索引不支持范围查询和排序，且哈希冲突后要遍历链表；红黑树/AVL 是二叉树，千万级数据高度 20+ 层 → IO 次数不可接受（放内存里才合适，比如 Java 的 TreeMap）；跳表在内存里表现好，磁盘上不如 B+ 树。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q2</span><span class="q-tx">什么是回表？覆盖索引怎么优化？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p><b>聚簇索引</b>（主键索引）：叶子节点存放<b>整行数据</b>。<b>二级索引</b>（辅助索引）：叶子节点存放<b>主键值</b>。</p>
+          <p>所以通过二级索引查询非索引列时，要先在二级索引上找到主键，再回到聚簇索引取整行 —— 这就是<b>回表</b>，多一次（或多次）IO。</p>
+          <p><b>覆盖索引</b>：查询涉及的所有列都在索引里，不需要回表。判断依据是 <code>explain</code> 的 Extra 显示 <code>Using index</code>。</p>
+          <div class="follow"><b>优化手段（按收益排序）</b>：① 把高频查询的列加进联合索引，做成覆盖索引；② 避免 <code>select *</code>（只取需要的列，才有可能覆盖）；③ 主键用自增（避免页分裂和碎片）；④ 用延迟关联（先用覆盖索引查主键，再 join 回原表）优化深分页。</div>
+          <div class="pitfall"><b>踩坑</b>：联合索引不是列越多越好 —— 每多一列，索引文件更大、写操作更慢。<b>该说"按查询模式来定，而不是全塞进去"</b>。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q3</span><span class="q-tx">联合索引的最左前缀原则，范围查询为什么会中断？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p>联合索引 <code>(a, b, c)</code> 在存储上<b>先按 a 排序，a 相同再按 b，b 相同再按 c</b>。所以它等价于多了 <code>(a)</code>、<code>(a,b)</code>、<code>(a,b,c)</code> 三个索引。</p>
+          <ul>
+            <li><code>where a=1</code> ✓ 用到 a</li>
+            <li><code>where a=1 and b=2</code> ✓ 用到 a、b</li>
+            <li><code>where a=1 and c=3</code> △ 只用到 a，c 只能作为过滤条件（走索引下推在引擎层过滤）</li>
+            <li><code>where a=1 and b&gt;2 and c=3</code> △ b 是范围 → <b>后面的 c 无法用于定位</b>，只能过滤</li>
+            <li><code>where b=2 and c=3</code> ✗ 完全用不到</li>
+          </ul>
+          <p><b>为什么范围会中断</b>：b 是一个区间时，区间内的 b 值对应的 c 并不是全局有序的，无法用有序性做定位。</p>
+          <div class="follow"><b>追问 · 索引下推（ICP）是什么？</b>MySQL 5.6 引入。没有 ICP 时，存储引擎按索引找到记录后<b>回表</b>，再由 Server 层过滤；有 ICP 时，把能在索引上判断的条件下推到引擎层先过滤，<b>减少回表次数</b>。Extra 显示 <code>Using index condition</code>。<b>这是"范围后面的列并非完全没用"的准确说法 —— 它不能定位，但能过滤。</b></div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q4</span><span class="q-tx">哪些情况会导致索引失效？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <ol>
+            <li><b>在索引列上做函数运算</b>：<code>where date(create_time) = '2026-01-01'</code>、<code>where id + 1 = 5</code>。改写为范围查询：<code>where create_time &gt;= ... and create_time &lt; ...</code></li>
+            <li><b>隐式类型转换</b>：字段是 varchar 却传数字 <code>where phone = 13800000000</code> → 相当于 <code>CAST(phone AS signed) = ...</code> → 索引失效。<b>这是生产上最高频的坑</b>。</li>
+            <li><b>前导模糊匹配</b>：<code>like '%abc'</code> 无法用索引（<code>like 'abc%'</code> 可以）</li>
+            <li><b>OR 两侧有一侧没索引</b>：整个查询退化为全表扫描</li>
+            <li><b>不满足最左前缀</b></li>
+            <li><code>!=</code>、<code>not in</code>、<code>is not null</code>（可能失效，取决于优化器对回表成本的估算）</li>
+            <li><b>order by / group by 的列与 where 用的索引不一致</b> → 产生 <code>Using filesort</code> / <code>Using temporary</code></li>
+            <li><b>统计信息不准导致优化器选错索引</b> → <code>ANALYZE TABLE</code> 或临时 <code>FORCE INDEX</code></li>
+            <li>索引列区分度太低（如性别、状态只有 0/1），优化器认为全表扫描更快</li>
+          </ol>
+          <div class="follow"><b>追问 · 隐式转换的方向为什么很重要？</b>varchar 列比较数字时，MySQL 会把<b>列</b>转成数字（因为数字精度更高），于是每行都要转换，无法用索引。反之，数字列传字符串则会转<b>常量</b>，索引依然可用。<b>结论：让列保持干净，类型要匹配。</b></div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q5</span><span class="q-tx">explain 你主要看哪些字段？</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <dl class="kv">
+            <dt>type</dt><dd>访问类型，从好到坏：<code>system &gt; const &gt; eq_ref &gt; ref &gt; range &gt; index &gt; ALL</code>。<b>生产要求至少到 range</b>，看到 ALL（全表）或 index（全索引扫描，依然是扫全表）就要优化。</dd>
+            <dt>key</dt><dd>实际使用的索引。如果是 NULL 说明没用上。</dd>
+            <dt>possible_keys</dt><dd>理论上可用的索引。若它有值但 key 为 NULL → <b>优化器选择了不用</b>（可能是区分度低或统计信息不准）。</dd>
+            <dt>key_len</dt><dd>实际使用的索引长度，<b>可以推算联合索引用到了几列</b>。</dd>
+            <dt>rows</dt><dd>预估扫描行数。是估算值，但量级很有参考价值。</dd>
+            <dt>filtered</dt><dd>按条件过滤后剩余行数百分比，越低说明条件过滤性越差。</dd>
+            <dt>Extra</dt><dd>信息量最大的字段。重点关注：<code>Using index</code>（好，覆盖索引）、<code>Using index condition</code>（索引下推）、<code>Using filesort</code>（需优化排序）、<code>Using temporary</code>（需优化分组）、<code>Using join buffer</code>（被驱动表没索引）。</dd>
+          </dl>
+          <div class="follow"><b>实战用法</b>：先用 <code>explain</code> 看执行计划，再用 <code>explain analyze</code>（MySQL 8.0.18+）看<b>实际耗时</b>和预估的差异 —— 如果实际行数远大于预估，通常是统计信息过期或字段区分度估算错误，这时 <code>ANALYZE TABLE</code> 往往能解决。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q6</span><span class="q-tx">MVCC 是怎么实现的？RR 和 RC 的 ReadView 有什么区别？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p><b>基础结构</b>：InnoDB 每行有隐藏列 —— <code>DB_TRX_ID</code>（最近修改它的事务 ID）、<code>DB_ROLL_PTR</code>（指向 undo log 的回滚指针）。</p>
+          <p><b>版本链</b>：每次修改都把旧版本写进 undo log 并用回滚指针串起来，形成一条版本链。</p>
+          <p><b>ReadView 四个字段</b>：<code>m_ids</code>（生成时活跃的事务 ID 列表）、<code>min_trx_id</code>、<code>max_trx_id</code>、<code>creator_trx_id</code>。</p>
+          <p><b>可见性判断</b>：沿版本链找第一个"可见"的版本 —— 版本的 trx_id 小于 min 则可见；大于等于 max 则不可见；在中间则看是否在 m_ids 里（在 = 还活跃 = 不可见）。</p>
+          <dl class="kv">
+            <dt>RC（读已提交）</dt><dd><b>每次 select 都生成新的 ReadView</b> → 能看到别人已提交的最新数据</dd>
+            <dt>RR（可重复读，默认）</dt><dd><b>第一次 select 生成并复用</b> → 整个事务看到的快照不变，实现可重复读</dd>
+          </dl>
+          <div class="follow"><b>必须补的一句（决定分数高低）</b>：RR 下 MVCC 只解决<b>快照读</b>的幻读；<b>当前读</b>（<code>select ... for update</code>、<code>update</code>、<code>delete</code>）读的是最新数据，幻读要靠<b>间隙锁 / 临键锁</b>来防。所以"RR 完全解决幻读"是错误说法。</div>
+          <div class="follow"><b>追问 · 为什么 RR 是默认隔离级别？</b>主要是历史原因：早期 binlog 默认是 <code>STATEMENT</code> 格式，RC 下会导致主从数据不一致（同一语句在主从库执行时读到的快照不同）。<b>现代生产很多团队会改成 RC</b>（减少间隙锁、提升并发），前提是 binlog 用 ROW 格式 —— 说出这一点非常加分。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q7</span><span class="q-tx">MySQL 有哪些锁？间隙锁解决什么问题？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p><b>按粒度</b>：全局锁（<code>FLUSH TABLES WITH READ LOCK</code>，用于全库备份）、表锁（表级共享/排他、元数据锁 MDL）、行锁。</p>
+          <p><b>InnoDB 三种行锁</b>：</p>
+          <ul>
+            <li><b>Record Lock（记录锁）</b>：锁住具体的一行</li>
+            <li><b>Gap Lock（间隙锁）</b>：锁住<b>开区间</b>，比如 <code>(5, 10)</code>，目的是阻止其他事务在这个区间插入</li>
+            <li><b>Next-Key Lock（临键锁）</b>：记录锁 + 该记录之前的间隙，左开右闭，如 <code>(5, 10]</code>。<b>RR 下默认加的就是这个</b></li>
+          </ul>
+          <p><b>间隙锁解决幻读</b>：当前读时，只锁住已有的行无法阻止别人插入新行（即幻读），加间隙锁后插入会被阻塞。</p>
+          <div class="follow"><b>关键细节</b>：<b>唯一索引</b>等值命中时，Next-Key Lock 会退化成 Record Lock（因为唯一索引等值最多一行，不需要防插入）；<b>非唯一索引或没命中唯一索引</b>时才会加间隙锁。这就是"为什么用主键查不会锁一片"的原因。</div>
+          <div class="follow"><b>追问 · 死锁怎么排查和预防？</b>InnoDB 会自动检测死锁并回滚代价小的事务；<code>SHOW ENGINE INNODB STATUS</code> 能看到最近一次死锁的详细信息（两个事务各持什么锁、在等什么）。预防：① 按<b>固定顺序</b>访问多行/多表；② 缩短事务，避免事务里做 RPC；③ <b>update 一定要走索引</b>（没走索引会锁全表 → 极易死锁）；④ 用低隔离级别减少间隙锁。</div>
+          <div class="pitfall"><b>踩坑</b>：MDL（元数据锁）是很多"线上突然全阻塞"的元凶 —— 一个长事务持有 MDL，后续的 DDL 排队，而 DDL 排队会阻塞后面所有的 DML。所以 <b>DDL 要避开业务高峰，且前面不要有长事务</b>。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q8</span><span class="q-tx">一条 update 语句的执行流程？redo log 和 binlog 怎么保持一致？</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <ol>
+            <li>执行器取到要改的行（从 Buffer Pool 内存中，没有则从磁盘读入）</li>
+            <li>把旧值写入 <b>undo log</b>（用于回滚和 MVCC）</li>
+            <li>修改内存中的页，把新值写入 <b>redo log</b>，状态标记为 <b>prepare</b></li>
+            <li>写完 redo log 后、提交前，写入 <b>binlog</b></li>
+            <li>提交事务，把 redo log 的状态改为 <b>commit</b></li>
+          </ol>
+          <p><b>这就是两阶段提交（2PC）</b>，目的是让 redo log 和 binlog 逻辑一致。</p>
+          <p><b>崩溃恢复规则</b>：redo log 是 prepare 状态时，检查对应事务的 binlog 是否完整 —— 完整则提交，不完整则回滚。这样能保证"主库恢复后的数据"和"从库重放 binlog 后的数据"一致。</p>
+          <div class="follow"><b>追问 · 两种日志的作用区别？</b><code>redo log</code> 是 <b>InnoDB 层</b>的物理逻辑日志，<b>循环写</b>（固定大小，写满就覆盖最旧的），保证崩溃恢复不丢数据（WAL 机制：先写日志再刷盘）。<code>binlog</code> 是 <b>Server 层</b>的逻辑日志，<b>追加写</b>（不覆盖），用于主从复制和基于时间点的数据恢复。</div>
+          <div class="follow"><b>追问 · 为什么 redo log 循环写用完了会卡住？</b>因为要等 checkpoint 推进（把脏页刷盘）才能覆盖。如果出现"脏页刷盘跟不上 redo 写入速度"，就会看到 <code>InnoDB: Cannot allocate memory for the buffer pool</code> 或写请求变慢 —— 调大 <code>innodb_log_file_size</code> 或提升磁盘 IO 能力。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="plus">
+        <summary><span class="q-no">Q9</span><span class="q-tx">分库分表怎么做？分片键怎么选？</span><span class="lv lv-plus">加分</span></summary>
+        <div class="ans">
+          <p><b>顺序</b>：先<b>垂直拆分</b>（按业务拆库、拆大字段），再<b>水平拆分</b>（按分片键把同一张表拆到多个库/表）。<b>不要一上来就水平拆</b>。</p>
+          <p><b>分片键选择四原则</b>：</p>
+          <ol>
+            <li><b>查询必带</b>：最核心的查询条件必须包含它，否则要路由到所有分片（全路由），等于白拆</li>
+            <li><b>分布均匀</b>：避免数据倾斜</li>
+            <li><b>避免热点</b>：<b>不要用时间做哈希键</b>（大促当天的数据全落一个分片）</li>
+            <li><b>高基数</b>：取值足够多</li>
+          </ol>
+          <p><b>举例</b>：订单表按 <code>buyer_id</code> 分片 —— 保证"我的订单"这类高频查询能精确路由，同时同一买家的数据落同一分片。</p>
+          <p><b>分片后必须解决的四个问题</b>：</p>
+          <ul>
+            <li><b>跨库 join</b> → 冗余字段（下单时把商品名存进订单）、或者异构索引表（binlog 订阅同步到 ES）</li>
+            <li><b>跨库分页</b> → 内存归并排序（深分页性能差）、或二次查询法（先在各分片取 offset/N 条，拿到最小时间戳，再回各分片查该时间戳之后的数据）</li>
+            <li><b>全局唯一 ID</b> → 雪花算法 / 号段模式</li>
+            <li><b>扩容</b> → 一致性哈希，或双写迁移（新老双写 → 校验 → 切读 → 停旧写）</li>
+          </ul>
+          <div class="follow"><b>中间件</b>：ShardingSphere（推荐，生态好）、MyCat。也可以应用层自己做（可控性最强，但工作量大）。<b>面试时说"能不分就不分，分表优先于分库，垂直优先于水平"是很好的收尾</b>。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q10</span><span class="q-tx">Redis 的持久化机制？RDB 和 AOF 怎么选？</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <dl class="kv">
+            <dt>RDB</dt><dd>某一时刻的<b>全量快照</b>。fork 子进程 + <b>写时复制（COW）</b>。文件小、恢复快；缺点是<b>会丢</b>最后一次快照之后的数据。</dd>
+            <dt>AOF</dt><dd>追加写命令。三种刷盘策略：<code>always</code>（每条都刷，最安全最慢）、<code>everysec</code>（每秒刷，<b>默认</b>，最多丢 1 秒）、<code>no</code>（交给操作系统）。</dd>
+            <dt>AOF 重写</dt><dd>fork 子进程按当前内存状态生成"最小命令集"。重写期间主进程的新命令写入 <b>AOF 重写缓冲区</b>，重写完成后追加进去。</dd>
+            <dt>混合持久化</dt><dd>Redis 4.0+ 的 <code>aof-use-rdb-preamble</code>：AOF 文件前半是 RDB 格式（恢复快），后半是增量命令（丢得少）。<b>生产推荐开启</b>。</dd>
+          </dl>
+          <p><b>选型</b>：纯缓存（数据可重建）→ 可以都不开或只开 RDB；有业务数据 → 混合持久化；极致安全（如金融流水）→ AOF <code>always</code>（但性能会掉很多，通常还是选 everysec + 业务侧对账）。</p>
+          <div class="follow"><b>追问 · fork 有什么代价？</b>① fork 本身要拷贝页表，<b>内存越大阻塞越久</b>（10G 内存可能阻塞几十到几百毫秒）；② COW 期间如果写入量大，内存占用可能接近翻倍（要留足余量，通常建议 Redis 内存不超过物理内存的 50-60%）；③ 主从全量同步也走 fork。<b>所以 Redis 单实例不要放太大</b>。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q11</span><span class="q-tx">缓存穿透、击穿、雪崩分别怎么解决？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <table>
+            <thead><tr><th>问题</th><th>场景</th><th>方案</th></tr></thead>
+            <tbody>
+              <tr>
+                <td class="nw">穿透</td>
+                <td>查<b>不存在</b>的数据，缓存永远不命中，每次都打到 DB（恶意攻击或脏数据）</td>
+                <td>① <b>缓存空值</b>（短 TTL，如 60s）② <b>布隆过滤器</b>前置拦截 ③ 参数合法性校验 ④ 限流 + IP 黑名单</td>
+              </tr>
+              <tr>
+                <td class="nw">击穿</td>
+                <td><b>单个热点 key 过期</b>瞬间，大量请求同时打到 DB</td>
+                <td>① <b>互斥锁 / 单飞重建</b>（只放一个请求去查 DB，其余等待）② <b>逻辑过期</b>（不设 TTL，value 里带过期时间，异步刷新）③ 热点 key 永不过期 + 后台定时更新</td>
+              </tr>
+              <tr>
+                <td class="nw">雪崩</td>
+                <td><b>大量 key 同时过期</b>，或 Redis 集群宕机</td>
+                <td>① <b>过期时间加随机值</b>（打散）② <b>多级缓存</b>（Caffeine 本地 + Redis）③ 熔断降级（Sentinel）④ Redis 高可用（哨兵 / Cluster）⑤ 缓存预热</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="follow"><b>追问 · 布隆过滤器的缺点？</b>① <b>有误判</b>：说"可能存在"但实际不存在（不会漏判）；② <b>不支持删除</b>（因为 hash 位是共享的，删一个会影响别的）—— 需要删除就用 Counting Bloom Filter 或 Redis 的 bitmap 自己维护计数；③ 需要预估数据量来定 bitmap 大小，扩容要重建。</div>
+          <div class="follow"><b>追问 · "互斥锁重建"和"逻辑过期"怎么选？</b>互斥锁保证强一致但会阻塞请求（等待期间 RT 变长）；逻辑过期不阻塞、可用性高，但会短暂返回旧数据（最终一致）。<b>热点商品详情这类可以接受短暂旧数据的场景，逻辑过期更好。</b></div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q12</span><span class="q-tx">怎么保证缓存和数据库的一致性？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p><b>先说结论（这句话本身就是答案的一半）</b>：缓存与数据库只能做到<b>最终一致</b>，关键是<b>评估业务能容忍多久的不一致</b>，以及<b>不一致时会不会造成资损</b>。</p>
+          <p><b>方案演进</b>：</p>
+          <ol>
+            <li><b>先更新 DB 再删除缓存</b>（Cache Aside 的标准做法）—— 并发窗口很小但存在：读请求在更新前读到旧值、在更新后把旧值写回缓存。</li>
+            <li><b>延迟双删</b>：更新前删一次、更新后延迟几百毫秒再删一次。延迟是为了覆盖"读线程读到旧值但还没来得及写回"的窗口。<b>缺点：延迟时间靠猜。</b></li>
+            <li><b>订阅 binlog（Canal）异步删缓存</b> —— <b>最推荐</b>。业务无侵入，不依赖业务代码的正确性，天然覆盖所有写路径（包括手工改库、其它服务写入）。代价是引入 Canal 组件和轻微延迟。</li>
+            <li><b>强一致</b>：只能靠分布式锁或读写走同一把锁，代价是性能大幅下降 —— <b>大部分业务不值得</b>。</li>
+          </ol>
+          <div class="pitfall"><b>必须避开的错误答案</b>：<b>"更新数据库的同时更新缓存"</b>。并发下两次写的顺序不可控（A 先改 DB、B 后改 DB，但 B 先写缓存 → 缓存里是 A 的值），而且如果更新时算出的值不是最终值，还会留下永远不会被纠正的脏数据。<b>"删除"比"更新"安全，因为删除是幂等的。</b></div>
+          <div class="follow"><b>追问 · 先删缓存再更新 DB 行不行？</b>更危险。删完缓存后、DB 还没更新时，另一个读请求会把旧值读出来写回缓存 → 缓存里长期是旧值。所以标准顺序是"先更新 DB，再删缓存"。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q13</span><span class="q-tx">Redis 分布式锁怎么实现？Redisson 的看门狗是什么？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p><b>标准实现要素（缺一不可）</b>：</p>
+          <ol>
+            <li><b>原子加锁</b>：<code>SET lock_key unique_value NX PX 30000</code>。必须用这一步原子完成，不能 <code>SETNX</code> 后再 <code>EXPIRE</code>（中间宕机就死锁）。</li>
+            <li><b>value 存持有者标识</b>（UUID + threadId）：释放时校验，避免删掉"别人已超时后重新获取的锁"。</li>
+            <li><b>Lua 脚本原子释放</b>：先 get 比对再 del，两步必须原子。</li>
+            <li><b>续期机制</b>：业务执行时间超过锁 TTL 就失去锁 → 需要续期。</li>
+          </ol>
+          <p><b>Redisson 看门狗（watchdog）</b>：不指定 <code>leaseTime</code> 时（默认 -1），Redisson 会启动一个后台任务，每 <code>lockWatchdogTimeout/3</code>（默认 30s/3 = 10s）续期一次到 30s，直到 <code>unlock()</code> 停止。<b>如果显式指定了 leaseTime，看门狗不生效</b> —— 这是个常见误区。</p>
+          <p><b>Redisson 还支持可重入</b>：内部用 Hash 结构，key 是锁名，field 是"线程标识"，value 是重入次数。</p>
+          <div class="follow"><b>追问 · 主从架构下 Redis 锁会丢吗？</b>会。主节点写入锁后、还没同步到从节点就宕机 → 从节点晋升 → 锁丢失 → 另一个客户端也能获取。这是<b>异步复制的固有问题</b>。<br>解法：① <b>RedLock</b>（向多数独立节点加锁）—— 但 Martin Kleppmann 认为它依赖系统时钟和 GC 停顿，安全性证明不成立，Antirez 反驳过，<b>面试可以说"业界有争议，我们不依赖它保证绝对安全"</b>；② 更务实的做法是<b>加一层业务幂等兜底</b>（唯一索引 / 状态机），让"锁失效"不至于造成资损。这就是"分布式锁解决性能问题、幂等解决正确性问题"的分工。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q14</span><span class="q-tx">大 key 和热 key 怎么发现和处理？</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <dl class="kv">
+            <dt>大 key</dt><dd>String 类型 value 超过 10KB，或集合类型元素超过 5000 个。</dd>
+            <dt>危害</dt><dd>网络传输阻塞（单线程模型）、<b>删除时阻塞</b>（<code>del</code> 是 O(n)）、Cluster 下数据倾斜（一个 key 只能落一个节点）、慢查询。</dd>
+            <dt>发现</dt><dd><code>redis-cli --bigkeys</code>（采样扫描）、<code>MEMORY USAGE key</code>、RDB 离线分析（rdb-tools）、云厂商的 DAS 巡检。</dd>
+            <dt>处理</dt><dd>① String 大 value 拆成多个 key（哈希分桶）；② 集合类型按 hash 拆成多个子 key（如 <code>user:hash:{id%10}</code>）；③ 压缩后再存；④ <b>用 <code>unlink</code> 替代 <code>del</code> 异步删除</b>。</dd>
+            <dt>热 key</dt><dd>某个 key 的 QPS 远超其它（如大促爆款商品、明星热搜）。危害是单节点 CPU 打满、Cluster 倾斜。</dd>
+            <dt>发现</dt><dd><code>redis-cli --hotkeys</code>（需 LFU 淘汰策略）、<code>MONITOR</code>（<b>慎用，会严重拖慢</b>）、客户端 SDK 本地统计、京东 hotkey 中间件。</dd>
+            <dt>处理</dt><dd>① <b>本地缓存多级</b>（Caffeine 挡住绝大部分读）；② key 加随机后缀打散到多个节点（读时合并，写时要写多份）；③ 读写分离 / 集群扩容；④ 热点 key 预加载到本地。</dd>
+          </dl>
+          <div class="follow"><b>追问 · 怎么预防而不是事后治？</b>① 写入前校验 value 大小，超阈值拒绝并告警；② 集合类型用 <code>hscan</code> 而不是 <code>hgetall</code>；③ 上线前做一次大 key 巡检并纳入 CI；④ 监控 <code>latency</code>，慢查询超阈值告警。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q15</span><span class="q-tx">怎么保证消息不丢？MQ 怎么保证幂等？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p><b>可靠性三段论（按链路顺序答，面试官要的就是这个结构）</b>：</p>
+          <table>
+            <thead><tr><th>环节</th><th>风险</th><th>方案</th></tr></thead>
+            <tbody>
+              <tr><td class="nw">生产端</td><td>发送失败 / 结果未知</td><td>① 同步发送并检查 SendResult；② 失败重试（含本地重试表）；③ <b>本地消息表 + 定时补偿</b>（最可靠）；④ RocketMQ 事务消息</td></tr>
+              <tr><td class="nw">Broker</td><td>宕机导致内存消息丢失</td><td>RocketMQ：<b>SYNC_FLUSH</b> 同步刷盘 + <b>SYNC_MASTER</b> 主从同步复制；Kafka：<code>acks=all</code> + <code>replication.factor&gt;=3</code> + <code>min.insync.replicas&gt;=2</code> + <code>unclean.leader.election=false</code></td></tr>
+              <tr><td class="nw">消费端</td><td>处理失败但 offset 已提交</td><td>① <b>关闭自动提交，业务处理成功后手动 ack</b>；② 失败进重试队列 → 超过次数进<b>死信队列</b>；③ 死信人工/定时补偿</td></tr>
+            </tbody>
+          </table>
+          <p><b>幂等（核心：MQ 只能保证 at-least-once，exactly-once 必须业务侧做）</b>：</p>
+          <ol>
+            <li><b>数据库唯一索引</b>（业务幂等键，如订单号 + 操作类型）—— <b>最可靠，兜底方案</b></li>
+            <li><b>Redis SETNX</b> 记录消息 ID（<b>注意：SETNX 和业务操作不在一个原子操作里，仍可能重复</b>，所以仍要唯一索引兜底）</li>
+            <li><b>状态机 + 条件更新</b>：<code>update order set status=2 where id=? and status=1</code>，看 affected rows</li>
+            <li><b>版本号乐观锁</b></li>
+          </ol>
+          <div class="follow"><b>加分收尾</b>：<b>MQ 侧的去重表 + DB 唯一索引兜底是标准组合</b>，两者互补 —— 前者挡住绝大部分重复（避免打 DB），后者保证绝对不出错。<br>RocketMQ 自带的 <code>MessageId</code> 去重不可靠（重投时 MessageId 会变），要用<b>业务唯一键</b>自己构造。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q16</span><span class="q-tx">消息积压了几百万条，你怎么处理？</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <p><b>第一步一定是定位原因，不是急着扩容</b>：</p>
+          <ul>
+            <li><b>消费太慢</b>：下游 DB 慢查询、RPC 超时、消费线程里有重活（大对象、循环调接口）</li>
+            <li><b>生产突增</b>：大促流量、上游重试风暴（比如下游报错引发大量重试）</li>
+            <li><b>消费者挂了 / 消费线程卡死</b>：看消费位点和实例存活</li>
+          </ul>
+          <p><b>处理手段（按见效速度排序）</b>：</p>
+          <ol>
+            <li><b>临时扩消费者实例</b> —— 但关键点：<b>消费者数不能超过队列数（RocketMQ）/ 分区数（Kafka）</b>，否则多出来的实例抢不到队列，扩了也没用。所以如果需要扩更多，得先临时扩队列/分区。</li>
+            <li><b>提高单机消费能力</b>：增大批量消费条数、提高消费线程数、减少单条消息的处理耗时。</li>
+            <li><b>降级处理</b>：把非核心逻辑去掉（比如只落库、不实时发通知），或<b>把消息转存到一个临时 Topic，先消费掉积压，再慢慢处理临时 Topic</b>。</li>
+            <li><b>丢弃非核心消息</b>：如果业务允许（比如统计类、日志类消息），直接快进 offset 丢掉。</li>
+            <li><b>处理死信/重试队列</b>：积压往往集中在重试队列里，要单独处理。</li>
+          </ol>
+          <p><b>根因治理</b>：慢 SQL 加索引、RPC 加超时和熔断、消费线程里禁止做重活。</p>
+          <div class="follow"><b>预防措施（主动说，体现体系感）</b>：① 监控<b>消费延迟</b>（不只是队列长度，而是最新 offset 与消费 offset 的差值）并设告警；② 消费端要有<b>背压/限流</b>；③ 生产端做削峰（令牌桶）；④ 大促前压测消费能力并留出 3 倍余量。</div>
+          <div class="pitfall"><b>踩坑</b>：只说"加机器扩容"会被追问"队列数够不够" —— 这个细节是区分"背过答案"和"真处理过"的分水岭。</div>
+        </div>
+      </details>
+    </div>
+
+    <div class="sub">
+      <h3>资料</h3>
+      <ul class="res">
+        <li><b>《MySQL 技术内幕：InnoDB 存储引擎》</b>（姜承尧）—— 事务、锁、MVCC 的权威参考</li>
+        <li><b>《高性能 MySQL》</b> —— 索引优化和慢查询章节是实战手册</li>
+        <li><b>《Redis 设计与实现》</b>（黄健宏）—— 数据结构底层编码讲得最清楚，配合 <code>redis.io/docs</code> 看</li>
+        <li><b>小林 coding 的 MySQL / Redis 图解</b> —— 适合先把 B+ 树、MVCC、持久化这几个图看明白</li>
+        <li><b>动手实践（比读书重要）</b>：
+          <ul>
+            <li>造 100 万行数据，自己写一条慢 SQL，用 <code>explain</code> 逐步优化到走覆盖索引</li>
+            <li>开两个 MySQL 会话，手动复现一次间隙锁阻塞和一次死锁，看 <code>SHOW ENGINE INNODB STATUS</code></li>
+            <li>本地起单机 Redis + 主从，分别体验 AOF 重写和全量同步</li>
+          </ul>
+        </li>
+        <li><b>云厂商文档</b>：阿里云 Redis/MySQL 的"最佳实践"和"故障案例"专栏，里面有大量真实事故复盘</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="module" id="m-dist" data-title="分布式与系统设计">
+    <div class="mod-tag">模块 04 · 面试权重 20% · 建议投入 6 天</div>
+    <h2>分布式与系统设计</h2>
+    <p class="mod-desc">
+      这是<b>高级开发的胜负手</b>。中厂面试这块的特点是：不会让你设计一个完整的淘宝，而是问「限流怎么做」「分布式事务怎么选」「秒杀怎么防超卖」这类具体问题，
+      然后<b>追问你项目里怎么落地的</b>。所以策略是：<b>每个方案都要准备一个对比表 + 一个项目实例</b>。
+    </p>
+    <div class="mod-meta"><span>高频题 16 道</span><span>必考 8 道</span><span>设计题 7 道</span><span>建议每题口头讲 1 遍并录音</span></div>
+    <div class="mod-prog"><span class="track"><span class="mod-bar"></span></span><span class="mod-pct">0%</span></div>
+
+    <div class="sub">
+      <h3>考点清单</h3>
+      <div class="checklist">
+        <label class="ck"><input type="checkbox" id="ds-01"><span>CAP / BASE，各中间件的 CP/AP 归类</span></label>
+        <label class="ck"><input type="checkbox" id="ds-02"><span>分布式事务 5 种方案与选型依据</span></label>
+        <label class="ck"><input type="checkbox" id="ds-03"><span>TCC 的空回滚 / 幂等 / 悬挂及解法</span></label>
+        <label class="ck"><input type="checkbox" id="ds-04"><span>分布式 ID 方案与雪花算法时钟回拨</span></label>
+        <label class="ck"><input type="checkbox" id="ds-05"><span>幂等设计的 6 个层次</span></label>
+        <label class="ck"><input type="checkbox" id="ds-06"><span>限流 4 种算法、令牌桶 vs 漏桶</span></label>
+        <label class="ck"><input type="checkbox" id="ds-07"><span>熔断与降级的区别、Sentinel 三态</span></label>
+        <label class="ck"><input type="checkbox" id="ds-08"><span>分布式锁三种实现方案对比</span></label>
+        <label class="ck"><input type="checkbox" id="ds-09"><span>一致性哈希与虚拟节点</span></label>
+        <label class="ck"><input type="checkbox" id="ds-10"><span>防超卖的四种方案与组合使用</span></label>
+        <label class="ck"><input type="checkbox" id="ds-11"><span>秒杀系统分层削峰设计</span></label>
+        <label class="ck"><input type="checkbox" id="ds-12"><span>订单系统：状态机、超时关单、分库分表</span></label>
+        <label class="ck"><input type="checkbox" id="ds-13"><span>短链系统：发号器、重定向、缓存策略</span></label>
+        <label class="ck"><input type="checkbox" id="ds-14"><span>IM 消息系统：在线离线、有序、多端同步</span></label>
+        <label class="ck"><input type="checkbox" id="ds-15"><span>分布式定时任务与选主</span></label>
+        <label class="ck"><input type="checkbox" id="ds-16"><span>系统设计题四步答题法</span></label>
+      </div>
+    </div>
+
+    <div class="sub">
+      <h3>高频面试题</h3>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q1</span><span class="q-tx">谈谈你对 CAP 的理解？为什么不能同时满足三个？</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <p><b>C</b>onsistency 一致性、<b>A</b>vailability 可用性、<b>P</b>artition tolerance 分区容错性。</p>
+          <p><b>为什么不能同时满足</b>：分布式系统里网络分区（节点之间失去通信）是<b>必然会发生的客观事实</b>，所以 P 必须保留。当分区真的发生时，你只能二选一 —— 要么拒绝服务保证一致性（CP），要么继续服务但允许数据不一致（AP）。</p>
+          <p><b>归类</b>：</p>
+          <ul>
+            <li><b>CP</b>：ZooKeeper（leader 选举期间整个集群不可用；写要过半 ack）、etcd、HBase</li>
+            <li><b>AP</b>：Eureka、Nacos（AP 模式）、Cassandra、Redis Cluster（主从异步复制）</li>
+            <li><b>Nacos / Redis</b> 属于可配置或场景相关，不要绝对化</li>
+          </ul>
+          <div class="follow"><b>高分回答（一定要补这一段）</b>：CAP 不是非黑即白的投票，而是<b>"在什么时间窗口内、对哪些数据、在一致性和可用性之间怎么取舍"</b>的工程决策。同一个系统里不同模块可以有不同选择 —— <b>交易核心走 CP（宁可失败也不能算错钱），商品列表/推荐走 AP（宁可短暂旧数据也要可用）</b>。</div>
+          <div class="follow"><b>追问 · BASE 是什么？</b>Basically Available（基本可用：降级、限流而不是完全不可用）+ Soft state（软状态：允许中间态）+ Eventually consistent（最终一致）。它是 AP 的工程化补充，告诉你"放弃强一致之后怎么做"。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q2</span><span class="q-tx">分布式事务有哪些方案？你们项目用哪种？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <table>
+            <thead><tr><th>方案</th><th>一致性</th><th>侵入性</th><th>性能</th><th>适用场景</th></tr></thead>
+            <tbody>
+              <tr><td class="nw">2PC / 3PC（XA）</td><td>强一致</td><td>低（DB 层支持）</td><td>差（同步阻塞、协调者单点）</td><td>慎用，只在同构 DB 且并发极低的场景</td></tr>
+              <tr><td class="nw">TCC</td><td>强一致</td><td><b>高</b>（要写 Try/Confirm/Cancel 三个方法）</td><td>好</td><td>资金、库存等核心链路，需要精确控制</td></tr>
+              <tr><td class="nw">Saga</td><td>最终一致</td><td>中</td><td>好</td><td>长流程（订单履约、旅游预订），可容忍中间态</td></tr>
+              <tr><td class="nw">本地消息表 / 事务消息</td><td>最终一致</td><td>低</td><td>好</td><td><b>最常用</b>，跨服务异步场景</td></tr>
+              <tr><td class="nw">最大努力通知</td><td>最终一致（可能失败）</td><td>低</td><td>好</td><td>对账类、通知类，失败靠对账兜底</td></tr>
+            </tbody>
+          </table>
+          <div class="follow"><b>选型原则（这是考官想听的）</b>：<br>① <b>能不用就不用</b>：先反问"能不能通过重新划分服务边界，把强一致需求收敛到单个数据库事务里" —— 这是最优解。<br>② 必须跨服务时，<b>优先"最终一致 + 幂等 + 定时对账"</b>，而不是上 2PC。<br>③ 只有资金类、且中间态不可接受时，才上 TCC。<br>④ 对账是最后一道防线 —— <b>任何最终一致方案都必须配一个对账任务</b>，这体现你有兜底思维。</div>
+          <div class="follow"><b>追问 · 你们用哪种？</b>必须能具体说。安全答法："我们订单和库存之间用<b>事务消息</b>（或本地消息表），保证下单后一定会扣库存；扣库存失败进重试队列，超过 N 次进死信 + 告警 + 每日对账。资金和余额那块用了 TCC，因为要保证不会出现'扣了钱没加余额'。"</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q3</span><span class="q-tx">TCC 的空回滚、幂等、悬挂分别怎么解决？</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <p>三个异常的共同解法都是<b>一张事务控制表</b>（事务 ID 唯一索引 + 状态字段）。</p>
+          <dl class="kv">
+            <dt>空回滚</dt><dd><b>问题</b>：Try 还没执行（超时/网络问题），Cancel 先到了，如果不加判断就去回滚，会回滚掉根本没扣的资源（或者把别人的扣减反向加了）。<br><b>解法</b>：Cancel 里先查事务控制表，<b>没有 Try 记录就直接标记为"已回滚"并返回成功</b>，不执行真正的回滚逻辑。</dd>
+            <dt>幂等</dt><dd><b>问题</b>：Confirm / Cancel 可能被重复调用（网络重试、事务协调器重发）。<br><b>解法</b>：事务控制表加状态机，用唯一索引防重。状态已是"已提交/已回滚"就直接返回成功，不再执行业务逻辑。</dd>
+            <dt>悬挂</dt><dd><b>问题</b>：Cancel 比 Try 先到，Cancel 执行完后 Try 才成功 —— 资源被扣了，但回滚已经做过了，<b>永远没人再回滚它</b>，资源被永久占用。<br><b>解法</b>：<b>Try 执行前先查事务控制表</b>，如果发现已有"已回滚"记录，直接拒绝执行 Try（返回失败或抛出异常）。</dd>
+          </dl>
+          <div class="follow"><b>一句话总结（可以当收尾）</b>：三个问题的本质都是"<b>消息乱序 + 重复投递</b>"，所以解法都是同一套：<b>状态机 + 唯一索引 + 执行前校验</b>。理解了这个，就不用死记三个名词。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q4</span><span class="q-tx">分布式 ID 有哪些方案？雪花算法的时钟回拨怎么处理？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <table>
+            <thead><tr><th>方案</th><th>优点</th><th>缺点</th></tr></thead>
+            <tbody>
+              <tr><td class="nw">UUID</td><td>本地生成、无依赖</td><td><b>无序</b> → 做 MySQL 主键会引发页分裂和碎片；占 36 字符</td></tr>
+              <tr><td class="nw">DB 自增 / 号段模式</td><td>有序、实现简单；号段模式一次取 1000 个到内存，性能好</td><td>依赖 DB 可用性；单点压力（号段模式缓解）</td></tr>
+              <tr><td class="nw">雪花算法</td><td><b>本地生成、趋势递增、性能极高</b>（单机 400 万/秒）</td><td>依赖机器时钟</td></tr>
+              <tr><td class="nw">Redis INCR</td><td>简单、有序</td><td>性能受限于 Redis；持久化丢失会回退</td></tr>
+              <tr><td class="nw">美团 Leaf / 百度 uid-generator</td><td>工程化封装，解决时钟回拨和 workerId 分配</td><td>引入组件</td></tr>
+            </tbody>
+          </table>
+          <p><b>雪花算法结构</b>（64 bit）：1 位符号（固定 0）+ 41 位时间戳（毫秒，约 69 年）+ 10 位机器 ID（1024 台）+ 12 位序列号（<b>同一毫秒内最多 4096 个</b>）。</p>
+          <p><b>时钟回拨的四种处理</b>：</p>
+          <ol>
+            <li><b>小幅回拨等一等</b>：回拨小于阈值（如 5ms）就自旋等待时钟追上</li>
+            <li><b>大幅回拨直接拒绝</b>：抛异常+告警，等运维处理（避免生成重复 ID）</li>
+            <li><b>备用位补偿</b>：用扩展位记录"上一毫秒已用序列号"，回拨时从上次的序列继续递增</li>
+            <li><b>Leaf 的做法</b>：用 ZooKeeper 分配 workerId 并周期性上报时间戳；启动时若发现本机时间小于上次上报时间，判断是回拨并处理</li>
+          </ol>
+          <div class="follow"><b>追问 · 为什么很多业务 ID 不适合直接用自增主键？</b>① 会<b>泄露业务量</b>（竞争对手看到订单号就知道你的日订单量）；② 分库分表后需要全局唯一；③ 敏感场景可以被遍历。<b>所以常见做法是"内部主键用自增，对外暴露的业务号用雪花/号段生成的独立字段"</b> —— 这就是数据库设计里的"业务键 + 技术键分离"。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q5</span><span class="q-tx">如何设计一个幂等接口？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p><b>幂等的本质</b>：同一个请求执行多次，对系统状态的影响与执行一次相同。<b>关键前提是"能唯一标识一次业务请求"</b> —— 有的场景靠客户端传的幂等键，有的靠业务字段组合。</p>
+          <p><b>分层设计（从外到内，越靠内越可靠）</b>：</p>
+          <ol>
+            <li><b>前端</b>：按钮置灰 / 防抖，只是体验优化，<b>不能算幂等方案</b></li>
+            <li><b>网关层 token 机制</b>：先申请一次性 token，提交时带上，服务端删除 token 成功才处理（<code>DEL</code> 返回 1 才继续）。防重复提交，但无法防"网络重试"</li>
+            <li><b>分布式锁</b>：<code>SETNX 业务键</code>，处理完释放。<b>缺点是锁失效或宕机后不可控</b></li>
+            <li><b>状态机 + 条件更新</b>：<code>update order set status=2 where id=? and status=1</code>，判断 affected rows 是否为 1。适合状态流转类</li>
+            <li><b>去重表</b>：独立表存"请求 ID"，唯一索引保证只插入一次</li>
+            <li><b>业务唯一索引</b>（最终兜底，<b>最可靠</b>）：如 <code>uk(order_no, operation_type)</code>。数据库层面原子保证，即使前面全失效也不会重复</li>
+          </ol>
+          <div class="follow"><b>追问 · 为什么唯一索引是最可靠的？</b>因为其它方案都是"先查后写"的两步操作，并发下有竞态窗口；唯一索引把判断和写入合并成一个原子操作，由数据库保证。<b>所以工程上的标准做法是：能加唯一索引就一定加，其它方案用来减少无效请求、保护数据库。</b></div>
+          <div class="follow"><b>追问 · 幂等键怎么设计？</b>要满足"同一业务意图 → 同一键，不同业务意图 → 不同键"。常见：外部传入的 <code>requestId</code>、业务唯一号（订单号）、或 <code>业务ID + 操作类型 + 版本</code>。要注意别把时间戳放进去（否则每次请求键都不同，幂等失效）。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q6</span><span class="q-tx">限流的常见算法？令牌桶和漏桶有什么区别？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <table>
+            <thead><tr><th>算法</th><th>原理</th><th>特点</th></tr></thead>
+            <tbody>
+              <tr><td class="nw">固定窗口计数</td><td>每 1 秒一个计数器，超阈值拒绝</td><td>简单，但有<b>临界问题</b>（0:59 的 100 次 + 1:00 的 100 次 = 1 秒内 200 次）</td></tr>
+              <tr><td class="nw">滑动窗口</td><td>把时间切成小格，滚动统计</td><td>解决临界问题；格子越细越精确，内存开销越大。<b>Sentinel 用它</b></td></tr>
+              <tr><td class="nw">漏桶</td><td>请求先进桶，以<b>固定速率</b>流出，桶满丢弃</td><td><b>强制平滑输出</b>，不允许突发。适合保护脆弱的下游</td></tr>
+              <tr><td class="nw">令牌桶</td><td>以固定速率往桶里放令牌，桶满则丢令牌；请求拿到令牌才能通过</td><td><b>允许突发</b>（桶里攒了令牌时可以一次性消费）。Guava RateLimiter、Sentinel 的默认效果</td></tr>
+            </tbody>
+          </table>
+          <div class="follow"><b>一句话区分（面试就答这句）</b>：<b>漏桶约束"流出速率"，令牌桶约束"平均速率、允许突发"</b>。实际系统里更常用令牌桶，因为真实流量本来就是有突发的，一味削平会误伤正常用户。</div>
+          <div class="follow"><b>追问 · 分布式限流怎么做？</b>① <b>Redis + Lua</b>（原子性），注意 key 分片和 Redis 本身成为瓶颈；② <b>网关层统一限流</b>（Nginx 的 <code>limit_req</code> 是漏桶、<code>limit_conn</code> 限制连接数；Sentinel 集群流控模式）；③ <b>单机限流 + 按实例数均分总阈值</b>（简单但实例数变化时要重算）；④ Sentinel 的集群流控（有独立的 token server，<b>解决了"总阈值怎么分摊"的问题</b>）。</div>
+          <div class="pitfall"><b>踩坑</b>：别忘了限流要"分层" —— 网关限流挡恶意流量、应用限流保护自身、依赖调用限流保护下游、DB 连接池本身也是一层限流。<b>说"限流是分层设计，不是单点配置"，立刻显得有体系。</b></div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q7</span><span class="q-tx">熔断和降级的区别？Sentinel 怎么做？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <dl class="kv">
+            <dt>降级</dt><dd><b>主动放弃非核心功能，保证核心链路可用</b>。例如双 11 关闭"商品评价"、"猜你喜欢"；库存查询失败时返回缓存值或"稍后重试"。触发方式：人工开关（大促前预演）、或自动（异常比例/RT 超阈值）。</dd>
+            <dt>熔断</dt><dd><b>被动保护</b>。当依赖的下游服务错误率/慢调用比例超过阈值，直接"跳闸"—— 后续请求<b>快速失败，不再打过去</b>，给下游恢复时间。经过一段时间后进入半开状态，放少量请求试探，成功则恢复。</dd>
+          </dl>
+          <p><b>三态</b>：<code>Closed</code>（正常）→ <code>Open</code>（熔断，直接拒绝）→ <code>Half-Open</code>（试探）→ 成功回 Closed / 失败回 Open。</p>
+          <p><b>Sentinel 的规则类型</b>：流控规则（QPS/线程数 + 快速失败 / Warm Up 预热 / 排队等待）、熔断降级规则（<b>慢调用比例 / 异常比例 / 异常数</b>）、系统自适应保护（按 load、RT、线程数、入口 QPS 整体保护）、热点参数限流。</p>
+          <div class="follow"><b>Sentinel vs Hystrix（会被追问）</b>：Hystrix 用线程池隔离（资源开销大、线程切换成本高，已停止维护）；Sentinel 用<b>信号量 + 滑动窗口统计</b>，更轻量，且支持热点参数、系统自适应、集群流控。功能上 Sentinel 更全，性能更好。</div>
+          <div class="follow"><b>追问 · @SentinelResource 的 blockHandler 和 fallback 有什么区别？</b><code>blockHandler</code> 处理<b>规则触发</b>（限流、熔断、系统保护）的兜底；<code>fallback</code> 处理<b>业务异常</b>的兜底。<b>弄混这两个是很常见的失分点</b>，两个同时配时，规则触发的走 blockHandler。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q8</span><span class="q-tx">分布式锁有哪几种实现？各自的坑是什么？</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <table>
+            <thead><tr><th>方案</th><th>CAP</th><th>优点</th><th>坑</th></tr></thead>
+            <tbody>
+              <tr><td class="nw">Redis</td><td>AP</td><td>性能最好、实现简单</td><td><b>主从切换可能丢锁</b>；必须手动处理续期、误删、原子释放</td></tr>
+              <tr><td class="nw">ZooKeeper</td><td>CP</td><td>客户端断开<b>自动释放</b>（临时节点）；天然保证一致性</td><td>性能不如 Redis；有<b>羊群效应</b>（需用顺序节点 + 监听前一个节点避免）；leader 选举期间不可用</td></tr>
+              <tr><td class="nw">etcd</td><td>CP</td><td>Lease 自动过期、Revision 天然支持；API 简洁</td><td>Go 生态外使用较少</td></tr>
+              <tr><td class="nw">数据库</td><td>—</td><td>无需额外组件、实现直白</td><td>性能差、无自动释放（靠超时字段）、不适合高并发</td></tr>
+            </tbody>
+          </table>
+          <div class="follow"><b>选型话术</b>：性能优先、能容忍极小概率失效 → <b>Redis（务必配合业务幂等兜底）</b>；一致性优先、锁持有时间可能较长 → <b>ZooKeeper / etcd</b>。</div>
+          <div class="follow"><b>追问 · 为什么说"分布式锁只能解决性能问题，不能解决正确性问题"？</b>因为任何分布式锁在极端情况下（时钟跳变、GC 停顿、网络分区、主从切换）都可能失效。<b>所以资损类的操作必须在数据库层加唯一约束或状态机做最终保证</b>，锁只用来减少并发冲突、提升性能。这个认知是高级和中级的分水岭。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="plus">
+        <summary><span class="q-no">Q9</span><span class="q-tx">一致性哈希的原理？为什么需要虚拟节点？</span><span class="lv lv-plus">加分</span></summary>
+        <div class="ans">
+          <p><b>问题背景</b>：普通哈希取模 <code>hash(key) % N</code> —— 只要节点数 N 变化，几乎<b>所有</b> key 的归属都会改变，缓存大规模失效、数据需要全量迁移。</p>
+          <p><b>一致性哈希</b>：把 <code>0 ~ 2^32-1</code> 组成一个环，节点和 key 都哈希到环上，key 顺时针找到第一个节点。节点增减时，<b>只影响相邻区间的数据</b>（平均只迁移 1/N）。</p>
+          <p><b>虚拟节点解决的问题</b>：节点少时，哈希到环上的位置可能很集中，导致数据分布严重不均（某个节点承担 80% 的流量）。解法是<b>每个物理节点映射成 N 个虚拟节点</b>（N 通常 100-200）散布到环上，让分布趋于均匀。同时虚拟节点也让"性能不同的机器分配不同数量的虚拟节点"成为可能。</p>
+          <div class="follow"><b>追问 · Redis Cluster 用一致性哈希吗？</b><b>不用</b>。Redis Cluster 用 <b>16384 个 hash slot</b>：<code>CRC16(key) % 16384</code> 决定 key 属于哪个槽，槽再分配给节点。<br>为什么不用一致性哈希：① 槽的映射是<b>显式且可控</b>的，便于精确迁移（<code>CLUSTER SETSLOT</code>）和 resharding；② 迁移粒度更细（可以按槽迁移单个 key）；③ 支持 <code>hash tag</code>（<code>{user1}:a</code> 和 <code>{user1}:b</code> 会落同一个槽，方便做多 key 操作）。<b>说出 hash tag 是很强的加分项。</b></div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q10</span><span class="q-tx">设计一个秒杀系统（重点：防超卖、限流、削峰）</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p><b>开口先做估算</b>（这一步就能拉开差距）：假设 100 万人抢 1 万件商品，峰值 QPS 可能到 10 万级 —— 这个量级下单靠数据库是撑不住的，必须<b>层层削峰</b>。</p>
+          <p><b>分层设计（按流量经过的顺序）</b>：</p>
+          <ol>
+            <li><b>前端/客户端</b>：按钮置灰、验证码/答题防脚本、页面静态化 + CDN、限流降级开关（大促前可预演）</li>
+            <li><b>接入层</b>：Nginx 限流（<code>limit_req</code> / <code>limit_conn</code>）、IP 黑名单、Sentinel 热点参数限流（按活动 ID / 用户 ID 限）</li>
+            <li><b>服务层隔离</b>：秒杀独立服务 + <b>独立线程池/集群隔离</b>，避免把主站拖垮（这是"隔离"思想的体现）</li>
+            <li><b>库存层（核心）</b>：活动开始前把库存预热到 <b>Redis</b>，用 <b>Lua 脚本原子扣减</b>（判断 + 扣减一步完成）。Redis 直接挡掉 99% 的流量</li>
+            <li><b>异步下单</b>：扣减成功 → 发消息到 MQ → 订单服务<b>串行/异步消费</b>落库。接口立刻返回"排队中"，前端轮询结果</li>
+            <li><b>数据库兜底</b>：<code>update stock set count = count - 1 where id = ? and count &gt; 0</code>，判断 affected rows；订单表加 <code>uk(user_id, activity_id)</code> 防一人多单</li>
+            <li><b>结果反馈</b>：轮询 or 长连接推送；返回"秒杀成功/已抢完/排队中"三种状态</li>
+          </ol>
+          <div class="follow"><b>追问 · 防超卖有哪几层？</b>① <b>Redis Lua 原子扣减</b>（挡在入口，防超量）② <b>MQ 串行化</b>（同一商品的扣减消息进同一队列，天然串行）③ <b>DB 条件更新 + 乐观锁</b>（最终兜底）④ <b>对账任务</b>（事后发现 Redis 和 DB 不一致就修复，并告警）。<b>一定要说到第 ④ 层 —— 说明你知道任何方案都可能出错，必须有兜底。</b></div>
+          <div class="follow"><b>追问 · 一人一单怎么保证？</b>Redis 里用 <code>SADD activity:{id}:users user_id</code> 判断是否已参与（原子），DB 侧用唯一索引 <code>uk(activity_id, user_id)</code> 兜底。</div>
+          <div class="follow"><b>追问 · 用户秒杀成功后不付款怎么办？</b>超时关单（延迟消息）+ 库存回补（<code>INCR</code> Redis + DB 加回），回补时要用状态机保证不重复回补。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q11</span><span class="q-tx">如何防止库存超卖？</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p><b>四种方案（说全 + 说清取舍）</b>：</p>
+          <table>
+            <thead><tr><th>方案</th><th>做法</th><th>取舍</th></tr></thead>
+            <tbody>
+              <tr><td class="nw">Redis 预扣减 + Lua</td><td><code>if stock &gt; 0 then decr; return 1 else return 0 end</code>，脚本内判断+扣减原子完成</td><td><b>性能最高</b>，适合高并发。代价是要处理"Redis 与 DB 的一致性"和宕机丢数据</td></tr>
+              <tr><td class="nw">DB 悲观锁</td><td><code>select ... for update</code> 锁住行再判断</td><td>绝对不超卖，但串行化严重，<b>不适合高并发</b></td></tr>
+              <tr><td class="nw">DB 乐观锁</td><td><code>update ... set count=count-1, version=version+1 where id=? and version=?</code></td><td>无锁等待，但失败要重试；版本号方案在高冲突下重试率极高</td></tr>
+              <tr><td class="nw">DB 条件更新</td><td><code>update ... set count=count-1 where id=? and count&gt;0</code>，看 affected rows</td><td><b>不需要版本号</b>，一条语句搞定，冲突下只是返回 0 行。<b>实用、最常用</b></td></tr>
+            </tbody>
+          </table>
+          <p><b>库存分段（进阶优化）</b>：把 1000 件库存拆成 10 段，每段 100，不同请求落到不同段用不同的锁 → 把串行化打散成并行，并发度提升 10 倍。代价是可能出现"某段有剩余但整体显示售罄"，需要做段间调剂。</p>
+          <div class="follow"><b>生产级组合（面试就答这个）</b>：<b>Redis Lua 挡在入口 → MQ 串行化 → DB 条件更新兜底 → 每日对账修复</b>。四层各司其职：性能、顺序、正确性、最终一致。</div>
+          <div class="pitfall"><b>踩坑</b>：<code>select</code> 查库存再 <code>update</code> 是两个操作，<b>中间有竞态窗口，必然超卖</b>。这是新人最常见的错误，被问到要能立刻指出问题。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="plus">
+        <summary><span class="q-no">Q12</span><span class="q-tx">设计一个短链系统</span><span class="lv lv-plus">加分</span></summary>
+        <div class="ans">
+          <p><b>① 短码生成</b>：</p>
+          <ul>
+            <li><b>发号器方案（推荐）</b>：全局唯一 ID（雪花 / 号段）→ 转 <b>62 进制</b>。6 位 62 进制 = 568 亿种组合，足够用。优点：<b>无冲突、可控、可预测长度</b>。</li>
+            <li>哈希方案：MurmurHash → 取模。缺点：有冲突要额外处理，且长度不可控。</li>
+          </ul>
+          <p><b>② 存储</b>：MySQL 存 <code>(id, short_code, long_url, expire_time, creator, created_at)</code>，<code>short_code</code> 建唯一索引。</p>
+          <p><b>③ 读路径（性能关键）</b>：</p>
+          <ul>
+            <li>一级：<b>Caffeine 本地缓存</b>（抗住超热点）</li>
+            <li>二级：<b>Redis</b> 缓存 <code>short_code → long_url</code></li>
+            <li>三级：MySQL</li>
+            <li><b>布隆过滤器</b>前置，挡住"不存在的短码"造成的缓存穿透</li>
+          </ul>
+          <p><b>④ 重定向方式</b>：</p>
+          <ul>
+            <li><b>302 临时重定向</b>（推荐）：每次请求都到服务器，<b>可以统计点击量</b></li>
+            <li>301 永久重定向：浏览器会缓存，性能好但<b>统计不准、也没法做失效控制</b></li>
+          </ul>
+          <div class="follow"><b>追问 · 怎么防止被别人遍历爬取所有链接？</b>① 短码不连续（发号器加随机盐或使用非递增的映射）；② 对同一来源限流；③ 敏感链接单独做鉴权（需要登录态才能跳转）；④ 短链有效期 + 访问日志告警。</div>
+          <div class="follow"><b>追问 · 发号器会成为瓶颈吗？</b>会。优化：<b>预生成一批短码放到内存池</b>（业务侧批量取），或号段模式一次取 1000 个；发号器服务本身多实例 + 分段（每个实例负责一段 ID 空间）。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="plus">
+        <summary><span class="q-no">Q13</span><span class="q-tx">设计一个订单系统</span><span class="lv lv-plus">加分</span></summary>
+        <div class="ans">
+          <p><b>① 状态机是核心</b>：待支付 → 已支付 → 待发货 → 已发货 → 已完成 / 已取消 / 退款中。<br>所有状态流转都必须用<b>条件更新</b>收口：<code>update order set status = 新状态 where id = ? and status = 期望的旧状态</code>，affected rows = 0 说明并发冲突或状态不合法。<b>这一条同时解决了幂等和并发问题，是订单系统的基石。</b></p>
+          <p><b>② 幂等</b>：外部订单号 + 唯一索引；支付回调按<b>支付流水号</b>做幂等（回调可能重复推送）。</p>
+          <p><b>③ 超时关单</b>：延迟消息（RocketMQ 延迟消息 / RabbitMQ 死信队列 / Redis ZSet 轮询 / 定时任务扫表）。关闭时用状态机保证<b>不会关掉已经支付的单</b>（这是关键冲突点）。</p>
+          <p><b>④ 分库分表</b>：按 <code>buyer_id</code> 分片（保证"我的订单"高频查询精确路由）。卖家维度用<b>异构索引表</b>（订阅 binlog → 同步到 ES 或从库的 seller 维度表）。</p>
+          <p><b>⑤ 冷热分离</b>：近期订单在主库，历史订单归档到冷库/数仓，查询时按时间路由。</p>
+          <p><b>⑥ 数据一致性</b>：下单扣库存 + 创建订单在同一本地事务；跨服务用事务消息或本地消息表 + 对账。</p>
+          <p><b>⑦ 金额</b>：<b>用 long 存"分"，禁止 double/float</b>（浮点精度问题会导致对不上账）。</p>
+          <div class="follow"><b>追问 · 订单和库存怎么保证一致？</b>方案：下单时<b>预占库存</b>（而不是直接扣减）→ 支付成功后<b>实扣</b> → 超时未支付则<b>释放预占</b>。预占/实扣/释放三步都要幂等。<b>"预占 + 实扣 + 释放"是电商库存的标准三段式</b>，说出来很唬人。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="plus">
+        <summary><span class="q-no">Q14</span><span class="q-tx">设计一个 IM 消息系统</span><span class="lv lv-plus">加分</span></summary>
+        <div class="ans">
+          <p><b>① 接入层</b>：Netty 长连接网关。维护 <code>userId → Channel</code> 映射（本地 Map 加速，Redis 存全局路由实现多网关寻址）。心跳保活 + 断线重连。</p>
+          <p><b>② 消息投递链路</b>：发送方 → 网关 → <b>消息服务</b> → 落库（消息表，会话 ID + seq）→ 发 MQ → 路由到接收方所在网关 → 推送。在线直接推，离线写"离线消息/收件箱"。</p>
+          <p><b>③ 有序性</b>：单会话内用<b>递增 seq</b>（Redis INCR 或 DB 自增），接收方按 seq 排序 + 去重。<b>只保证会话内有序，不追求全局有序</b> —— 这是正确且务实的答案。</p>
+          <p><b>④ 可靠性</b>：上行和下行<b>都要 ACK</b>。服务端未收到 ACK 就重推（配合客户端本地去重）；消息先落库再投递（不丢）。</p>
+          <p><b>⑤ 已读回执</b>：会话维度记录 <code>lastReadSeq</code>，未读数 = 最新 seq - lastReadSeq，前端本地计算避免频繁请求。</p>
+          <p><b>⑥ 多端同步</b>：同一账号多设备 → 用"写扩散"到各端收件箱，或让各端订阅同一条会话序号流（<b>读扩散</b>，更省存储）。</p>
+          <div class="follow"><b>追问 · 万人大群怎么设计？</b><b>写扩散会放大 1 万倍</b>（一条消息写 1 万份），不可行。改用<b>读扩散</b>：消息只存一份在群会话里，成员各自拉取并维护自己的已读位点。对大群还要做<b>限流 + 分级</b>（活跃成员推、不活跃成员拉）。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q15</span><span class="q-tx">分布式定时任务怎么保证只执行一次？</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <p><b>核心矛盾</b>：多实例部署时，每个实例都会触发定时任务 → 重复执行。</p>
+          <table>
+            <thead><tr><th>方案</th><th>做法</th><th>评价</th></tr></thead>
+            <tbody>
+              <tr><td class="nw">分布式锁</td><td>抢到锁的实例执行</td><td>简单，但<b>执行中宕机会导致本轮丢失</b>，且时间可能漂移</td></tr>
+              <tr><td class="nw">调度中心 + 执行器</td><td><b>XXL-JOB</b>：调度中心统一触发，执行器注册；支持失败重试、日志、动态改 cron、分片广播</td><td><b>中小规模最优选</b>，功能全、接入成本低</td></tr>
+              <tr><td class="nw">选主</td><td>ZooKeeper / etcd 选出 leader，只有 leader 执行</td><td>高可用好，但需要额外组件，且任务不分片时单机压力大</td></tr>
+              <tr><td class="nw">ElasticJob</td><td>ZK 协调 + 作业分片，多实例并行处理一个任务的不同分片</td><td>适合数据量大的批处理</td></tr>
+              <tr><td class="nw">MQ 延迟消息</td><td>用延迟消息替代定时轮询</td><td>时间更精确，适合"N 分钟后执行"的场景（如超时关单）</td></tr>
+            </tbody>
+          </table>
+          <div class="follow"><b>追问 · 任务执行到一半失败/宕机怎么办？</b>① 任务本身要<b>幂等 + 可续跑</b>（记录处理位点，重启后从断点继续，而不是从头）；② 大任务<b>分片 + 分批</b>，单批失败只重试该批；③ 结语："定时任务的可靠性不靠调度器，而靠任务本身的幂等和断点续跑能力" —— 这句是加分项。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q16</span><span class="q-tx">系统设计题你怎么答？（答题方法论）</span><span class="lv lv-must">必考</span></summary>
+        <div class="ans">
+          <p>面试官要的不是标准答案，是<b>你的思考过程</b>。四步法，时间分配大约 3:5:10:3 分钟：</p>
+          <ol>
+            <li><b>需求澄清 + 容量估算（3 分钟）</b><br>问清楚：功能边界、用户量/DAU、读写比、峰值倍数、一致性要求、延迟要求。<br>然后<b>主动算</b>：「假设 1 亿用户、日活 2000 万、人均 20 次请求 = 4 亿请求/天 ≈ 平均 4600 QPS，按峰值 10 倍算约 5 万 QPS。按单机 2000 QPS 算，需要约 25 台应用服务器，留 2 倍余量 = 50 台。」<br><b>这一步是最大的区分点</b> —— 90% 的候选人会跳过它。</li>
+            <li><b>高层架构（5 分钟）</b><br>画核心链路：接入层（LB/网关）→ 应用层（服务划分）→ 存储层（DB / 缓存）→ 中间件（MQ / 搜索）。说清<b>数据怎么流、写在哪读在哪</b>。</li>
+            <li><b>深入 2-3 个技术难点（10 分钟）</b><br>不要平均用力。挑最有料的展开，例如："库存怎么防超卖""缓存怎么保证一致""分片键怎么选"。<br>每个难点要讲：<b>方案 → 为什么这么选 → 代价是什么</b>。</li>
+            <li><b>扩展性、容错与运维（3 分钟）</b><br>单点在哪、容量瓶颈在哪、怎么降级、监控什么指标、怎么灰度发布、数据怎么对账和修复。</li>
+          </ol>
+          <div class="pitfall"><b>四个典型扣分点</b>：① 一上来就说技术选型（"用 Redis + Kafka"）而不问需求；② 不给容量估算；③ 只讲方案不讲取舍；④ 完全没提监控/告警/对账/回滚 —— 会被判定为"没上过生产"。</div>
+          <div class="follow"><b>加分动作</b>：① 主动说"这里有两个方案，我倾向 A，因为……"；② 主动暴露自己方案的缺点（"这个方案的代价是……，所以我们另外做了对账兜底"）；③ 结尾问"这个量级下您觉得还有哪个环节是我漏掉的" —— 把面试变成讨论。</div>
+        </div>
+      </details>
+    </div>
+
+    <div class="sub">
+      <h3>资料</h3>
+      <ul class="res">
+        <li><b>《数据密集型应用系统设计》（DDIA）</b> —— 分布式系统的圣经，第 5-9 章必读。中厂面试官引用的高频来源</li>
+        <li><b>《凤凰架构》</b>（周志明，有在线免费版）—— 中文语境下讲分布式架构最好的书，第 4-6 章</li>
+        <li><b>System Design Primer</b>（GitHub 上的开源项目）—— 系统设计题的英文题库</li>
+        <li><b>阿里云 / 美团技术博客</b> —— 搜"双 11 稳定性"、"分布式事务实践"、"限流"，都是真实生产方案</li>
+        <li><b>《领域驱动设计》</b>（选读）—— 想往架构方向走的话，"服务边界怎么划"这个问题的答案在这里</li>
+        <li><b>练习方法（关键）</b>：每天挑一道设计题，<b>对着空白文档写 30 分钟，然后口头讲一遍并录音</b>。回听的时候你会发现大量"嗯…那个…"的卡壳点，那些就是没想清楚的地方</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="module" id="m-ops" data-title="工程化与运维">
+    <div class="mod-tag">模块 05 · 面试权重 8% · 建议投入 1.5 天</div>
+    <h2>工程化与运维</h2>
+    <p class="mod-desc">
+      权重不高，但<b>有"一票否决"的性质</b>：如果连「线上服务怎么部署、出问题怎么查、怎么灰度」都答不上来，
+      面试官会怀疑你是"只写业务代码、没碰过生产"的候选人 —— 这对 5 年经验是硬伤。<b>所以这一章只需要做到"不踩雷"，不需要精通。</b>
+    </p>
+    <div class="mod-meta"><span>高频题 8 道</span><span>必答 4 道</span><span>1.5 天可覆盖</span></div>
+    <div class="mod-prog"><span class="track"><span class="mod-bar"></span></span><span class="mod-pct">0%</span></div>
+
+    <div class="sub">
+      <h3>考点清单</h3>
+      <div class="checklist">
+        <label class="ck"><input type="checkbox" id="op-01"><span>Docker 里 JVM 内存参数怎么配、OOMKilled 排查</span></label>
+        <label class="ck"><input type="checkbox" id="op-02"><span>K8s 三种探针 + 优雅停机</span></label>
+        <label class="ck"><input type="checkbox" id="op-03"><span>常用 Linux 排查命令（按资源维度分类）</span></label>
+        <label class="ck"><input type="checkbox" id="op-04"><span>Arthas 核心命令</span></label>
+        <label class="ck"><input type="checkbox" id="op-05"><span>链路追踪与日志规范（含 MDC 丢失问题）</span></label>
+        <label class="ck"><input type="checkbox" id="op-06"><span>CI/CD 流程与数据库变更版本化</span></label>
+        <label class="ck"><input type="checkbox" id="op-07"><span>灰度发布与向前兼容的 schema 变更</span></label>
+        <label class="ck"><input type="checkbox" id="op-08"><span>线上问题处理流程与故障复盘</span></label>
+      </div>
+    </div>
+
+    <div class="sub">
+      <h3>高频面试题</h3>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q1</span><span class="q-tx">服务跑在 Docker / K8s 里，JVM 内存参数要怎么配？</span><span class="lv lv-must">必答</span></summary>
+        <div class="ans">
+          <p><b>先讲版本坑（这是这个问题的核心）</b>：JDK 8u191 之前，JVM <b>看不到容器的 cgroup 限制</b>，会按物理机内存来设默认堆 —— 容器限了 2G，JVM 却以为有 64G，堆开到 16G，结果被内核 OOMKilled。</p>
+          <p><b>正确做法</b>：</p>
+          <ul>
+            <li>JDK 8u191+ / JDK 10+：<code>-XX:+UseContainerSupport</code>（默认开启），JVM 会读取 cgroup 限制</li>
+            <li>显式指定百分比，而不是写死绝对值：<code>-XX:MaxRAMPercentage=70 -XX:InitialRAMPercentage=70</code></li>
+            <li><b>为什么是 70%</b>：剩下 30% 要留给元空间、线程栈（每线程约 1M）、直接内存（Netty 的堆外缓冲）、JIT 代码缓存、GC 自身的辅助结构</li>
+            <li>K8s 里 <code>resources.limits.memory</code> 要略大于"堆 + 堆外"的总和</li>
+          </ul>
+          <div class="follow"><b>追问 · 容器被 OOMKilled（exit code 137）一定是堆溢出吗？</b><b>不是</b>。堆溢出会先抛 <code>OutOfMemoryError</code> 并留下 dump 文件；而 OOMKilled 是内核杀的，通常是<b>堆外内存</b>超了 limit（直接内存、Metaspace、线程栈、JNI）。<br>排查：<code>kubectl describe pod</code> 看 Reason 是不是 OOMKilled；<code>kubectl top pod</code> 看实际内存；配合 <code>-XX:NativeMemoryTracking=summary</code> + <code>jcmd VM.native_memory</code> 看堆外分布。<b>"区分堆 OOM 和 OOMKilled"这一条能显著区分出真上过 K8s 的人。</b></div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q2</span><span class="q-tx">K8s 的三种探针怎么配？滚动更新怎么不丢请求？</span><span class="lv lv-must">必答</span></summary>
+        <div class="ans">
+          <dl class="kv">
+            <dt>livenessProbe</dt><dd>判断"要不要重启这个 Pod"。<b>必须用轻量且不依赖外部组件的接口</b>，比如 <code>/actuator/health/liveness</code>。<b>千万不要把 DB / Redis 检查放进来</b> —— 否则数据库抖动会让所有 Pod 同时被判定为不健康并重启，形成雪崩。</dd>
+            <dt>readinessProbe</dt><dd>判断"能不能接流量"。可以包含依赖检查（<code>/actuator/health/readiness</code>）。失败则从 Service 的 Endpoints 中摘除，<b>不重启</b>。</dd>
+            <dt>startupProbe</dt><dd>给慢启动的 Java 应用足够时间。<b>有它之后，liveness 的 initialDelay 就不用设很大了</b>，避免启动慢被误杀。</dd>
+          </dl>
+          <p><b>滚动更新不丢请求，三个必须做的事</b>：</p>
+          <ol>
+            <li><b>preStop hook</b>：<code>sleep 5~15s</code>，等 kube-proxy / Ingress 把流量摘干净（<b>摘除是异步的，这段时间还在进流量</b>）</li>
+            <li><b>优雅停机</b>：Spring Boot 2.3+ 配 <code>server.shutdown=graceful</code> + <code>spring.lifecycle.timeout-per-shutdown-phase=30s</code></li>
+            <li><b>合理设置 maxSurge / maxUnavailable</b>（如 25%/0），保证始终有足够实例在服务</li>
+          </ol>
+          <div class="follow"><b>原理补充</b>：容器收到 SIGTERM 后，<b>JVM 默认会直接退出</b>，正在处理的请求会被切断 —— 这就是"发版时偶发 502"的根因。<b>开启优雅停机 + preStop 是标准解法</b>。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q3</span><span class="q-tx">线上出问题，你常用哪些 Linux 命令？</span><span class="lv lv-must">必答</span></summary>
+        <div class="ans">
+          <p><b>按资源维度分类记（比乱背命令好）</b>：</p>
+          <dl class="kv">
+            <dt>CPU</dt><dd><code>top</code>、<code>top -Hp &lt;pid&gt;</code>、<code>pidstat -u 1</code>、<code>jstat -gcutil &lt;pid&gt; 1000</code></dd>
+            <dt>内存</dt><dd><code>free -h</code>、<code>vmstat 1</code>（看 si/so 是否在用 swap）、<code>jmap -histo:live</code>、<code>pmap -x &lt;pid&gt;</code></dd>
+            <dt>磁盘</dt><dd><code>df -h</code>（容量）、<code>du -sh *</code>（定位大目录）、<code>iostat -x 1</code>（<b>看 %util 和 await 判断 IO 瓶颈</b>）、<code>iotop</code></dd>
+            <dt>网络</dt><dd><code>ss -lntp</code>（看端口占用，<b>本环境 <code>netstat</code> 可能不存在，用 <code>ss</code></b>）、<code>tcpdump</code>、<code>iftop</code>、<code>curl -w</code> 看各阶段耗时</dd>
+            <dt>上下文切换</dt><dd><code>vmstat 1</code> 的 <code>cs</code> 列、<code>pidstat -w 1</code>（区分自愿/非自愿切换）</dd>
+            <dt>日志</dt><dd><code>tail -f | grep</code>、<code>grep -c</code> 计数、<code>awk</code> 统计频次</dd>
+          </dl>
+          <div class="follow"><b>答题技巧</b>：不要背命令清单。用<b>"我想看什么 → 用什么命令"</b>的结构答。比如"如果我怀疑是 IO 问题，我会用 <code>iostat -x 1</code> 看 %util 和 await，%util 接近 100% 说明磁盘饱和了"。<b>面试官考的是思路，不是命令表。</b></div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q4</span><span class="q-tx">Arthas 你常用哪些命令？</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <dl class="kv">
+            <dt>dashboard</dt><dd>整体概览：线程情况、内存、GC、最忙的线程</dd>
+            <dt>thread</dt><dd><code>thread -n 5</code> 列出最忙的 5 个线程栈（定位 CPU 问题最快）；<code>thread -b</code> 直接检测死锁</dd>
+            <dt>trace</dt><dd><code>trace 类 方法</code> 打印方法内部调用路径和每段耗时，<b>定位性能瓶颈的主力</b></dd>
+            <dt>watch</dt><dd><code>watch 类 方法 '{params, returnObj}' -x 3</code> 观察入参和返回值（排查"传进来的是什么"）</dd>
+            <dt>jad + sc</dt><dd><code>jad 类名</code> 反编译看线上实际运行的代码（<b>确认发版是否生效</b>）；<code>sc -d 类名</code> 看类从哪个 jar 加载</dd>
+            <dt>ognl</dt><dd>执行表达式，<b>可以动态改日志级别</b>（<code>ognl -c 类加载器 '@logger@level'</code>），不用重启</dd>
+            <dt>tt</dt><dd>时空隧道，记录调用现场，事后重放</dd>
+            <dt>heapdump / vmtool</dt><dd><code>heapdump</code> 导出堆快照；<code>vmtool --action forceGc</code> 强制 GC</dd>
+          </dl>
+          <div class="follow"><b>追问 · 生产上用 Arthas 有什么风险？</b>① <code>trace</code> / <code>watch</code> 有性能开销（会改变方法的执行路径），<b>不要在高 QPS 的方法上长时间开启</b>；② 会话本身占用 minor GC 的一些资源；③ <b>用完必须 <code>stop</code></b>，否则会持续 attach。正确做法：低峰期操作、加 <code>-n</code> 限制次数、用完立即停。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q5</span><span class="q-tx">日志和链路追踪你们怎么做的？</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <p><b>TraceId 贯穿全链路</b>：网关/入口生成 TraceId → 放入 MDC → 日志格式里带上 → 跨服务调用时通过 HTTP Header / MQ 消息属性传递 → 下游重新放入 MDC。汇总查询用 SkyWalking / Zipkin / Jaeger。</p>
+          <p><b>日志规范</b>：</p>
+          <ul>
+            <li><b>结构化</b>（JSON 格式，方便采集和检索）</li>
+            <li><b>分级合理</b>：error 必须带堆栈和业务上下文（订单号、用户 ID、入参摘要），不要只打 <code>e.getMessage()</code></li>
+            <li>关键路径打点：耗时、状态、结果</li>
+            <li><b>敏感信息脱敏</b>（手机号、身份证、密码、银行卡），不要打全量入参</li>
+            <li>切割与保留策略（按天/按大小滚动的 logback 配置），避免写满磁盘</li>
+          </ul>
+          <div class="follow"><b>追问 · MDC 有什么坑？</b><b>MDC 底层是 ThreadLocal，在异步任务和线程池里会丢。</b>表现为：异步逻辑的日志没有 TraceId，排查时断链。<br>解法：① 提交任务时手动拷贝 <code>MDC.getCopyOfContextMap()</code>，在 Runnable 里 <code>setContextMap</code>，用完 <code>clear</code>；② 用 Spring 的 <code>TaskDecorator</code> 统一包装线程池；③ 用 TransmittableThreadLocal（TTL）。<b>这是很真实的生产细节，主动说出来非常加分。</b></div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q6</span><span class="q-tx">你们的 CI/CD 流程是怎样的？</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <p><b>流水线阶段</b>：Git 提交/PR → 代码检查（SonarQube 静态扫描、Checkstyle）→ 单元测试 + 覆盖率门槛 → 构建（Maven/Gradle）→ 打 Docker 镜像并推仓库 → 部署到测试环境 → 自动化冒烟 → 人工/自动卡点 → 灰度上线。</p>
+          <p><b>两个能体现细节的优化</b>：</p>
+          <ul>
+            <li><b>Docker 分层缓存</b>：Spring Boot 2.3+ 支持分层 jar（<code>layertools</code>），Dockerfile 先 <code>COPY dependencies</code> 再 <code>COPY classes</code> —— 只改了业务代码时，依赖层可以复用缓存，<b>镜像构建从几分钟降到几十秒</b>。</li>
+            <li><b>数据库变更版本化</b>：用 Flyway / Liquibase 管理 DDL，纳入代码仓库走同一个流水线。<b>禁止手工改生产表结构</b>（否则环境和代码状态不一致，回滚时无法回溯）。</li>
+          </ul>
+          <div class="follow"><b>追问 · 回滚怎么做？</b>镜像回滚是最简单可靠的（<code>kubectl rollout undo</code> / 切回上一个 tag）。<b>但前提是数据库变更向后兼容</b> —— 如果新版本删了字段、旧版本还在用，回滚就会失败。所以数据库变更必须走"扩展-迁移-收缩"三步。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="plus">
+        <summary><span class="q-no">Q7</span><span class="q-tx">灰度发布怎么做？数据库变更有什么讲究？</span><span class="lv lv-plus">加分</span></summary>
+        <div class="ans">
+          <p><b>灰度的三种切分维度</b>：① 按流量比例（Istio / Service Mesh 权重路由，或 Nginx 权重）；② 按用户标识（用户 ID 取模、白名单、设备号）—— <b>最常用，因为同一用户始终落同一版本</b>；③ 按机器分组（金丝雀机器，挂独立的一批 Pod）。</p>
+          <p><b>配套必备</b>：</p>
+          <ul>
+            <li><b>功能开关</b>（Nacos / Apollo 配置中心），出问题秒级切回，不用发版</li>
+            <li><b>新老版本指标对比</b>：错误率、RT、业务成功率，差异超阈值自动终止灰度</li>
+            <li><b>可观测</b>：按版本维度打标，否则分不清是新版还是旧版的问题</li>
+          </ul>
+          <p><b>数据库变更的"扩展-迁移-收缩"三步（重点）</b>：</p>
+          <ol>
+            <li><b>扩展</b>：加新字段，<b>不删旧字段</b>。新老代码同时运行都能工作</li>
+            <li><b>迁移</b>：代码双写新老字段，后台任务回填历史数据</li>
+            <li><b>收缩</b>：确认新版本全量后，再删除旧字段和不必要的兼容代码</li>
+          </ol>
+          <div class="follow"><b>为什么这么做（一句话）</b>：因为在灰度期间<b>新老两个版本同时存在</b>，任何一方的不兼容都会导致另一方报错。所以<b>数据库变更必须"向前兼容"，且至少跨两个发版周期</b>。这是"能不能安全发版"的关键认知。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q8</span><span class="q-tx">线上出故障，你的处理流程是什么？</span><span class="lv lv-must">必答</span></summary>
+        <div class="ans">
+          <ol>
+            <li><b>止损优先 —— 这是最重要的一条</b>。先回滚 / 降级 / 切流量 / 扩容，<b>不要在故障中查根因</b>。故障期间每一分钟都在损失，恢复服务和定位问题是两件必须分开的事。</li>
+            <li><b>拉群对齐</b>：通报影响面（哪些用户、哪些功能）、指定一个人指挥（避免多人同时操作）。</li>
+            <li><b>定位</b>：按监控看板 → QPS / RT / 错误率 → GC / CPU / 内存 → DB 慢查询 / 连接数 → 链路追踪 → Arthas 的顺序排查。<b>先看大盘再钻细节</b>。</li>
+            <li><b>处理</b>：优先用配置中心热修改（改限流阈值、关开关、调线程池），其次才发版。发版要有回滚预案。</li>
+            <li><b>复盘</b>：写 RCA（时间线 / 根因 / 影响面 / 改进项），<b>每个改进项要有负责人和截止时间</b>。补监控告警（同类问题下次要能自动发现）、补测试用例、补文档。</li>
+          </ol>
+          <div class="follow"><b>面试加分技巧</b>：别说流程，<b>讲一个你真实经历的事故</b> —— 现象、你的排查路径、根因、你做的改进。哪怕是很小的事故（比如一次缓存雪崩、一次发版丢请求），讲得细节具体，可信度远高于背流程。<br>准备一个万能结构：<b>"某次大促/发版时，XX 指标异常 → 我通过 XX 手段定位到 XX → 根因是 XX → 我做了 XX 修复和 XX 预防"</b>。</div>
+          <div class="pitfall"><b>踩坑</b>：说"先查日志找原因"会被扣分 —— 顺序错了。<b>止损永远优先</b>。</div>
+        </div>
+      </details>
+    </div>
+
+    <div class="sub">
+      <h3>资料</h3>
+      <ul class="res">
+        <li><b>Arthas 官方文档</b>（<code>arthas.aliyun.com</code>）—— 命令速查表 + 实战案例，一晚上能过完</li>
+        <li><b>《SRE：Google 运维解密》</b> —— 第 12-15 章讲故障处理和复盘文化，能显著提升你讲事故的层次</li>
+        <li><b>Spring Boot 官方文档</b>的 Production-ready Features 章节（优雅停机、健康检查、指标）</li>
+        <li><b>K8s 官方文档</b>的 Configure Liveness, Readiness and Startup Probes 章节</li>
+        <li><b>《凤凰架构》</b>第 8 章 —— 讲可观测性和日志/追踪/指标的体系设计</li>
+        <li><b>动手</b>：本地用 Docker 跑一个 Java 服务，限内存 512M，故意让它 OOMKilled 一次，看 <code>docker inspect</code> 的 ExitCode 和日志差异</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="module" id="m-talk" data-title="项目复盘与表达">
+    <div class="mod-tag">模块 06 · 面试权重 7% · 建议投入 1.5 天</div>
+    <h2>项目复盘与表达</h2>
+    <p class="mod-desc">
+      这一章权重最低，但<b>杠杆率最高</b> —— 一个下午就能准备完，却能决定面试官对整个人的印象。
+      核心逻辑是：<b>前 5 个模块决定「你行不行」，这一章决定「面试官愿不愿意和你共事」</b>。
+      对 5 年经验的候选人，面试官一定会问项目细节，而<b>项目讲砸了会连带否定前面的技术分</b>。
+    </p>
+    <div class="mod-meta"><span>高频题 8 道</span><span>必须提前写好稿子</span><span>1.5 天可准备完</span></div>
+    <div class="mod-prog"><span class="track"><span class="mod-bar"></span></span><span class="mod-pct">0%</span></div>
+
+    <div class="sub">
+      <h3>考点清单</h3>
+      <div class="checklist">
+        <label class="ck"><input type="checkbox" id="tk-01"><span>准备 2 个项目 × STAR 稿（各 3 分钟版本）</span></label>
+        <label class="ck"><input type="checkbox" id="tk-02"><span>准备 3 个"技术难点故事"（含排查过程）</span></label>
+        <label class="ck"><input type="checkbox" id="tk-03"><span>准备 1 个技术选型的对比说明</span></label>
+        <label class="ck"><input type="checkbox" id="tk-04"><span>准备 1 个"最难排查的 bug"完整案例</span></label>
+        <label class="ck"><input type="checkbox" id="tk-05"><span>简历每条经历都能扛住 3 层追问</span></label>
+        <label class="ck"><input type="checkbox" id="tk-06"><span>准备离职理由与职业规划话术</span></label>
+        <label class="ck"><input type="checkbox" id="tk-07"><span>准备缺点回答、失败经历回答</span></label>
+        <label class="ck"><input type="checkbox" id="tk-08"><span>准备 5 个反问问题</span></label>
+      </div>
+    </div>
+
+    <div class="sub">
+      <h3>高频面试题</h3>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q1</span><span class="q-tx">讲一个你最有成就感的项目（STAR 结构）</span><span class="lv lv-must">必答</span></summary>
+        <div class="ans">
+          <p><b>结构（控制在 3 分钟内，讲完就停下等提问）</b>：</p>
+          <dl class="kv">
+            <dt>S 背景</dt><dd>1 句话交代业务量级 + <b>你的角色</b>："订单系统，日均 20 万单，峰值 8000 QPS，我是核心开发，负责下单和库存链路"</dd>
+            <dt>T 任务</dt><dd>要解决的<b>具体问题</b>："大促时下单接口 P99 从 200ms 涨到 3s，且出现超卖"</dd>
+            <dt>A 行动</dt><dd>你做了什么 —— <b>重点是"为什么这么选"</b>："我先用 Arthas trace 定位到瓶颈在库存校验的全表扫描，加索引后 P99 降到 400ms；然后引入 Redis 预扣减 + Lua 脚本，把库存校验从 DB 前置到 Redis，并通过 MQ 异步落单"</dd>
+            <dt>R 结果</dt><dd><b>量化</b>："P99 降到 120ms，大促零超卖，DB 峰值 QPS 从 8000 降到 800"</dd>
+          </dl>
+          <div class="pitfall"><b>四个高频扣分点</b>：① <b>数字造假或对不上</b>（面试官会算：20 万单/天 = 平均 2.3 QPS，你说峰值 8000 QPS 就是 3500 倍，要能解释）；② 全程说"我们"不说"我"，面试官不知道你做了什么；③ 讲了 10 分钟还没到重点；④ 只讲结果不讲过程（听起来像团队的成绩）。</div>
+          <div class="follow"><b>加分技巧</b>：<b>主动埋钩子</b> —— 在讲 A 的时候留一句"这里有个坑，等会儿可以聊"，引导面试官往你准备最充分的地方问。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q2</span><span class="q-tx">项目里最难的技术问题是什么？</span><span class="lv lv-must">必答</span></summary>
+        <div class="ans">
+          <p><b>准备 3 个"深水区故事"</b>，每个都用同一个结构：</p>
+          <p><b>现象 → 排查过程（体现方法论）→ 根因 → 解决 → 沉淀</b></p>
+          <p><b>推荐的素材类型（都很有说服力）</b>：</p>
+          <ul>
+            <li><b>线上 OOM / CPU 飙高</b>：从 top 到 jstack 到代码定位到修复，体现完整排查能力</li>
+            <li><b>慢 SQL 引发雪崩</b>：一个没走索引的查询把 DB 连接池打满，导致整个服务不可用</li>
+            <li><b>缓存一致性事故</b>：改数据后缓存没清，用户看到旧价格，资损 / 客诉</li>
+            <li><b>消息积压</b>：消费者被慢 RPC 拖死，几百万消息堆积</li>
+            <li><b>并发 bug</b>：并发下单导致重复创建订单，最后靠唯一索引 + 状态机解决</li>
+            <li><b>分布式事务不一致</b>：订单成功但库存没扣，靠对账任务发现并修复</li>
+          </ul>
+          <div class="follow"><b>关键在"沉淀"这一步（多数人忽略，但最能加分）</b>：不只是修好，而是"修复后我做了什么让它不再发生" —— 加了监控告警、加了单元测试、改了代码规范、写了复盘文档、在团队里做了分享。<b>这一步体现的是"工程成熟度"和"影响力"，正是高级开发与中级的分界线。</b></div>
+          <div class="pitfall"><b>避免说</b>："我用了 Redis 做缓存"、"我用了 MQ 解耦" —— 这些是技术栈描述，不是"难题"。面试官想听的是<b>你解决过的、有具体细节的、别人可能踩同样坑的问题</b>。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q3</span><span class="q-tx">你为什么这么选型？</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <p><b>答题结构（五步）</b>：</p>
+          <ol>
+            <li><b>业务场景</b>："我们日均 50 万条异步任务，需要保证不丢、且要支持定时和延迟消息"</li>
+            <li><b>候选方案对比</b>（<b>至少 3 个维度</b>）：<br>RocketMQ vs Kafka —— 事务消息（RocketMQ 开箱即用，Kafka 需自己实现）、延迟消息（RocketMQ 原生支持 18 个级别，Kafka 要自己做）、单机吞吐（Kafka 更强）、运维成本（团队已有 RocketMQ 运维经验）</li>
+            <li><b>决策依据</b>：业务需要的恰好是 RocketMQ 的强项，而吞吐量我们远没到 Kafka 的必要线</li>
+            <li><b>落地效果</b>：运行一年，消息零丢失，延迟消息支撑了超时关单</li>
+            <li><b>遗留问题 / 如果重来</b>："集群规模扩到 10 个 broker 后，运维复杂度上升，如果重来我会考虑用云服务托管版"</li>
+          </ol>
+          <div class="follow"><b>加分动作：主动说"什么情况下我会选另一个"</b>。这句话直接证明你理解技术边界，而不是在用"信仰"选型。<b>反过来，"因为大家都用"、"因为公司要求"是减分答案。</b></div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q4</span><span class="q-tx">你遇到过最难排查的 bug 是什么？</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <p><b>准备一个"偶发性 bug"的案例 —— 因为偶发最能体现排查能力</b>。</p>
+          <p><b>结构</b>：现象（多偶发）→ 你用了哪些手段（日志、Arthas、二分、加埋点复现）→ 如何缩小范围 → 根因 → 修复 → 防复发。</p>
+          <p><b>三个高价值真实案例模板</b>：</p>
+          <ul>
+            <li><b>SimpleDateFormat 线程不安全</b>：把静态 SimpleDateFormat 放在工具类里，并发下日期解析出乱码或抛异常。排查过程：偶发、只在压测时出现、堆栈指向 DateFormat 内部状态不一致。修复：换 DateTimeFormatter（不可变、线程安全）。<b>这个案例同时体现了"并发意识"。</b></li>
+            <li><b>事务里嵌套异步导致事务丢失</b>：@Transactional 方法里起线程执行 DB 操作，子线程拿不到事务上下文。修复：把异步任务挪到事务提交后（<code>TransactionSynchronizationManager.registerSynchronization</code> 或 <code>@TransactionalEventListener(phase = AFTER_COMMIT)</code>）。<b>这个答案很高级，能直接证明你理解事务的真实边界。</b></li>
+            <li><b>ThreadLocal 没清理导致用户串号</b>：登录信息放 ThreadLocal，线程池复用时拿到上一个请求的用户信息，出现"A 看到 B 的数据"。修复：try-finally 里 remove。<b>这个案例是事故级的，说服力极强，但要小心面试官追问"那安全风险怎么评估的"。</b></li>
+          </ul>
+          <div class="follow"><b>关键</b>：讲排查过程时要说<b>你排除了哪些可能性</b>。例如"我先排除了 DB 层（因为日志里 SQL 参数是对的），再排除了网络（同机调用也复现），最后定位到应用层的共享对象"。<b>展示的是排除法思维，而不是运气。</b></div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="must">
+        <summary><span class="q-no">Q5</span><span class="q-tx">为什么离职？你的职业规划是什么？</span><span class="lv lv-must">必答</span></summary>
+        <div class="ans">
+          <p><b>离职理由（三个原则：说积极的、说客观的、绝不说前公司坏话）</b>：</p>
+          <ul>
+            <li>✅ 业务方向不匹配："现有业务以 CRUD 为主，我想深入高并发和中间件领域"</li>
+            <li>✅ 成长空间："团队规模小，系统只有几千 QPS，想在有更大流量挑战的场景下打磨能力"</li>
+            <li>✅ 技术栈："想接触更规范的技术体系（微服务治理、灰度发布、可观测性）"</li>
+            <li>❌ 绝不说的："领导不行"、"同事水平差"、"加班太多"、"薪资低"（薪资留到 HR 面谈）</li>
+          </ul>
+          <p><b>职业规划（要有具体路径，不要喊口号）</b>：</p>
+          <ul>
+            <li><b>短期（1-2 年）</b>：成为团队技术骨干，能独立负责一个核心系统的设计与演进</li>
+            <li><b>中期（3-5 年）</b>：往技术专家 / 架构方向走，具备复杂系统的技术决策能力，能带 2-3 人的小组</li>
+            <li><b>锚定公司</b>：<b>一定要把规划和公司挂钩</b>："我了解到贵司的 X 系统面临 Y 挑战，这正是我想深入的方向"</li>
+          </ul>
+          <div class="follow"><b>追问 · 你有什么缺点？</b>说一个<b>真实的、非致命的、且正在改进</b>的缺点。推荐："我对非核心模块的文档整理不够及时，导致同事接手时要问我。现在我会强制自己每次改完代码就更新变更记录。"<b>绝对不要说"我追求完美"、"我太拼命工作"。也别说"我不会拒绝人"（这是职场老好人，会被认为缺乏判断力）。</b></div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q6</span><span class="q-tx">如果让你重新做这个项目，你会怎么改？</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <p>这是<b>考"反思能力"和"技术视野"的题</b>，能答好直接拉高一个档次。分四类讲：</p>
+          <ul>
+            <li><b>架构层面</b>：服务边界划得不合理（订单服务承担了太多职责）、缺少统一网关和鉴权、同步调用过多应该改异步</li>
+            <li><b>技术层面</b>：缓存一致性方案（当时用延迟双删，现在会改成 Canal 订阅 binlog）、引入可观测性（当时只靠日志 grep）、数据库分片键选择（应该更早考虑扩容）</li>
+            <li><b>工程层面</b>：没有自动化测试覆盖核心链路、缺少灰度发布机制、数据库变更靠手工执行</li>
+            <li><b>业务层面</b>：接口设计没有考虑向后兼容、缺少限流熔断的兜底</li>
+          </ul>
+          <div class="follow"><b>答题要点</b>：<b>每一条都要说清"当时为什么那么做"</b> —— 不是当时错了，而是业务阶段不同。例如："当时只有几万 QPS，用延迟双删是合理的成本权衡；如果现在日订单到几百万，我会改用 binlog 订阅，因为业务代码不该承担缓存一致性的正确性责任。"<br><b>这样回答体现的是"具备与业务阶段匹配的技术判断力"，比否定过去高得多。</b></div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="hot">
+        <summary><span class="q-no">Q7</span><span class="q-tx">面试官问"你还有什么想问我的吗"</span><span class="lv lv-hot">高频</span></summary>
+        <div class="ans">
+          <p><b>这一问是加分题，不是客套。准备好 5 个，按面试轮次选着问。</b></p>
+          <p><b>技术面问这些</b>：</p>
+          <ul>
+            <li>"团队目前在技术上最大的挑战 / 瓶颈是什么？"（体现你关心问题，不只关心待遇）</li>
+            <li>"这个岗位负责的核心系统是什么？我入职后最可能先接手哪块？"</li>
+            <li>"团队的研发流程是怎样的 —— 需求评审、code review、测试、灰度上线这套跑得顺吗？"</li>
+            <li>"接着刚才聊的 XX，你们线上实际是怎么做的？"（<b>把面试变成技术交流，非常好用</b>）</li>
+            <li>"团队怎么定义'做得好'？技术晋升主要看什么？"</li>
+          </ul>
+          <p><b>HR 面问这些</b>：</p>
+          <ul>
+            <li>"团队的人员构成和汇报关系？我未来的直接上级是什么背景？"</li>
+            <li>"这个岗位是新增编制还是补充？"（能看出团队的扩张/流失情况）</li>
+          </ul>
+          <div class="pitfall"><b>不要问</b>：① "加班多吗"（换成"团队一般什么时候发版 / 值班机制是怎样的"）；② 薪资福利（留给 HR 主动谈）；③ "我表现怎么样"（场面尴尬，且拿不到真话）。<br><b>更不要反问"你们公司是做什么的"</b> —— 说明你完全没做功课。</div>
+        </div>
+      </details>
+
+      <details class="q" data-lv="plus">
+        <summary><span class="q-no">Q8</span><span class="q-tx">简历怎么改才能通过筛选？</span><span class="lv lv-plus">加分</span></summary>
+        <div class="ans">
+          <p><b>三条原则</b>：</p>
+          <ol>
+            <li><b>每条经历都要能扛住 3 层追问</b>。写完一条自问：用了什么技术（1 层）→ 为什么这么选（2 层）→ 有什么坑/代价（3 层）。扛不住的就删掉或改弱，<b>别为了好看写自己不懂的词</b>（写了 Redis 分布式锁，就可能被问到 RedLock 争议）。</li>
+            <li><b>量化，但要真实且能自洽</b>。❌"提升了系统性能" → ✅"下单接口 P99 从 800ms 降到 120ms"。<b>数字要能被算术检验</b>（日均量 / 86400 ≈ 平均 QPS，峰值一般是 3-10 倍）。</li>
+            <li><b>突出"我"的贡献而不是"我们"的成果</b>。用"主导 / 负责 / 独立设计 / 推动"，而不是"参与 / 协助"。<b>5 年经验必须有"独立负责"的表述，否则会被认为还停留在执行层。</b></li>
+          </ol>
+          <p><b>5 年经验的简历应该体现的三件事</b>：① 独立负责过一个完整系统的设计或重构；② 有突出问题排查/性能优化的具体案例；③ 有技术影响力（带过人、定过规范、做过技术分享）。</p>
+          <div class="follow"><b>投递节奏建议</b>：① 先投 2-3 家"不想去但能练手"的公司，用真实面试检验准备情况；② 根据反馈集中补漏一轮；③ 再投目标公司。<b>不要一上来就投最想去的。</b>另外准备好"最近有没有在面试别的公司 / 有几个 offer"的中性回答（不要报具体公司名，也不要说"只有你们一家"）。</div>
+        </div>
+      </details>
+    </div>
+
+    <div class="sub">
+      <h3>资料</h3>
+      <ul class="res">
+        <li><b>《金字塔原理》</b>（前 3 章足够）—— 结论先行、分层论证，直接改善所有口头回答的结构</li>
+        <li><b>《SRE：Google 运维解密》</b>第 15 章 —— 故障复盘的标准写法，让"讲事故"有专业感</li>
+        <li><b>面试官视角的资料</b>：搜"Java 面试官 评分表"、"面试官最反感什么回答"，用对方视角反向校准自己的表达</li>
+        <li><b>训练方法（比读资料有效得多）</b>：
+          <ul>
+            <li>把本模块每题写成 300 字以内的稿子，然后<b>不看稿口述一遍并录音</b></li>
+            <li>回听时只关注两件事：有没有卡壳、有没有超过 3 分钟</li>
+            <li>找朋友或用 AI 扮演面试官做 3 次全真模拟（<b>一定要让对方随机追问</b>，才知道自己哪里虚）</li>
+          </ul>
+        </li>
+        <li><b>最后一周的每日动作</b>：早上过一遍速记卡（每题只记 3 个关键词）、晚上随机抽 5 题口头答一遍</li>
+      </ul>
+    </div>
+  </section>
+
+  <footer>
+    <p>本手册按「中厂 / 独角兽高级开发 · 1 个月冲刺 · 四大核心模块补强」定制。共 6 个模块、80 道题，每道题附追问与踩坑点。</p>
+    <p>复习进度保存在本机浏览器 localStorage（清空缓存会丢失）。建议每天刷完一个模块就在左侧核对进度百分比，低于 60% 说明还需要复述练习。</p>
+    <p>使用建议：第一遍通读建立地图 → 第二遍逐题合书复述 → 第三遍只看「必考」标签 + 自己勾选不熟的题。</p>
+  </footer>
+
+  </div>
+</main>
+</div>
+
+<script>
+(function(){
+  var KEY = 'java-interview-sprint-v1';
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch(e) { state = {}; }
+  function persist(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} }
+
+  var modules = Array.prototype.slice.call(document.querySelectorAll('.module[data-title]'));
+  var dataModules = modules.filter(function(m){ return m.id !== 'plan'; });
+  var boxes = Array.prototype.slice.call(document.querySelectorAll('.ck input[type=checkbox]'));
+
+  boxes.forEach(function(b){
+    if (state[b.id]) b.checked = true;
+    b.addEventListener('change', function(){
+      state[b.id] = b.checked; persist(); refresh();
+    });
+  });
+
+  function pctOf(done, tot){ return tot ? Math.round(done / tot * 100) : 0; }
+  function navEl(id){
+    return document.querySelector('.sidebar nav a[href="#' + id + '"]');
+  }
+
+  function refresh(){
+    var doneAll = 0, totalAll = 0;
+    dataModules.forEach(function(m){
+      var bs = Array.prototype.slice.call(m.querySelectorAll('.ck input[type=checkbox]'));
+      var done = bs.filter(function(x){ return x.checked; }).length;
+      doneAll += done; totalAll += bs.length;
+      var p = pctOf(done, bs.length);
+      var pct = m.querySelector('.mod-pct');
+      if (pct) pct.textContent = p + '%';
+      var bar = m.querySelector('.mod-bar');
+      if (bar) bar.style.width = p + '%';
+      var a = navEl(m.id);
+      if (a){
+        var np = a.querySelector('.nav-pct'); if (np) np.textContent = p + '%';
+        var nb = a.querySelector('.nav-bar'); if (nb) nb.style.width = p + '%';
+      }
+    });
+    var planBoxes = Array.prototype.slice.call(document.querySelectorAll('#plan .ck input[type=checkbox]'));
+    var planDone = planBoxes.filter(function(x){ return x.checked; }).length;
+    totalAll += planBoxes.length; doneAll += planDone;
+    var po = pctOf(planDone, planBoxes.length);
+    var pn = document.querySelector('#plan .mod-pct');
+    if (pn) pn.textContent = po + '%';
+    var pnav = navEl('plan'); if (pnav){ var x = pnav.querySelector('.nav-pct'); if (x) x.textContent = po + '%'; }
+
+    var overall = pctOf(doneAll, totalAll);
+    document.getElementById('overall-pct').textContent = overall + '%';
+    document.getElementById('overall-bar').style.width = overall + '%';
+  }
+
+  var searchInput = document.getElementById('search');
+  var hint = document.getElementById('search-hint');
+  var lvSelect = document.getElementById('lv-filter');
+  var lvLabel = document.getElementById('lv-label');
+  var qCount = document.getElementById('q-count');
+
+  function apply(){
+    var q = (searchInput.value || '').trim().toLowerCase();
+    var lv = lvSelect.value;
+    var lvText = lvSelect.options[lvSelect.selectedIndex].text;
+    lvLabel.textContent = lvText;
+
+    function lvOK(el){
+      if (lv === 'all') return true;
+      var v = el.getAttribute('data-lv');
+      if (lv === 'must') return v === 'must';
+      if (lv === 'hot') return v === 'must' || v === 'hot';
+      if (lv === 'plus') return v === 'plus';
+      return true;
+    }
+
+    var shown = 0;
+    modules.forEach(function(m){
+      var vis = 0;
+      var qs = Array.prototype.slice.call(m.querySelectorAll('details.q'));
+      qs.forEach(function(el){
+        var ok = lvOK(el) && (!q || el.textContent.toLowerCase().indexOf(q) >= 0);
+        el.classList.toggle('hide', !ok);
+        if (ok) vis++;
+      });
+      var cks = Array.prototype.slice.call(m.querySelectorAll('.ck'));
+      cks.forEach(function(el){
+        var ok = !q || el.textContent.toLowerCase().indexOf(q) >= 0;
+        if (el.closest('.module') !== m) return;
+        el.classList.toggle('hide', !ok);
+      });
+      m.querySelectorAll('.sub').forEach(function(s){
+        var kids = s.querySelectorAll('details.q, .ck');
+        if (!kids.length) return;
+        var any = Array.prototype.slice.call(kids).filter(function(k){ return !k.classList.contains('hide'); }).length;
+        s.classList.toggle('hide', any === 0);
+      });
+      m.classList.toggle('hide', vis === 0 && (q.length > 0 || lv !== 'all'));
+      shown += vis;
+    });
+
+    qCount.textContent = shown;
+    hint.textContent = q ? (shown + ' 条匹配') : '';
+  }
+
+  searchInput.addEventListener('input', apply);
+  lvSelect.addEventListener('change', apply);
+
+  document.getElementById('expand').addEventListener('click', function(){
+    document.querySelectorAll('details.q').forEach(function(d){ d.open = true; });
+  });
+  document.getElementById('collapse').addEventListener('click', function(){
+    document.querySelectorAll('details.q').forEach(function(d){ d.open = false; });
+  });
+
+  var TKEY = KEY + ':theme';
+  try {
+    var t = localStorage.getItem(TKEY);
+    if (t) document.documentElement.setAttribute('data-theme', t);
+  } catch(e){}
+  document.getElementById('theme').addEventListener('click', function(){
+    var cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', cur);
+    try { localStorage.setItem(TKEY, cur); } catch(e){}
+  });
+
+  document.getElementById('reset').addEventListener('click', function(){
+    if (!confirm('确定清空所有复习进度吗？此操作不可撤销。')) return;
+    boxes.forEach(function(b){ b.checked = false; state[b.id] = false; });
+    try { localStorage.removeItem(KEY); } catch(e){}
+    refresh(); apply();
+  });
+
+  refresh();
+  apply();
+})();
+</script>
+</body>
+</html>

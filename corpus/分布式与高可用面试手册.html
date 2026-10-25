@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>分布式与高可用 · 深度面试手册</title>
+<style>
+:root{
+  --bg:#f5f6f8; --card:#ffffff; --line:#e5e7eb; --line2:#d1d5db;
+  --tx:#1f2937; --tx2:#6b7280; --tx3:#9ca3af;
+  --ac:#2563eb; --ac-bg:#eff6ff; --ac-line:#bfdbfe;
+  --must:#dc2626; --must-bg:#fef2f2; --must-line:#fecaca;
+  --high:#d97706; --high-bg:#fffbeb; --high-line:#fde68a;
+  --bonus:#059669; --bonus-bg:#ecfdf5; --bonus-line:#a7f3d0;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font:15px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
+a{color:var(--ac);text-decoration:none}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:272px;flex:0 0 272px;background:#0f172a;color:#e2e8f0;position:sticky;top:0;height:100vh;overflow-y:auto;padding:20px 0}
+.sidebar .brand{padding:0 20px 16px;border-bottom:1px solid #1e293b;font-size:16px;font-weight:600;color:#fff;line-height:1.4}
+.sidebar .brand small{display:block;font-size:12px;font-weight:400;color:#94a3b8;margin-top:4px}
+.nav-item{display:block;padding:9px 20px;color:#cbd5e1;font-size:13.5px;border-left:3px solid transparent}
+.nav-item:hover{background:#1e293b;color:#fff}
+.nav-item.active{background:#1e293b;color:#fff;border-left-color:#3b82f6}
+.nav-item .pct{float:right;font-size:12px;color:#64748b}
+.main{flex:1;min-width:0;padding:28px 36px 80px;max-width:1000px}
+.toolbar{position:sticky;top:0;background:var(--bg);padding:12px 0;z-index:10;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.toolbar input[type=search]{flex:1;min-width:200px;padding:9px 14px;border:1px solid var(--line2);border-radius:8px;font-size:14px;background:var(--card)}
+.toolbar input[type=search]:focus{outline:2px solid var(--ac-line);border-color:var(--ac)}
+.fbtn{padding:8px 14px;border:1px solid var(--line2);border-radius:8px;background:var(--card);font-size:13px;cursor:pointer;white-space:nowrap}
+.fbtn.active{background:var(--ac);color:#fff;border-color:var(--ac)}
+h1{font-size:24px;margin:8px 0 6px}
+.lead{color:var(--tx2);font-size:14px;margin-bottom:20px}
+.overview{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.ov{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+.ov .num{font-size:26px;font-weight:700;color:var(--ac)}
+.ov .lab{font-size:12px;color:var(--tx2)}
+section.module{margin:32px 0 8px}
+section.module>h2{font-size:20px;padding-bottom:8px;border-bottom:2px solid var(--line);display:flex;align-items:center;gap:10px}
+section.module>h2 .cnt{font-size:13px;color:var(--tx2);font-weight:400}
+.q{border:1px solid var(--line);border-radius:10px;background:var(--card);margin:14px 0;overflow:hidden}
+.q>summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;align-items:flex-start;gap:10px}
+.q>summary::-webkit-details-marker{display:none}
+.q>summary::before{content:"▸";color:var(--tx3);font-size:14px;margin-top:2px;flex:0 0 auto;transition:transform .15s}
+.q[open]>summary::before{transform:rotate(90deg)}
+.q .q-title{flex:1}
+.q .q-title .qn{font-weight:600}
+.lv{display:inline-block;font-size:11px;padding:1px 8px;border-radius:10px;margin-left:6px;vertical-align:1px;font-weight:500}
+.lv1{background:var(--must-bg);color:var(--must);border:1px solid var(--must-line)}
+.lv2{background:var(--high-bg);color:var(--high);border:1px solid var(--high-line)}
+.lv3{background:var(--bonus-bg);color:var(--bonus);border:1px solid var(--bonus-line)}
+.ck{margin-top:3px;font-size:13px;color:var(--tx2);display:flex;align-items:center;gap:6px}
+.ck input{width:15px;height:15px;cursor:pointer}
+.q .bd{padding:2px 16px 16px 40px}
+.q .bd h4{font-size:14px;margin:14px 0 6px;color:#111827}
+.q .bd p{margin:6px 0}
+.q .bd ul,.q .bd ol{margin:6px 0;padding-left:22px}
+.q .bd li{margin:3px 0}
+.q .bd code,.code{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px}
+pre{background:#0f172a;color:#ffffff;border-radius:8px;padding:16px 18px;overflow-x:auto;font-family:Menlo,Consolas,"Courier New",monospace;font-size:14.5px;line-height:1.75;margin:10px 0}
+pre code{background:none;border:none;padding:0;color:inherit}
+.followup{border-left:3px solid var(--ac);background:var(--ac-bg);border-radius:0 8px 8px 0;padding:10px 14px;margin:10px 0;font-size:14px}
+.followup b{color:var(--ac)}
+.pit{border-left:3px solid var(--must);background:var(--must-bg);border-radius:0 8px 8px 0;padding:10px 14px;margin:10px 0;font-size:14px}
+.pit b{color:var(--must)}
+table.tb{width:100%;border-collapse:collapse;margin:10px 0;font-size:13.5px}
+table.tb th,table.tb td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+table.tb th{background:#f8fafc;font-weight:600}
+.hide{display:none!important}
+.glossary{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:24px}
+.glossary h2{font-size:18px;margin:0 0 4px}
+.glossary .gsub{font-size:13px;color:var(--tx2);margin-bottom:16px}
+.glossary table{width:100%;border-collapse:collapse;font-size:13.5px}
+.glossary th,.glossary td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+.glossary th{background:#f8fafc;font-weight:600;width:140px}
+.glossary td code{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px;color:var(--ac);font-weight:600}
+.topbtns{display:flex;gap:8px}
+@media print{
+  .sidebar,.toolbar{display:none}
+  .layout{display:block}
+  .main{padding:0;max-width:none}
+  .q{border-color:#ccc;break-inside:avoid}
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0b1220;--card:#111827;--line:#1f2937;--line2:#374151;--tx:#e5e7eb;--tx2:#9ca3af;--tx3:#6b7280;--ac:#60a5fa;--ac-bg:#1e3a5f;--ac-line:#2563eb;--must:#f87171;--must-bg:#3f1d1d;--must-line:#7f1d1d;--high:#fbbf24;--high-bg:#3a2c0a;--high-line:#78350f;--bonus:#34d399;--bonus-bg:#0a2e20;--bonus-line:#065f46}
+  .q .bd code,.code{background:#1e293b;border-color:#334155}
+  table.tb th{background:#1e293b}
+  .glossary th{background:#1e293b}
+  .glossary td code{background:#1e293b;border-color:#334155}
+  .q .bd h4{color:#f3f4f6}
+  pre{background:#020617}
+}
+/* 修复：行内 code 底纹样式(.q .bd code 优先级高于 pre code)会污染代码块，此规则强制清除 */pre code,.q .bd pre code,.bd pre code,.glossary pre code{background:none!important;border:none!important;padding:0!important;border-radius:0!important;color:inherit;font-size:14.5px;line-height:1.75}</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="brand">分布式与高可用<small>深度面试手册 · 锁 · 事务 · 缓存 · 一致性</small></div>
+  <a class="nav-item active" href="#mod0" data-mod="mod0">总览 · 名词速查</a>
+  <a class="nav-item" href="#mod1" data-mod="mod1">① 分布式理论 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod2" data-mod="mod2">② 分布式锁 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod3" data-mod="mod3">③ 分布式事务 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod4" data-mod="mod4">④ 分布式 ID <span class="pct"></span></a>
+  <a class="nav-item" href="#mod5" data-mod="mod5">⑤ 缓存三大问题 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod6" data-mod="mod6">⑥ 幂等与限流 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod7" data-mod="mod7">⑦ 高可用与消息可靠</a>
+  <div style="padding:16px 20px;font-size:12px;color:#64748b;border-top:1px solid #1e293b;margin-top:16px">
+    进度保存在本机 localStorage<br>清缓存会丢
+  </div>
+</aside>
+
+<main class="main">
+  <div class="toolbar">
+    <input type="search" id="search" placeholder="搜索题目、关键词（如：Redisson、Seata、雪花、布隆过滤器、Raft、幂等…）">
+    <div class="topbtns">
+      <button class="fbtn" data-lv="all">全部</button>
+      <button class="fbtn" data-lv="1">必考</button>
+      <button class="fbtn" data-lv="2">高频</button>
+      <button class="fbtn" data-lv="3">加分</button>
+    </div>
+    <div class="topbtns">
+      <button class="fbtn" id="btn-expand">全部展开</button>
+      <button class="fbtn" id="btn-collapse">全部折叠</button>
+    </div>
+  </div>
+
+  <h1>分布式与高可用 · 深度面试手册</h1>
+  <p class="lead">面向 <b>5 年 Java 后端</b>的分布式专题，比普通面试题更深一层：每个主题讲清<b>原理 + 方案对比 + 代码 + 追问点 + 易错坑</b>。主线：<b>理论（CAP/Raft）→ 锁 → 事务 → ID → 缓存 → 幂等限流 → 高可用</b>。难度：<span class="lv lv1">必考</span> <span class="lv lv2">高频</span> <span class="lv lv3">加分</span>。</p>
+
+  <div class="overview">
+    <div class="ov"><div class="num" id="ov-total">0</div><div class="lab">总题量</div></div>
+    <div class="ov"><div class="num" id="ov-done">0</div><div class="lab">已掌握</div></div>
+    <div class="ov"><div class="num" id="ov-pct">0%</div><div class="lab">整体进度</div></div>
+    <div class="ov"><div class="num" id="ov-mod">7</div><div class="lab">模块数</div></div>
+  </div>
+
+  <!-- ============ 总览 ============ -->
+  <section class="module" id="mod0">
+    <div class="glossary">
+      <h2>核心名词速查表</h2>
+      <p class="gsub">先把分布式领域的术语记牢。5 年经验面试，面试官默认你「用词准确」，张冠李戴是硬伤。</p>
+      <table>
+        <thead><tr><th>类别</th><th>名词</th><th>一句话解释</th></tr></thead>
+        <tbody>
+          <tr><th>一致性理论</th><td><code>CAP / BASE</code></td><td>一致性-可用性-分区容错；基本可用-软状态-最终一致</td></tr>
+          <tr><th>一致性算法</th><td><code>Paxos / Raft</code></td><td>分布式共识算法，Raft 以「易理解」著称</td></tr>
+          <tr><th>分布式锁</th><td><code>Redis / Redisson / Zookeeper</code></td><td>跨进程互斥访问共享资源</td></tr>
+          <tr><th>分布式事务</th><td><code>2PC / TCC / SAGA / Seata</code></td><td>跨服务 / 跨库的数据一致性</td></tr>
+          <tr><th>分布式 ID</th><td><code>雪花 / 号段 / Leaf</code></td><td>全局唯一的 ID 生成</td></tr>
+          <tr><th>缓存问题</th><td><code>穿透 / 击穿 / 雪崩</code></td><td>缓存失效带来的三大经典问题</td></tr>
+          <tr><th>缓存一致</th><td><code>Cache Aside / 延迟双删 / Canal</code></td><td>缓存与 DB 数据对齐</td></tr>
+          <tr><th>幂等</th><td><code>Idempotent</code></td><td>同一操作多次执行结果一致</td></tr>
+          <tr><th>限流</th><td><code>令牌桶 / 漏桶 / 滑动窗口</code></td><td>控制流量，保护系统</td></tr>
+          <tr><th>消息可靠</th><td><code>不丢 / 不重 / 有序</code></td><td>消息投递的三重保障</td></tr>
+        </tbody>
+      </table>
+      <div class="followup" style="margin-top:16px"><b>面试心法：</b>分布式问题没有「标准答案」，只有「场景 + 权衡」。回答时先说<b>要解决什么问题</b>，再说<b>有哪些方案</b>，最后说<b>为什么选这个（性能/一致性/复杂度取舍）</b>。这样比直接背答案高一个段位。</div>
+    </div>
+  </section>
+
+  <!-- ============ 模块一：分布式理论 ============ -->
+  <section class="module" id="mod1">
+    <h2>① 分布式理论 <span class="cnt">CAP · BASE · Raft · 时钟</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d1q1">CAP 理论：三个字母的精确含义 + 为什么不可兼得 + 常见误解</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="d1q1">已掌握</span></summary>
+      <div class="bd">
+        <p>CAP 是 Eric Brewer 在 2000 年提出的猜想，2002 年被 Lynch 等人用数学<b>严格证明</b>（因此它是「定理」，不是「经验法则」）。三个字母都必须精确理解，否则一追问就露馅。</p>
+
+        <h4>三个字母的精确定义（不是字面意思）</h4>
+        <table class="tb">
+          <thead><tr><th>字母</th><th>精确含义</th><th>常见误解</th></tr></thead>
+          <tbody>
+            <tr><td><b>C 一致性</b></td><td><b>线性一致性（Linearizability）</b>：所有节点在同一时刻看到的数据都一样，读操作总能读到「最近一次写」的结果，好像只有一个副本。</td><td>误以为是「数据最终会一样」（那是最终一致），CAP 里的 C 是<b>强一致</b>。</td></tr>
+            <tr><td><b>A 可用性</b></td><td><b>每个「非故障」节点</b>都能在<b>有限时间内</b>返回一个<b>非错误</b>的响应（哪怕数据是旧的）。注意：它不要求返回的是「最新数据」。</td><td>误以为「可用 = 永不宕机」。A 只要求「能响应」，不要求「响应正确/最新」。</td></tr>
+            <tr><td><b>P 分区容错</b></td><td>网络发生<b>分区（Partition）</b>时——即节点间消息丢失、延迟，网络被切成互不连通的两半——系统仍能继续工作。</td><td>误以为「P 是可选项」。分区不是「可能发生」而是「必然发生」的网络故障。</td></tr>
+          </tbody>
+        </table>
+
+        <h4>为什么「必然选 P」，C 和 A 不可兼得？</h4>
+        <p><b>关键前提：</b>分布式系统里，网络故障（消息丢失、交换机故障、机房断连）是<b>物理上必然发生</b>的，你无法消灭它。所以 P 是「被迫接受」的约束，而不是「可以放弃」的选项。真正要选的是——<b>分区发生后，C 和 A 二选一</b>。</p>
+        <p><b>用一个具体场景证明（这是面试官最爱追问的点）：</b></p>
+        <ol>
+          <li>系统有 A、B 两个节点，各存一份数据 x = 1。</li>
+          <li>某时刻网络分区：A、B 之间消息不通，但两边都能正常对外服务。</li>
+          <li>客户端 1 连上 A，写入 x = 2；客户端 2 连上 B，要读 x。</li>
+          <li>此时 B 上 x 还是 1。系统只有两个选择：</li>
+        </ol>
+        <ul>
+          <li><b>选 C（牺牲 A）：</b>B 拒绝响应（返回错误或一直等），直到 A、B 恢复同步。→ 保证读到的 x 一定是最新的，但<b>此刻 B 不可用</b>。</li>
+          <li><b>选 A（牺牲 C）：</b>B 直接返回 x = 1（旧值）。→ B 可用，但<b>读到的是过期数据</b>，两节点数据不一致。</li>
+        </ul>
+        <p>这就是「分区时刻，C 和 A 只能二选一」的数学本质：<b>分区后，如果还想所有节点都响应（A），就不可能保证所有响应都是最新的（C）</b>。</p>
+
+        <h4>三种组合分别代表什么</h4>
+        <table class="tb">
+          <thead><tr><th>组合</th><th>含义</th><th>典型代表</th></tr></thead>
+          <tbody>
+            <tr><td><b>CP</b></td><td>分区时宁可不可用，也要数据一致</td><td>Zookeeper、etcd、Consul、HBase、MongoDB(默认)</td></tr>
+            <tr><td><b>AP</b></td><td>分区时宁可短暂不一致，也要可用</td><td>Eureka、Cassandra、DynamoDB、CouchDB</td></tr>
+            <tr><td><b>CA</b></td><td>理论上存在（无分区时），分布式下无意义——因为分区必然发生，CA 等价于「单机系统」</td><td>传统关系型数据库（单机 MySQL/Oracle）</td></tr>
+          </tbody>
+        </table>
+
+        <h4>三个高频误解（一定要主动澄清）</h4>
+        <ul>
+          <li><b>误解 1「三选二」：</b>不是「从三个里挑两个」，而是「P 必须选，剩下的 C/A 二选一」。真正的选择发生在<b>分区发生的那一刻</b>，平时三者可以同时满足。</li>
+          <li><b>误解 2「选了 CP 就永远不可用」：</b>错。分区是<b>暂时</b>的，分区恢复后 CP 系统恢复正常。CP/AP 说的是「分区期间」的取舍，不是永久状态。</li>
+          <li><b>误解 3「CAP 和 ACID 冲突」：</b>两者维度不同。ACID 是「单机事务」的保证，CAP 是「多副本分布式」的取舍，不矛盾。数据库的 ACID 是「数据库内部」的一致性，CAP 的 C 是「多副本之间」的一致性。</li>
+        </ul>
+
+        <h4>BASE 理论（AP 的工程化落地）</h4>
+        <ul>
+          <li><b>Basically Available（基本可用）：</b>允许降级，如高峰时返回兜底页、排队、部分功能不可用，但核心流程不挂。</li>
+          <li><b>Soft state（软状态）：</b>允许系统存在中间状态，数据有短暂不一致窗口（这是为了可用性主动放弃强一致的代价）。</li>
+          <li><b>Eventually consistent（最终一致）：</b>经过一段时间后，数据最终收敛一致（如主从复制延迟最终追平）。</li>
+        </ul>
+        <p><b>关系：</b>CAP 是「理论」——告诉你在极端网络故障下 C/A 必须二选一；BASE 是「实践」——承认现实世界里做不到强一致，退而求其次追求最终一致 + 高可用。</p>
+
+        <div class="followup"><b>一句话扛住追问：</b>CAP 的 C 是「线性一致性」而非「最终一致」，A 是「能响应」而非「响应正确」，P 是「必然发生的网络故障」而非「可选」。系统在<b>分区期间</b>只能在 C 和 A 之间二选一，平时二者兼得。大多数互联网业务选 AP + BASE（最终一致），资金交易选 CP。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d1q2">Raft 一致性算法：选举、日志复制、过半提交的完整原理</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="d1q2">已掌握</span></summary>
+      <div class="bd">
+        <p>Raft 要解决的本质问题：<b>让多个节点对「日志序列」达成一致</b>，从而让多副本状态机输出一样的结果。Raft 把这个问题拆成三个可独立理解的子问题，这是它比 Paxos 好懂的原因。</p>
+
+        <h4>角色与任期（Term）—— 一切的基础</h4>
+        <ul>
+          <li>每个节点三种角色：<b>Leader（领导者）、Follower（跟随者）、Candidate（候选者）</b>。任期内最多一个 Leader。</li>
+          <li><b>Term（任期）</b>：单调递增的整数，每次选举 +1。它是「逻辑时钟」，用来区分「新旧」——term 大的日志一定比 term 小的新，term 大的 Leader 一定比 term 小的权威。</li>
+          <li>所有通信都带 term：收到更大 term，说明自己过期了，立即降为 Follower。</li>
+        </ul>
+
+        <h4>领导者选举（Leader Election）具体流程</h4>
+        <ol>
+          <li>Follower 一段时间收不到 Leader 心跳，就<b>超时</b>，term+1，转成 Candidate，投自己一票。</li>
+          <li>Candidate 向其他节点发<b>投票请求</b>，每个节点一个 term 只能投一票。</li>
+          <li>拿到<b>多数票</b>（过半）→ 当选 Leader；收到更大 term 的消息 → 转回 Follower；没人拿到多数 → 再等随机超时重新选举。</li>
+          <li><b>随机超时的作用（关键）：</b>每个节点的超时时间随机（150~300ms），避免所有节点同时超时、同时竞选导致「永远选不出 Leader」的分裂问题。这是 Raft 设计的精髓。</li>
+        </ol>
+
+        <h4>日志复制（Log Replication）具体流程</h4>
+        <ol>
+          <li>客户端写请求只能发给 Leader，Leader 把命令追加到本地日志，同时发给所有 Follower。</li>
+          <li>Follower 收到后追加到自己日志，返回确认。</li>
+          <li>Leader 收到<b>多数派（过半）确认</b>后，这条日志标记为「已提交（committed）」，然后才应用到状态机并返回客户端。</li>
+          <li>Leader 在后续心跳里带上「已提交到的索引」，Follower 据此也提交。</li>
+        </ol>
+
+        <h4>为什么是「过半提交」而不是「全部确认」？</h4>
+        <p>这是最容易被追问、也最能体现理解深度的点：</p>
+        <ul>
+          <li><b>容错性：</b>要求全部确认，任何一个节点故障就永远写不成功，系统不可用。过半提交允许最多 N/2-1 个节点宕机仍能正常写。</li>
+          <li><b>唯一性保证（数学本质）：</b>任意两个「多数派」集合<b>必然有交集</b>（比如 5 个节点，任何 3 个的集合，两两都至少共享 1 个节点）。这意味着：一旦某日志被「过半提交」，任何后续新 Leader（也必须是过半投票选出）一定包含这条日志，所以<b>已提交的日志永远不会被覆盖或丢失</b>。这就是「过半」能保证安全性的核心证明。</li>
+        </ul>
+
+        <h4>安全性（Safety）如何保证</h4>
+        <ul>
+          <li><b>选举限制：</b>Candidate 的日志必须「至少和多数派一样新」（term 更大，或 term 相同但索引更大），否则没资格当选。这保证新 Leader 一定包含所有已提交日志。</li>
+          <li><b>日志匹配：</b>Leader 通过「回退重试」强制 Follower 的日志与自己一致（发现不一致就把自己的日志往前推，直到找到一致点再覆盖）。</li>
+        </ul>
+
+        <h4>Raft vs Paxos</h4>
+        <table class="tb">
+          <thead><tr><th>维度</th><th>Raft</th><th>Paxos</th></tr></thead>
+          <tbody>
+            <tr><td>核心设计</td><td>强 Leader + 日志复制，拆成三子问题</td><td>无固定 Leader，多阶段多角色提案</td></tr>
+            <tr><td>易理解性</td><td>高（面向工程可读性设计）</td><td>低（论文抽象，实现难，易出 bug）</td></tr>
+            <tr><td>典型应用</td><td>etcd、Consul、TiKV、Nacos CP 模式、RocketMQ DLedger</td><td>Google Chubby、部分分布式数据库</td></tr>
+          </tbody>
+        </table>
+        <div class="followup"><b>一句话扛住追问：</b>Raft 用「term 当逻辑时钟 + 随机超时防分裂选举 + 过半提交」实现一致性。「过半」既是容错的需要，又因为「任意两个多数派必有交集」而天然保证已提交日志不被覆盖。etcd/Zookeeper（类 Zab）/Nacos CP 都基于这套思想。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d1q3">分布式时钟：本地时钟为什么不可靠？Lamport 和向量时钟解决什么？</span><span class="lv lv3">加分</span></span><span class="ck"><input type="checkbox" data-id="d1q3">已掌握</span></summary>
+      <div class="bd">
+        <h4>为什么本地时钟（墙上时钟）不可靠？</h4>
+        <ul>
+          <li><b>漂移（Drift）：</b>每台机器的晶振频率有微小差异，长时间运行后各机器时钟误差累积（一天可能差几秒到几十秒）。</li>
+          <li><b>回拨（Jump back）：</b>NTP 校时、管理员手动改时间、虚拟机迁移，时钟会<b>往回调</b>。</li>
+          <li><b>后果：</b>无法用 <code>System.currentTimeMillis()</code> 判断「跨机器的事件先后顺序」——A 机器 12:00:01 发生的事，B 机器可能记录成 11:59:59。</li>
+        </ul>
+
+        <h4>Lamport 逻辑时钟 —— 解决「因果顺序」</h4>
+        <p>核心：<b>不用真实时间，用「计数 + 消息传递修正」</b>来定义事件先后。</p>
+        <ul>
+          <li>每个节点维护一个计数器 <code>C</code>，本地事件发生时 <code>C = C + 1</code>。</li>
+          <li>发消息时带上自己的 <code>C</code>；收到消息时，<code>C = max(自己的 C, 收到的 C) + 1</code>。</li>
+          <li><b>能保证：</b>若事件 A「因果先于」事件 B（A 影响了 B），则 A 的时间戳 &lt; B 的时间戳。</li>
+          <li><b>不能保证：</b>反推不成立——时间戳小不代表因果先于（两个并发事件可能时间戳一大一小）。所以 Lamport 时钟只能判断「偏序」，不能判断「全序」。</li>
+        </ul>
+
+        <h4>向量时钟 —— 解决「并发关系」</h4>
+        <p>Lamport 的升级：每个节点维护一个<b>向量</b> <code>[C1, C2, ..., Cn]</code>，记录「自己认为的每个节点的时钟」。</p>
+        <ul>
+          <li>本地事件：自己的分量 +1。</li>
+          <li>收到消息：逐分量取 max，再自己的分量 +1。</li>
+          <li><b>能判断并发：</b>比较两个向量的每个分量——如果 A 全 ≤ B 且至少一个 &lt;，则 A 先于 B；如果「A 有的分量大、B 有的分量大」互相交错，则 A、B 是<b>并发</b>事件（无因果关系）。</li>
+        </ul>
+
+        <h4>真实世界的方案</h4>
+        <ul>
+          <li><b>Google Spanner 的 TrueTime：</b>用 GPS + 原子钟给每个数据中心提供<b>全局误差有界</b>的时钟（误差在毫秒级），配合「提交等待」实现跨机房强一致事务。这是「用硬件解决时钟问题」的极致。</li>
+          <li><b>工程折中：</b>大多数系统不追求严格全局时序，而是「用单调递增的 ID/版本号」替代「真实时间」。</li>
+        </ul>
+        <div class="pit"><b>关联雪花算法：</b>雪花 ID 依赖机器时间戳，时钟回拨会生成重复 ID，这是分布式 ID 的核心难点（详见模块四）。这正是「本地时钟不可靠」在工程上最典型的体现。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ 模块二：分布式锁 ============ -->
+  <section class="module" id="mod2">
+    <h2>② 分布式锁 <span class="cnt">Redis · Redisson · Zookeeper · RedLock</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d2q1">Redis 分布式锁：四个坑的具体场景 + 正确实现</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="d2q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>坑 1：加锁非原子 → 死锁</h4>
+        <p><b>错误写法：</b><code>SETNX key value</code> 成功后，再单独 <code>EXPIRE key 30</code>。如果两步之间进程崩溃（如 SETNX 后、EXPIRE 前宕机），这个 key <b>永远不过期</b>，其他线程永远拿不到锁 → 死锁。</p>
+        <p><b>解决：</b>用 <code>SET key value NX EX 30</code>，一条命令同时完成「互斥 + 过期」，原子性由 Redis 单线程保证。</p>
+
+        <h4>坑 2：误删别人的锁</h4>
+        <p><b>场景：</b>线程 A 拿到锁，业务执行超过 30 秒，锁自动过期；线程 B 抢到锁开始执行；此时 A 执行完去 <code>DEL key</code>，把 <b>B 的锁删掉了</b>，导致 C 又能进来 → 三个线程同时执行。</p>
+        <p><b>解决：</b>加锁时 value 存<b>唯一标识</b>（<code>UUID + 线程 ID</code>），释放时校验「是不是自己加的锁」再删。</p>
+
+        <h4>坑 3：释放非原子（校验 + 删除分两步）</h4>
+        <p><b>场景：</b>A 先 <code>GET</code> 校验 value 是自己，正要 <code>DEL</code> 的瞬间，锁恰好过期、B 抢到锁；A 再 DEL，又把 B 的锁删了。校验和删除之间有时间窗口，仍可能误删。</p>
+        <p><b>解决：</b>用 <b>Lua 脚本</b>把「判断 + 删除」合并成一次原子操作（Redis 单线程执行 Lua，中间不会被其他命令插入）。</p>
+
+        <h4>坑 4：锁提前过期（业务没执行完）</h4>
+        <p><b>场景：</b>业务要执行 60 秒，锁 30 秒过期，前 30 秒后锁没了，其他线程进来 → 并发执行。</p>
+        <p><b>解决：</b>看门狗自动续期（Redisson 的 Watch Dog），或把过期时间设得足够长（但太长又增加宕机后锁占用时间，本质是「续期」更优）。</p>
+
+        <h4>正确实现（完整版）</h4>
+        <pre><code>// 加锁：原子（互斥 + 过期 + 唯一标识）
+SET lock_key {uuid:threadId} NX EX 30
+
+// 解锁：Lua 原子（校验 owner 再删）
+if redis.call('get', KEYS[1]) == ARGV[1] then
+  return redis.call('del', KEYS[1])
+else
+  return 0
+end</code></pre>
+        <div class="followup"><b>四个坑一句话：</b>加锁要原子（SET NX EX）、value 要唯一（防误删）、解锁要 Lua 原子（防竞态）、过期要续期（看门狗）。缺一个都有并发或死锁风险。面试把四个坑的场景讲清楚，比背命令强得多。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d2q2">Redisson 看门狗：自动续期 + 可重入的底层实现</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="d2q2">已掌握</span></summary>
+      <div class="bd">
+        <h4>看门狗解决的核心矛盾</h4>
+        <p>锁的过期时间是个两难：<b>设短了</b>业务没执行完锁就过期（并发）；<b>设长了</b>一旦客户端宕机，锁长时间占着（别人一直等）。看门狗用「<b>自动续期</b>」同时解决这两个问题——锁默认短，但只要业务还在跑，就一直续，不跑就自动过期。</p>
+
+        <h4>续期机制（定时任务）</h4>
+        <ul>
+          <li>加锁时<b>不手动指定 leaseTime</b>，Redisson 默认给锁设 30 秒过期。</li>
+          <li>同时启动一个<b>后台定时任务</b>，每 <code>30 / 3 = 10 秒</code>执行一次。</li>
+          <li>每次检查：锁是否还被<b>当前线程</b>持有？是 → 用 Lua 把过期时间<b>重置回 30 秒</b>。</li>
+          <li>业务执行完 <code>unlock</code> 时，取消定时任务。</li>
+          <li><b>为什么是 1/3：</b>10 秒续一次，即使某次续期失败，也还有 20 秒缓冲，来得及下次续上，不会让锁在续期间隙过期。</li>
+        </ul>
+
+        <h4>可重入的底层结构（关键）</h4>
+        <p>Redisson 的锁在 Redis 里不是一个普通 string，而是一个 <b>Hash</b>：</p>
+        <pre><code>lock_key = {
+  "线程ID": 2    // field 是线程标识，value 是「重入次数」
+}</code></pre>
+        <ul>
+          <li>同一个线程重复 <code>lock</code>，就把 value <b>+1</b>（重入）；每次 <code>unlock</code> 就 -1。</li>
+          <li>value 减到 0，才真正删除这个 Hash（真正释放锁）。</li>
+          <li>用 Hash 而不是 string，才能同时记录「谁持锁 + 持了几层」，这是可重入的必要条件。</li>
+        </ul>
+
+        <h4>什么情况下看门狗不生效（易错）</h4>
+        <ul>
+          <li>手动指定了 leaseTime：<code>lock(10, TimeUnit.SECONDS)</code>，此时<b>不启动看门狗</b>，锁到 10 秒就过期。</li>
+          <li>所以：要么「不传时间，让看门狗自动续」，要么「自己算好时间，接受固定过期」。</li>
+        </ul>
+        <div class="pit"><b>易错点：</b>看门狗只保护「未指定 leaseTime」的锁。很多人以为 Redisson 无条件自动续期，其实手动指定时间后就没了。这是面试官爱考的细节。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d2q3">Redis 和 Zookeeper 分布式锁：本质区别与选型</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="d2q3">已掌握</span></summary>
+      <div class="bd">
+        <table class="tb">
+          <thead><tr><th>维度</th><th>Redis（Redisson）</th><th>Zookeeper</th></tr></thead>
+          <tbody>
+            <tr><td>一致性</td><td>AP（主从异步复制，可能丢锁）</td><td>CP（Zab/Raft 协议，强一致）</td></tr>
+            <tr><td>实现</td><td>SET NX EX + Lua + 看门狗</td><td>临时顺序节点 + watch</td></tr>
+            <tr><td>性能</td><td>高（纯内存，无选主开销）</td><td>较低（写日志 + 过半同步）</td></tr>
+            <tr><td>释放机制</td><td>靠过期时间（有 GC/时钟风险）</td><td>临时节点 + 会话（session），客户端宕机自动删</td></tr>
+            <tr><td>可重入</td><td>支持（Hash + 计数）</td><td>需自行封装</td></tr>
+            <tr><td>公平性</td><td>默认非公平</td><td>顺序节点天然公平（排队）</td></tr>
+          </tbody>
+        </table>
+
+        <h4>Zookeeper 加锁流程（临时顺序节点）</h4>
+        <ol>
+          <li>每个客户端在锁路径 <code>/lock</code> 下创建<b>临时顺序节点</b>，如 <code>/lock/0000001</code>。</li>
+          <li>判断自己是不是<b>序号最小</b>的节点：是 → 获锁；否 → <b>watch 前一个节点</b>（只盯前一个，避免惊群效应）。</li>
+          <li>前一个节点被删除（释放或宕机），自己被唤醒，再次判断，如此「排队」。</li>
+        </ol>
+
+        <h4>为什么 ZK 更「可靠」—— 会话（Session）机制</h4>
+        <ul>
+          <li>客户端和 ZK 建立<b>会话</b>，客户端通过心跳维持会话。</li>
+          <li>客户端宕机 → 心跳中断 → 会话超时 → ZK <b>自动删除该客户端创建的临时节点</b> → 锁自动释放。</li>
+          <li>这是「<b>靠服务端感知客户端存活</b>」来释放锁，比 Redis「靠过期时间猜」更可靠——不依赖时钟，没有 GC 停顿导致的误判。</li>
+        </ul>
+
+        <h4>为什么 Redis 更快、ZK 更慢</h4>
+        <ul>
+          <li>Redis：加锁是单条命令、纯内存，几微秒到几十微秒。</li>
+          <li>ZK：写节点要<b>过半同步 + 落盘</b>（保证 CP），有网络往返和磁盘 IO，毫秒级。</li>
+        </ul>
+
+        <div class="followup"><b>选型一句话：</b>「性能优先、能接受极低概率锁异常 + 业务幂等兜底」→ Redis；「一致性优先、锁的绝对正确性比性能重要（金融、主节点选举）」→ Zookeeper。面试关键不是背结论，而是说清「AP 丢锁 vs CP 慢」这个本质取舍。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d2q4">RedLock 为什么有争议？Martin Kleppmann 的致命反驳</span><span class="lv lv3">加分</span></span><span class="ck"><input type="checkbox" data-id="d2q4">已掌握</span></summary>
+      <div class="bd">
+        <h4>RedLock 想解决什么问题</h4>
+        <p>Redis 单节点 + 主从架构有个隐患：<b>主从切换丢锁</b>。客户端在 master 上加锁成功，master 还没来得及同步给 slave 就宕机，slave 升主后锁不存在了，另一个客户端又能加锁 → 两个客户端同时持锁。RedLock 的思路是：<b>不依赖主从，在 N 个独立节点（通常 5 个）上分别加锁，过半成功才算成功</b>。</p>
+
+        <h4>RedLock 的加锁流程</h4>
+        <ol>
+          <li>客户端向 5 个独立 Redis 节点依次尝试加锁（每个带过期时间）。</li>
+          <li>统计成功数：<b>成功 ≥ 3（过半）</b>，且总耗时小于锁的有效期，才算加锁成功。</li>
+          <li>失败则向所有节点发释放请求，然后重试。</li>
+        </ol>
+
+        <h4>Martin Kleppmann 的反驳（这是面试加分点）</h4>
+        <p>分布式系统权威 Martin Kleppmann 写了《How to do distributed locking》正面质疑 RedLock，核心论点是：<b>RedLock 依赖「时钟」来保证互斥，而时钟本身不可靠</b>，所以它的安全性假设是错的。</p>
+        <ul>
+          <li><b>反驳 1——GC 停顿：</b>客户端 A 拿到锁后，发生 <b>Full GC 停顿</b>（STW 可能几秒甚至几十秒），超过锁的过期时间。等 A 恢复，锁早已过期、被 B 抢走，A 却以为自己还持有锁继续操作 → <b>两个客户端同时操作</b>。任何依赖「过期时间」的锁都逃不掉这个问题，RedLock 也一样。</li>
+          <li><b>反驳 2——时钟跳变：</b>节点时钟回拨或跳变，会导致锁的「过期时间」判断失真，锁在「不该过期的时候」过期。</li>
+          <li><b>反驳 3——核心结论：</b>真正保证互斥的正确做法是 <b>Fencing Token（栅栏令牌）</b>——锁要返回一个<b>单调递增的令牌</b>，写数据时校验令牌，旧令牌的请求被拒绝。这样即使 A 停顿后锁被 B 抢走，A 恢复后拿旧令牌去写，也会被拒绝，从<b>存储层</b>兜住互斥，而不是依赖不可靠的时钟。</li>
+        </ul>
+
+        <h4>正确认识 RedLock</h4>
+        <ul>
+          <li>RedLock 确实解决了「主从切换丢锁」这一个具体问题，但<b>没有解决「时钟/GC 导致的锁失效」这个更根本的问题</b>。</li>
+          <li>Redis 官方作者 antirez 曾反驳 Kleppmann，但学界和工业界普遍更认可 Kleppmann 的论证。</li>
+          <li>工业实践：<b>RedLock 很少被真正采用</b>。要么用 Zookeeper（强一致 + 会话机制），要么用「单节点 Redis + 看门狗 + <b>业务幂等 / Fencing Token</b>」兜底。</li>
+        </ul>
+        <div class="pit"><b>面试高分答法：</b>先承认 RedLock 解决「主从丢锁」，再点出它「依赖时钟、挡不住 GC 停顿」的根本缺陷，最后给出「Fencing Token / 业务幂等才是真正兜底」的结论。能讲到 Fencing Token，说明你真的懂分布式锁的本质。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ 模块三：分布式事务 ============ -->
+  <section class="module" id="mod3">
+    <h2>③ 分布式事务 <span class="cnt">2PC · 3PC · TCC · SAGA · Seata</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d3q1">2PC / 3PC：两阶段提交的完整流程与致命缺陷</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="d3q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>2PC（Two-Phase Commit，两阶段提交）</h4>
+        <p>本质：<b>一个协调者（Coordinator）+ 多个参与者（Participant），通过两轮通信达成「要么全提交，要么全回滚」</b>。</p>
+        <ol>
+          <li><b>阶段一 · 准备（Prepare）：</b>协调者向所有参与者发「准备提交」请求；每个参与者<b>执行本地事务但不提交</b>，锁定所需资源，返回 <code>ready</code> 或 <code>abort</code>。</li>
+          <li><b>阶段二 · 提交/回滚（Commit/Rollback）：</b>协调者收到<b>全部 ready</b> → 发「提交」指令，所有参与者提交；任一返回 abort → 发「回滚」指令，全部回滚。</li>
+        </ol>
+
+        <h4>2PC 的三个致命缺陷（面试重点）</h4>
+        <ul>
+          <li><b>同步阻塞：</b>阶段一所有参与者锁定资源，等待「最慢的那个参与者」响应。只要一个卡住，<b>所有参与者一起阻塞</b>，资源长时间占用，吞吐量极低。</li>
+          <li><b>单点故障：</b>协调者是整个事务的「大脑」。协调者在阶段二<b>发出部分提交指令后宕机</b>，参与者会陷入「不知道该提交还是回滚」的僵局，一直阻塞。</li>
+          <li><b>数据不一致：</b>阶段二协调者给 A 发了「提交」、给 B 的「提交」因网络丢失，此时 A 已提交、B 未提交 → <b>数据不一致</b>。这是 2PC 无法用「重试」解决的（重试会导致 A 重复提交）。</li>
+        </ul>
+
+        <h4>3PC（三阶段提交）如何改进？改进有限</h4>
+        <ol>
+          <li><b>CanCommit：</b>先轻量询问「大家能不能提交」（不执行事务，不锁资源）。</li>
+          <li><b>PreCommit：</b>同 2PC 的准备阶段。</li>
+          <li><b>DoCommit：</b>提交阶段。</li>
+        </ol>
+        <p>3PC 引入<b>超时机制</b>：参与者等待超时后<b>自动提交</b>（降低阻塞，避免 2PC 的「僵局」）。但代价是：如果协调者是因为「要回滚」才宕机的，参与者超时后却自动提交了，反而造成不一致。所以 3PC <b>只是缓解，没根治</b>，而且多一轮通信、性能更差，实际很少用。</p>
+
+        <h4>为什么互联网不用 2PC/3PC</h4>
+        <ul>
+          <li>它追求「强一致 + 同步阻塞」，性能差、可用性差，与互联网「高并发、高可用」天然冲突。</li>
+          <li>它适合「低并发、短事务、对一致性要求极高」的场景，典型是<b>数据库的 XA 事务</b>（跨库分布式事务）。</li>
+          <li>互联网场景用「最终一致」方案（TCC、SAGA、消息事务）替代。</li>
+        </ul>
+        <div class="followup"><b>一句话扛住追问：</b>2PC 的「同步阻塞 + 协调者单点 + 阶段二网络分区导致不一致」是三个无解的缺陷，3PC 加超时只是缓解阻塞、反而引入「自动提交导致不一致」的新问题。所以互联网场景弃用，转向最终一致。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d3q2">TCC 和 SAGA：补偿式事务的原理、空回滚与悬挂</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="d3q2">已掌握</span></summary>
+      <div class="bd">
+        <h4>TCC（Try / Confirm / Cancel）</h4>
+        <p>TCC 的核心思想：<b>把「业务」本身设计成可预留、可确认、可撤销的三段</b>，不依赖数据库事务，而是靠「业务补偿」实现一致性。</p>
+        <ul>
+          <li><b>Try（预留）：</b>检查资源、<b>预留</b>（如冻结库存、预扣余额），不改最终状态。</li>
+          <li><b>Confirm（确认）：</b>真正扣减，把预留变成实际（如冻结 → 扣款）。</li>
+          <li><b>Cancel（取消）：</b>释放预留，回滚（如解冻库存）。</li>
+        </ul>
+        <p><b>优点：</b>不锁数据库资源（预留是业务层面的），性能比 2PC 好，隔离性可控。<b>缺点：</b>每个业务要写三个方法，代码侵入大、开发成本高。</p>
+
+        <h4>TCC 的两个经典难题（面试高分点）</h4>
+        <ul>
+          <li><b>空回滚（Empty Rollback）：</b>Try 阶段因网络超时<b>没真正执行</b>，但协调者以为失败了，调用了 Cancel。此时 Cancel 要「取消一个根本没发生的预留」，必须能识别并幂等处理（记录 Try 是否成功）。</li>
+          <li><b>悬挂（Suspension）：</b>Cancel 先于 Try 到达（网络乱序）。Cancel 执行完，迟到的 Try 才到并执行了预留 → 资源被预留了但没人会再取消，造成「悬挂」。解决：Cancel 后标记状态，Try 到达时发现已 Cancel 就直接拒绝。</li>
+        </ul>
+
+        <h4>SAGA（长事务补偿）</h4>
+        <p>把长事务拆成<b>一串本地事务</b> <code>T1 → T2 → ... → Tn</code>，每个本地事务对应一个<b>补偿操作</b> <code>C1 → C2 → ... → Cn</code>。</p>
+        <ul>
+          <li>正向执行：T1 成功 → T2 成功 → ...。</li>
+          <li>某步失败（如 T3 失败）：<b>逆序执行补偿</b> C2 → C1，把前面已成功的步骤撤销。</li>
+          <li><b>优点：</b>无资源锁定（各本地事务独立提交），适合长流程（下单、跨系统审批）。</li>
+          <li><b>缺点：</b><b>无隔离性</b>——T1 提交后、整个 SAGA 完成前，中间状态会被其他请求读到；且补偿操作本身也可能失败，需要「补偿的补偿」或人工介入。</li>
+        </ul>
+
+        <h4>TCC vs SAGA 怎么选</h4>
+        <table class="tb">
+          <thead><tr><th>维度</th><th>TCC</th><th>SAGA</th></tr></thead>
+          <tbody>
+            <tr><td>隔离性</td><td>较好（Try 预留资源）</td><td>无隔离（中间态可见）</td></tr>
+            <tr><td>代码侵入</td><td>大（写三个方法）</td><td>中（写补偿方法）</td></tr>
+            <tr><td>适用</td><td>核心资金、需强预留（扣款、减库存）</td><td>长流程、多步骤、允许中间态</td></tr>
+          </tbody>
+        </table>
+        <div class="followup"><b>一句话扛住追问：</b>TCC 是「预留式」，靠 Try/Confirm/Cancel 保证隔离，但要处理「空回滚 + 悬挂」；SAGA 是「补偿式」，靠逆序补偿撤销，但没有隔离性。能说出空回滚和悬挂，说明你真正做过 TCC 而不是背概念。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d3q3">本地消息表 / RocketMQ 事务消息：最终一致的完整链路</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="d3q3">已掌握</span></summary>
+      <div class="bd">
+        <h4>先理解核心矛盾</h4>
+        <p>「本地事务」和「发消息」是两件事，如何保证<b>「业务成功」和「消息发出」要么都成功、要么都不成功</b>？这是消息最终一致要解决的根本问题。</p>
+
+        <h4>方案一：本地消息表（最朴素，最可控）</h4>
+        <ol>
+          <li>业务操作 + 写消息记录，放在<b>同一个本地数据库事务</b>里（消息表字段：消息内容、状态=待发送、重试次数）。</li>
+          <li>事务提交后，后台<b>定时任务</b>扫描「待发送」消息，投递到 MQ。</li>
+          <li>消费方处理成功后，回调更新消息状态为「已完成」（或发确认消息）。</li>
+          <li>超时未完成的消息，重试；重试多次仍失败 → 人工对账。</li>
+        </ol>
+        <p><b>优点：</b>实现简单、不依赖特殊 MQ 能力，任何 MQ 都能用。<b>缺点：</b>要维护消息表、要写定时任务，有代码侵入。</p>
+
+        <h4>方案二：RocketMQ 事务消息（把「本地事务 + 发消息」原子化）</h4>
+        <ol>
+          <li>发送<b>半消息（half message）</b>：消息先到 Broker，但消费者<b>暂时看不到</b>（处于中间态）。</li>
+          <li>执行<b>本地事务</b>（如扣款、减库存）。</li>
+          <li>本地事务<b>成功 → commit</b>，半消息变可见，消费者才能消费；<b>失败 → rollback</b>，半消息被丢弃。</li>
+          <li>若 Broker 长时间没收到 commit/rollback（如生产者宕机），Broker 主动<b>回查（check）</b>生产者的本地事务状态，决定提交还是回滚。</li>
+        </ol>
+        <p><b>关键：</b>「半消息 + 事务回查」机制，把「本地事务」和「消息」绑定成原子操作，生产者不用自己维护消息表和定时任务。</p>
+
+        <h4>两种方案的共同前提（缺一不可）</h4>
+        <ul>
+          <li><b>消息不丢：</b>至少一次投递（同步发送 + 重试 + 落盘）。</li>
+          <li><b>消费端幂等：</b>消息可能重复投递，消费方必须幂等（去重表 / 唯一索引），否则重复消费造成数据错误。</li>
+        </ul>
+        <div class="pit"><b>核心认知：</b>「最终一致」不是「不用保证一致性」，而是「用异步 + 重试 + 幂等，在可接受的时间内收敛到一致」。消息事务解决的只是「发消息和业务的一致性」，「消费处理的一致性」要靠幂等兜底。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d3q4">Seata AT 模式：无侵入的底层原理 + 全局锁 + 脏写问题</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="d3q4">已掌握</span></summary>
+      <div class="bd">
+        <h4>AT 模式三角色（先理清架构）</h4>
+        <ul>
+          <li><b>TC（Transaction Coordinator）：</b>Seata Server，全局事务的「总调度」，维护全局事务和分支事务的状态。</li>
+          <li><b>TM（Transaction Manager）：</b>业务发起方，标注 <code>@GlobalTransactional</code>，负责开启/提交/回滚全局事务。</li>
+          <li><b>RM（Resource Manager）：</b>每个参与的分支事务（各微服务），负责注册分支、生成 undo_log、执行本地提交/回滚。</li>
+        </ul>
+
+        <h4>无侵入的核心：SQL 解析 + undo_log（这是 AT 的精髓）</h4>
+        <p>AT 模式<b>不用改业务代码</b>，靠的是在本地事务执行前后，<b>自动拦截 SQL、记录数据的前后镜像</b>：</p>
+        <ol>
+          <li><b>一阶段：</b>业务 SQL 执行时，Seata 代理解析 SQL，记录 <b>before image（改前数据）</b>；SQL 执行后记录 <b>after image（改后数据）</b>，两者存入 <code>undo_log</code> 表（和业务数据在同一本地事务里）。</li>
+          <li><b>二阶段提交：</b>全局事务所有分支都成功，TC 通知各 RM 删除 undo_log（异步，很快）。</li>
+          <li><b>二阶段回滚：</b>任一分支失败，TC 通知各 RM 用 before image 生成<b>反向 SQL</b>，把数据改回去，然后删除 undo_log。</li>
+        </ol>
+        <p><b>为什么无侵入：</b>因为它只记录「数据快照」，回滚时「用快照反向还原」，不需要业务提供 Cancel 方法（对比 TCC 要写三个方法）。</p>
+
+        <h4>AT 模式的三个代价/坑（面试高分点）</h4>
+        <ul>
+          <li><b>全局锁（降低并发）：</b>一阶段执行时，对涉及的数据加<b>全局锁</b>，防止其他全局事务同时修改同一行。锁直到全局事务结束才释放，<b>写冲突时性能下降明显</b>（比单机事务锁粒度更粗、时间更长）。</li>
+          <li><b>脏读风险：</b>AT 模式一阶段本地事务就「提交」了（暴露 after image），所以默认隔离级别相当于<b>读未提交</b>——其他请求在全局事务未结束时，可能读到「未提交」的中间数据。</li>
+          <li><b>脏写风险（回滚冲突）：</b>如果全局事务回滚时，数据已被「另一个全局事务」修改（after image 对不上），Seata 需要做冲突处理，否则会把别人的写入覆盖掉。</li>
+        </ul>
+
+        <h4>Seata 四种模式对比</h4>
+        <table class="tb">
+          <thead><tr><th>模式</th><th>侵入性</th><th>隔离性</th><th>性能</th><th>适用</th></tr></thead>
+          <tbody>
+            <tr><td>AT</td><td>无（自动 SQL 解析）</td><td>读未提交（有脏读）</td><td>中（全局锁）</td><td>多数业务通用</td></tr>
+            <tr><td>TCC</td><td>高（写三方法）</td><td>好（预留）</td><td>高</td><td>核心资金</td></tr>
+            <tr><td>SAGA</td><td>中（写补偿）</td><td>无</td><td>高</td><td>长流程</td></tr>
+            <tr><td>XA</td><td>无（DB 原生）</td><td>强一致</td><td>低</td><td>跨库强一致</td></tr>
+          </tbody>
+        </table>
+        <div class="followup"><b>一句话扛住追问：</b>AT 模式「无侵入」的本质是「SQL 解析 + before/after 镜像 + undo_log」，回滚靠「反向 SQL 还原」而非业务补偿。代价是「全局锁降低并发 + 读未提交的脏读 + 脏写冲突」，这也是它和 TCC 的核心区别。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ 模块四：分布式 ID ============ -->
+  <section class="module" id="mod4">
+    <h2>④ 分布式 ID <span class="cnt">雪花 · 号段 · 时钟回拨</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d4q1">雪花算法：64 位结构的精确拆解 + 为什么趋势递增对 MySQL 友好</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="d4q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>64 位结构逐位拆解</h4>
+        <table class="tb">
+          <thead><tr><th>段</th><th>位数</th><th>精确含义</th></tr></thead>
+          <tbody>
+            <tr><td>符号位</td><td>1 bit</td><td>固定 0，保证是正数（long 类型最高位）</td></tr>
+            <tr><td>时间戳</td><td>41 bit</td><td>相对某个起点（epoch）的毫秒数，可表示 2^41 ≈ 69.7 年</td></tr>
+            <tr><td>机器 ID</td><td>10 bit</td><td>2^10 = 1024 台（常拆成 5 位机房 + 5 位机器）</td></tr>
+            <tr><td>序列号</td><td>12 bit</td><td>2^12 = 4096，同一毫秒内最多 4096 个</td></tr>
+          </tbody>
+        </table>
+
+        <h4>为什么能全局唯一（三个维度各司其职）</h4>
+        <ul>
+          <li><b>时间戳：</b>毫秒不同 → ID 必不同；且保证<b>整体趋势递增</b>。</li>
+          <li><b>机器 ID：</b>不同机器生成 → 即便同一毫秒也不冲突（机器 ID 不同）。</li>
+          <li><b>序列号：</b>同一机器同一毫秒内，序列号从 0 递增到 4095，用尽则等下一毫秒。</li>
+          <li>三者组合，无需中心协调，各机器「各算各的」也天然唯一。</li>
+        </ul>
+
+        <h4>为什么「趋势递增」对 MySQL 特别友好（高频追问）</h4>
+        <ul>
+          <li>InnoDB 主键是<b>聚簇索引</b>，数据按主键顺序物理存储（B+ 树叶子节点）。</li>
+          <li><b>递增 ID</b>：新数据总是追加到 B+ 树最右侧，顺序写入，<b>几乎不产生页分裂</b>，磁盘顺序 IO，插入性能高。</li>
+          <li><b>随机 ID（如 UUID）</b>：新数据随机插入 B+ 树中间，触发大量<b>页分裂</b>和<b>随机 IO</b>，还会导致索引碎片、写放大。</li>
+          <li>所以雪花「趋势递增」虽然不像自增那样严格连续，但已足够让 MySQL 高效。</li>
+        </ul>
+
+        <h4>雪花的优缺点</h4>
+        <ul>
+          <li><b>优点：</b>无中心（不依赖 DB/Redis）、高性能（纯内存位运算）、趋势递增、可反解出时间戳和机器。</li>
+          <li><b>缺点：</b>ID 长（18-19 位）、依赖机器时钟（回拨会重复，见下一题）、不严格连续。</li>
+        </ul>
+        <div class="followup"><b>一句话扛住追问：</b>雪花 = 41 位时间戳（趋势递增）+ 10 位机器 ID（隔离机器）+ 12 位序列号（同毫秒内区分），三者组合保证「无中心也全局唯一」。趋势递增对 InnoDB 聚簇索引友好——顺序写入减少页分裂，这是它优于 UUID 的根本原因。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d4q2">雪花算法时钟回拨：四种对策的原理与权衡</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="d4q2">已掌握</span></summary>
+      <div class="bd">
+        <h4>为什么会时钟回拨</h4>
+        <ul>
+          <li><b>NTP 校时：</b>系统定期向时间服务器同步，本地时钟快了就会被「往回拨」。</li>
+          <li><b>人为改时间：</b>运维手动调整系统时间。</li>
+          <li><b>虚拟机迁移：</b>虚拟机漂移时，宿主机的时钟可能比原宿主机慢。</li>
+        </ul>
+        <p><b>危害：</b>时间戳变小 → 可能生成和「之前某毫秒」相同的 ID → <b>全局唯一性被破坏</b>。</p>
+
+        <h4>四种对策（从简单到复杂）</h4>
+        <ol>
+          <li><b>等待法（回拨量小时）：</b>记录「上一次生成的时间戳」，发现当前时间戳 < 上次，就<b>自旋等待</b>，等时钟追上后再生成。适合回拨几秒内的场景。</li>
+          <li><b>拒绝法（回拨量大时）：</b>回拨量超过阈值（如 5 秒）直接<b>抛异常</b>，让上游重试或人工处理，避免生成重复 ID。</li>
+          <li><b>备用时钟（兜底）：</b>维护一个「上次时间戳」作为<b>逻辑基准</b>，回拨时不用系统时钟，而是用「基准 + 1」继续递增。优点是不阻塞，缺点是 ID 的时间戳「不真实」，可能和真实时间脱节。</li>
+          <li><b>美团 Leaf-snowflake（分布式校准）：</b>所有节点定时把时间戳上报到 <b>Zookeeper</b>，共享一个「全局时间基准」。生成 ID 时和 ZK 里的基准对比，发现本机时钟落后于全局基准，说明回拨了，就等待或报警。</li>
+        </ol>
+
+        <h4>工程上的组合策略</h4>
+        <p>实践中通常是「<b>小回拨等待 + 大回拨拒绝 + 监控告警</b>」组合：回拨几毫秒就等，回拨几秒就报警并拒绝，同时监控时钟偏移。</p>
+
+        <div class="pit"><b>关键认知（面试高分）：</b>时钟回拨是雪花算法的「固有缺陷」，本质是「本地时钟不可靠」（呼应模块一的时钟问题）。它无法被彻底消除，只能「检测 + 缓解」。如果业务对 ID 唯一性要求极高、且接受不了时钟风险，就改用「号段模式」或「数据库自增」这类不依赖时钟的方案。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d4q3">号段模式（美团 Leaf）：双 buffer 预取原理 + 与雪花对比</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="d4q3">已掌握</span></summary>
+      <div class="bd">
+        <h4>号段模式原理</h4>
+        <ol>
+          <li>数据库维护一张 <code>segment</code> 表，每个业务一个 key，记录当前的 <code>max_id</code>。</li>
+          <li>服务启动时，用 <code>UPDATE ... SET max_id = max_id + step</code>（原子）<b>批量</b>取一段 ID（如一次 1000 个），缓存在内存里。</li>
+          <li>内存里从 <code>[max_id+1, max_id+step]</code> 逐个分配，用完再去数据库取下一段。</li>
+        </ol>
+
+        <h4>双 buffer 预取（Leaf 的核心优化）</h4>
+        <p>普通号段模式有个问题：<b>当前段快用完时，去数据库取下一段会有网络延迟</b>，可能让取号线程短暂阻塞。</p>
+        <ul>
+          <li>Leaf 维护<b>两个号段 buffer</b>：当前段正在用，另一段<b>提前异步预取</b>好。</li>
+          <li>当前段用尽时，<b>无缝切换</b>到已经预取好的段，同时后台再去补下一段。</li>
+          <li>这样取号几乎永远不阻塞数据库，性能和纯内存的雪花接近。</li>
+        </ul>
+
+        <h4>号段模式 vs 雪花算法</h4>
+        <table class="tb">
+          <thead><tr><th>维度</th><th>号段模式</th><th>雪花算法</th></tr></thead>
+          <tbody>
+            <tr><td>ID 形态</td><td>短、纯数字（严格递增）</td><td>长（18-19 位）</td></tr>
+            <tr><td>时钟依赖</td><td>不依赖时钟（无回拨问题）</td><td>依赖时钟，有回拨风险</td></tr>
+            <tr><td>递增性</td><td>严格连续递增</td><td>趋势递增（大致有序）</td></tr>
+            <tr><td>依赖</td><td>依赖数据库（有中心）</td><td>无中心</td></tr>
+            <tr><td>性能</td><td>高（批量 + 双 buffer）</td><td>高（纯计算）</td></tr>
+          </tbody>
+        </table>
+
+        <h4>怎么选</h4>
+        <ul>
+          <li><b>号段模式：</b>需要「短、纯数字、严格连续」的 ID（如订单号、编号），且能接受数据库作为中心 → 用号段。</li>
+          <li><b>雪花：</b>需要「无中心、极致性能、可反解时间戳」，且能接受时钟风险 → 用雪花。</li>
+          <li>美团 Leaf 实际上<b>两种都提供</b>（leaf-segment 和 leaf-snowflake），按业务选。</li>
+        </ul>
+        <div class="followup"><b>一句话扛住追问：</b>号段模式是「数据库批量取号 + 双 buffer 异步预取」，用「有中心」换来了「不依赖时钟、严格递增、ID 短」，完美规避了雪花的时钟回拨缺陷。两者没有绝对优劣，看业务要「连续短 ID」还是「无中心高性能」。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ 模块五：缓存三大问题 ============ -->
+  <section class="module" id="mod5">
+    <h2>⑤ 缓存三大问题 <span class="cnt">穿透 · 击穿 · 雪崩 · 一致性</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d5q1">缓存穿透 + 布隆过滤器：误判率的本质与为什么不能删除</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="d5q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>缓存穿透是什么</h4>
+        <p>查询一个<b>缓存和数据库都不存在</b>的数据（如恶意构造不存在的 ID）。因为缓存和 DB 都没有，每次请求都会穿透缓存直达 DB，大量请求能把 DB 打垮。</p>
+
+        <h4>三种解决方案</h4>
+        <ul>
+          <li><b>缓存空值：</b>查不到也缓存一个「空标记」（短过期时间），下次直接返回空，不打 DB。缺点：空值缓存占内存，且若攻击者用大量不同 ID，空值缓存也扛不住。</li>
+          <li><b>布隆过滤器：</b>在缓存前加一道「可能存在」的判断，不存在直接拦截。</li>
+          <li><b>参数校验：</b>非法 ID（负数、超长、格式不对）直接拒绝，这是第一道也是最便宜的防线。</li>
+        </ul>
+
+        <h4>布隆过滤器原理（bitmap + 多个 hash）</h4>
+        <ol>
+          <li>底层是一个很长的 <b>bit 数组</b>（全 0），外加 <b>k 个 hash 函数</b>。</li>
+          <li><b>写入 key：</b>用 k 个 hash 函数算出 k 个位置，把对应 bit 置 1。</li>
+          <li><b>查询 key：</b>算出同样的 k 个位置，<b>只要有一个是 0 → 一定不存在</b>；<b>全部是 1 → 可能存在</b>。</li>
+        </ol>
+
+        <h4>误判的本质（面试高分点）</h4>
+        <ul>
+          <li><b>只会「误判存在」，不会「误判不存在」</b>——这是它最关键的数学性质。因为「存在」的判断是「k 个位置都是 1」，而这 k 个 1 可能是别的 key 写入时留下的（哈希碰撞），不代表这个 key 真的被写过。</li>
+          <li><b>误判率受三个参数控制：</b>bit 数组长度 m、hash 函数个数 k、元素数量 n。m 越大、k 合适、n 越小，误判率越低。最优 k ≈ <code>(m/n) * ln2</code>。</li>
+          <li><b>为什么不能删除元素：</b>一个 bit 可能被多个 key 共用，删掉它会影响别的 key 的判断。所以布隆过滤器要么「只增不删」，要么用「计数布隆（counting bloom filter）」或定期重建。</li>
+        </ul>
+
+        <h4>布隆过滤器的适用边界</h4>
+        <ul>
+          <li>适合「<b>大量 key 大概率不存在</b>」的场景：缓存穿透防护、黑名单、爬虫 URL 去重、防止恶意查询。</li>
+          <li>不适合「需要精确判断、需要删除、数据量大到内存装不下」的场景。</li>
+          <li>因为会误判「存在」，所以布隆过滤器说「存在」时，<b>后面仍要查 DB 兜底</b>——它只负责「挡住确定不存在的」，不负责「确认存在」。</li>
+        </ul>
+        <div class="pit"><b>面试关键：</b>能说清「布隆过滤器只会假阳性（误判存在）、不会假阴性（漏判不存在），所以它是『拦截器』而非『数据库』，后面永远要有真实数据源兜底」，说明你真正理解它，而不是背了个名字。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d5q2">缓存击穿：互斥锁 vs 逻辑过期，本质是「一致性 vs 可用性」</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="d5q2">已掌握</span></summary>
+      <div class="bd">
+        <h4>击穿是什么</h4>
+        <p><b>单个热点 key 过期的一瞬间</b>，大量并发请求同时发现缓存失效，同时去查 DB 重建缓存，DB 瞬间承受巨大压力。区别于雪崩（大量 key 同时过期）和穿透（数据本来就不存在）。</p>
+
+        <h4>方案一：互斥锁（保证一致性）</h4>
+        <ol>
+          <li>缓存未命中时，先抢一个<b>分布式锁</b>（如 <code>SETNX</code>）。</li>
+          <li>抢到锁的<b>唯一线程</b>去查 DB、重建缓存；其他线程抢锁失败，<b>等待 + 重试</b>读缓存。</li>
+          <li>重建完成后释放锁，其他线程从缓存读到新数据。</li>
+        </ol>
+        <p><b>特点：</b>只让一个线程打 DB，其余线程等待；保证「读到的一定是重建后的新数据」。<b>代价：</b>重建期间其他线程要等待（短暂阻塞），可用性略降。</p>
+
+        <h4>方案二：逻辑过期（保证可用性）</h4>
+        <ol>
+          <li>缓存的 value 里额外存一个「<b>逻辑过期时间</b>」，但<b>物理上不过期</b>（不设 Redis TTL，或设超长 TTL）。</li>
+          <li>读取时判断逻辑时间：<b>没过期</b> → 直接返回；<b>过期了</b> → 先返回<b>旧数据</b>（保证不阻塞），同时<b>异步</b>开一个线程去查 DB 重建缓存。</li>
+          <li>重建用互斥锁防止多个线程同时重建。</li>
+        </ol>
+        <p><b>特点：</b>请求永远不阻塞（立即返回旧数据），可用性最高。<b>代价：</b>短暂返回旧数据，一致性略降。</p>
+
+        <h4>本质：一致性 vs 可用性的权衡（呼应 CAP）</h4>
+        <table class="tb">
+          <thead><tr><th>维度</th><th>互斥锁</th><th>逻辑过期</th></tr></thead>
+          <tbody>
+            <tr><td>一致性</td><td>高（不返回旧数据）</td><td>低（短暂旧数据）</td></tr>
+            <tr><td>可用性</td><td>略降（重建期间等待）</td><td>高（永不阻塞）</td></tr>
+            <tr><td>实现复杂度</td><td>简单</td><td>较复杂（异步重建）</td></tr>
+            <tr><td>适用</td><td>一致性优先（价格、库存）</td><td>可用性优先（资讯、榜单）</td></tr>
+          </tbody>
+        </table>
+        <div class="followup"><b>一句话扛住追问：</b>击穿的本质是「热点 key 过期瞬间的流量洪峰」。互斥锁用「只让一个线程重建」保证一致性，但重建期间阻塞；逻辑过期用「返回旧数据 + 异步重建」保证可用性，但短暂不一致。选哪个取决于业务是「一致性优先」还是「可用性优先」，这是 CAP 在缓存场景的具体体现。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d5q3">缓存雪崩：两种成因 + 分层预防</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="d5q3">已掌握</span></summary>
+      <div class="bd">
+        <h4>雪崩的两种成因（要分清，这是追问点）</h4>
+        <ul>
+          <li><b>成因 1 · 缓存集体过期：</b>大量 key 在同一时刻过期（比如批量写入时都设了相同 TTL），缓存瞬间集体失效，流量全打到 DB。</li>
+          <li><b>成因 2 · Redis 宕机：</b>缓存服务本身挂了，所有请求直接穿透到 DB。</li>
+        </ul>
+
+        <h4>针对「集体过期」的预防</h4>
+        <ul>
+          <li><b>过期时间加随机值：</b><code>TTL = base + random(0, 300)</code>，把过期时间打散，避免「同一时刻集体失效」。</li>
+          <li><b>热点 key 预热：</b>大促前、活动前，提前把热点数据加载进缓存并设合理 TTL。</li>
+        </ul>
+
+        <h4>针对「Redis 宕机」的预防（多级冗余）</h4>
+        <ul>
+          <li><b>Redis 高可用：</b>主从 + 哨兵 / 集群，保证 Redis 不单点，宕机能自动切换。</li>
+          <li><b>多级缓存：</b>本地缓存（Caffeine/Guava）作为 Redis 的上一级，Redis 挂了本地缓存兜底，减少直接打 DB。</li>
+          <li><b>降级熔断：</b>DB 前面加限流 / 熔断，即使打过来了也挡住，保护 DB 不被压垮。</li>
+        </ul>
+
+        <h4>分层预防的完整链路</h4>
+        <p>「错峰过期（防同时失效）→ 多级缓存（防单点失效）→ 高可用集群（防 Redis 挂）→ 限流熔断（防 DB 被压垮）」，四层层层设防。</p>
+
+        <div class="followup"><b>一句话扛住追问：</b>雪崩有「集体过期」和「Redis 宕机」两种成因。前者靠「过期时间加随机值 + 预热」解决，后者靠「Redis 高可用 + 多级缓存 + 限流熔断」解决。核心是「错峰 + 冗余 + 兜底」三层，缺一层都可能雪崩。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d5q4">缓存一致性：为什么「先更新 DB 再删缓存」+ 三种补偿方案</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="d5q4">已掌握</span></summary>
+      <div class="bd">
+        <h4>Cache Aside（旁路缓存）模式</h4>
+        <ul>
+          <li><b>读：</b>先查缓存，命中返回；未命中查 DB，把结果写回缓存。</li>
+          <li><b>写：</b>先更新 DB，再<b>删除</b>缓存（注意是「删」不是「更新」）。</li>
+        </ul>
+        <p><b>为什么是「删缓存」而不是「更新缓存」：</b>更新缓存可能造成「并发写覆盖」——两个写请求先后更新 DB，但缓存更新顺序反了，导致缓存是旧值。删缓存让下一次读自然重建，规避了并发写顺序问题。</p>
+
+        <h4>为什么「先更新 DB，再删缓存」（核心论证）</h4>
+        <p>对比「先删缓存，再更新 DB」：</p>
+        <ul>
+          <li><b>先删缓存：</b>删完缓存后、更新 DB 前，其他读请求会读到<b>旧数据</b>并把它<b>写回缓存</b>，导致缓存一直是脏的，且这个脏数据要等下次更新才被清。</li>
+          <li><b>先更新 DB，再删缓存：</b>也有极小窗口（更新 DB 后、删缓存前，读到旧值），但这个窗口<b>概率更低、影响更小</b>——因为「更新 DB 后马上删缓存」这个动作很快，且读请求通常远多于写请求。</li>
+        </ul>
+
+        <h4>「先更新 DB 再删缓存」仍有缺陷，需要补偿</h4>
+        <ul>
+          <li><b>问题 1 · 删缓存失败：</b>DB 更新成功了，但删缓存失败 → 缓存永远是旧数据。这是最需要处理的。</li>
+          <li><b>补偿方案 A · MQ 重试：</b>删缓存失败时，发一条消息到 MQ，由消费者异步重试删除。</li>
+          <li><b>补偿方案 B · Canal 监听 binlog：</b>用 Canal 监听 MySQL 的 binlog，DB 一变就自动删缓存，把「删缓存」从业务代码里解耦出来。</li>
+          <li><b>补偿方案 C · 延迟双删：</b>先删缓存 → 更新 DB → 延迟几百毫秒再删一次，用「第二次删」兜住「更新 DB 期间有读请求写回旧值」的窗口。</li>
+        </ul>
+
+        <h4>终极认知：缓存一致性没有银弹</h4>
+        <ul>
+          <li>缓存和 DB 是两个独立的存储，任何方案都无法做到「绝对实时强一致」，本质是<b>最终一致</b>。</li>
+          <li>要<b>强一致</b>，只能「读写串行化」（读写都加锁），代价是性能暴跌，一般不用。</li>
+          <li>工程上最优解：<b>先更新 DB + 删缓存 + 失败补偿（MQ/Canal）+ 兜底对账</b>。</li>
+        </ul>
+        <div class="followup"><b>一句话扛住追问：</b>写操作用「先更新 DB 再删缓存」是为了规避「并发写覆盖」和「先删缓存被读请求写回脏数据」。它的软肋是「删缓存失败」，用 MQ 重试 / Canal 监听 binlog / 延迟双删补偿。缓存一致性本质是最终一致，没有银弹，工程上用「更新库 + 删缓存 + 补偿」这个性价比最高的组合。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ 模块六：幂等与限流 ============ -->
+  <section class="module" id="mod6">
+    <h2>⑥ 幂等与限流 <span class="cnt">幂等设计 · 限流算法</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d6q1">接口幂等：五种方案的本质 + 各自适用场景</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="d6q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>幂等的精确定义</h4>
+        <p>同一操作执行一次和执行多次，<b>产生的副作用（结果）相同</b>。注意：幂等不是「不重复处理」，而是「重复处理不会造成错误结果」。</p>
+        <p><b>产生幂等需求的根源：</b>分布式环境下，「请求超时」无法区分是「没执行」还是「执行了但响应丢了」，客户端只能重试；加上用户重复点击、MQ 重复投递，重复是必然的。</p>
+
+        <h4>五种方案 + 本质</h4>
+        <table class="tb">
+          <thead><tr><th>方案</th><th>本质</th><th>适用场景</th></tr></thead>
+          <tbody>
+            <tr><td>数据库唯一索引</td><td>靠「唯一约束」让重复插入失败</td><td>插入类：下单、注册（订单号唯一）</td></tr>
+            <tr><td>Token 机制</td><td>「一次性凭证」用完即失效</td><td>表单提交、防重复点击</td></tr>
+            <tr><td>状态机</td><td>靠「状态合法性」拒绝重复流转</td><td>订单、审批流程</td></tr>
+            <tr><td>乐观锁 version</td><td>靠「版本号」判断是否已被改过</td><td>更新类：扣库存、改余额</td></tr>
+            <tr><td>Redis setnx</td><td>靠「幂等标记」判断是否已处理</td><td>通用去重标记</td></tr>
+          </tbody>
+        </table>
+
+        <h4>每个方案的原理细节</h4>
+        <ul>
+          <li><b>唯一索引：</b>重复请求插入时，主键/唯一键冲突抛异常，捕获后视为「已处理」返回成功。这是<b>最可靠</b>的兜底，因为它由数据库保证原子性。</li>
+          <li><b>Token：</b>客户端先请求一个 token，提交时带 token，服务端「校验 token 存在 → 删除 token → 执行业务」，第二次提交时 token 已删，直接拒绝。核心是「token 的删除是原子的」。</li>
+          <li><b>状态机：</b>如订单「待支付 → 已支付」，重复支付请求发现状态已是「已支付」，直接返回成功，不做二次扣款。</li>
+          <li><b>乐观锁：</b><code>update ... set stock = stock-1, version = version+1 where version = ?</code>，重复执行时 version 已变，影响行数为 0，判断为「已处理」。</li>
+        </ul>
+
+        <h4>组合使用才是正解</h4>
+        <p>真实系统通常是「<b>业务唯一标识 + 唯一索引兜底</b>」：每个请求带一个全局唯一 ID（如订单号、幂等号），服务端先查/靠唯一索引判断是否已处理，再用状态机或乐观锁控制。单靠一种方案往往不够。</p>
+
+        <div class="followup"><b>一句话扛住追问：</b>幂等的本质是「给请求一个业务唯一标识，让服务端能识别重复，并让重复操作变得无害」。五种方案各有侧重：唯一索引最可靠（DB 保证）、Token 防重复提交、状态机防重复流转、乐观锁防重复更新、Redis setnx 做通用标记。关键场景（支付、下单、扣库存）必须幂等，且通常是「唯一标识 + 唯一索引」组合兜底。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d6q2">限流算法：令牌桶和漏桶的本质区别 + 固定窗口的临界问题</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="d6q2">已掌握</span></summary>
+      <div class="bd">
+        <h4>四种算法对比</h4>
+        <table class="tb">
+          <thead><tr><th>算法</th><th>原理</th><th>特点 / 缺陷</th></tr></thead>
+          <tbody>
+            <tr><td>固定窗口计数器</td><td>每 N 秒一个窗口，窗口内计数，超阈值拒绝</td><td>简单，但「临界问题」：窗口交界处会突发 2 倍流量</td></tr>
+            <tr><td>滑动窗口</td><td>窗口随时间滑动，统计最近 N 秒的请求数</td><td>解决临界突刺，精度高，实现复杂</td></tr>
+            <tr><td>漏桶</td><td>请求进桶，按固定速率流出，桶满拒绝</td><td>速率恒定平滑，<b>不能应对突发</b></td></tr>
+            <tr><td>令牌桶</td><td>固定速率放令牌，请求拿令牌通过</td><td><b>允许一定突发</b>，最常用</td></tr>
+          </tbody>
+        </table>
+
+        <h4>固定窗口的「临界问题」（高频追问）</h4>
+        <p>假设限流「每秒最多 100 次」。攻击者在「第 0.9 秒到第 1 秒」打 100 次、「第 1 秒到第 1.1 秒」再打 100 次——两次都在各自窗口内合规，但「跨窗口」的 0.2 秒内实际打了 200 次，是限流值的 2 倍。这就是固定窗口的临界突刺。滑动窗口（统计最近 1 秒内而非固定区间）能解决。</p>
+
+        <h4>漏桶 vs 令牌桶的本质区别（面试核心）</h4>
+        <ul>
+          <li><b>漏桶：</b>控制的是「<b>流出速率恒定</b>」。无论请求怎么涌入，处理速率固定，超出的排队或丢弃。所以它「强制平滑」，<b>把突发流量削平</b>，适合需要「稳定输出、保护下游」的场景。</li>
+          <li><b>令牌桶：</b>控制的是「<b>平均速率 + 允许突发</b>」。桶里能积累令牌，空闲时攒令牌，突发时一次性消耗。所以它「允许短时突发」，适合「偶尔有尖峰、但平均不超」的场景。</li>
+        </ul>
+        <p><b>一句话：</b>漏桶「削峰填谷，恒速输出」；令牌桶「允许瞬时突发，控制平均速率」。互联网 API 网关、Sentinel 大多用令牌桶，因为业务流量天然有突发性。</p>
+
+        <h4>工程落地</h4>
+        <ul>
+          <li>单机：Guava <code>RateLimiter</code>（令牌桶实现）。</li>
+          <li>分布式：Redis + Lua（原子）、Sentinel、Gateway <code>RequestRateLimiter</code>（底层也是 Redis + Lua）。</li>
+        </ul>
+        <div class="followup"><b>一句话扛住追问：</b>固定窗口有「临界突刺」缺陷，滑动窗口解决；漏桶「恒速流出、削平突发」，令牌桶「允许突发、控平均速率」。能讲清「漏桶削峰 vs 令牌桶容忍突发」的区别，以及固定窗口的临界问题，就说明你真的懂限流算法。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d6q3">Redis + Lua 分布式限流：为什么必须 Lua + 滑动窗口实现</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="d6q3">已掌握</span></summary>
+      <div class="bd">
+        <h4>为什么必须用 Lua（核心）</h4>
+        <p>限流要「<b>读计数 → 判断 → 自增 → 设过期</b>」多个步骤，如果拆成多条 Redis 命令，中间会被其他请求「插队」，产生竞态（两个请求都读到 count=99，都判断没超，都放行 → 实际放了 101 个）。</p>
+        <p><b>Redis 单线程执行 Lua 脚本</b>，脚本内的所有命令是原子的，中间不会被其他客户端命令打断。这就是「用 Lua 保证限流的原子性」的根本原因。</p>
+
+        <h4>固定窗口实现（最简）</h4>
+        <pre><code>-- KEYS[1]: 限流key, ARGV[1]: 阈值, ARGV[2]: 过期秒数
+local current = redis.call('INCR', KEYS[1])
+if current == 1 then
+  redis.call('EXPIRE', KEYS[1], ARGV[2])
+end
+if current > tonumber(ARGV[1]) then
+  return 0  -- 拒绝
+end
+return 1      -- 放行</code></pre>
+        <p>注意：<code>INCR</code> 后 <code>EXPIRE</code> 的写法，是为了处理「第一次 INCR 时 key 还没有过期时间」的边界——如果 INCR 后进程挂了没设 EXPIRE，key 就永不过期，所以要「第一次才设过期」。这也是一个容易被问的细节。</p>
+
+        <h4>滑动窗口实现（解决临界突刺）</h4>
+        <p>用 <code>ZSET</code> 记录每个请求的时间戳，value 用「时间戳 + 随机数」保证唯一：</p>
+        <pre><code>-- KEYS[1]: 限流key, ARGV[1]: 当前时间戳, ARGV[2]: 窗口毫秒数, ARGV[3]: 阈值
+redis.call('ZREMRANGEBYSCORE', KEYS[1], 0, ARGV[1] - ARGV[2])  -- 删窗口外的
+local count = redis.call('ZCARD', KEYS[1])                      -- 窗口内数量
+if count >= tonumber(ARGV[3]) then
+  return 0  -- 拒绝
+end
+redis.call('ZADD', KEYS[1], ARGV[1], ARGV[1] .. '-' .. math.random())  -- 记录本次
+redis.call('PEXPIRE', KEYS[1], ARGV[2])                        -- 设过期，防 key 堆积
+return 1</code></pre>
+        <p><b>权衡：</b>滑动窗口精度高、无临界突刺，但 <code>ZSET</code> 内存和计算开销比计数器大。高并发下要权衡「精度 vs 开销」。</p>
+
+        <div class="pit"><b>易错点：</b>固定窗口的「INCR 后 EXPIRE」边界要处理（第一次才设过期，否则 key 永不失效）；滑动窗口要记得给 ZSET 设 PEXPIRE，否则窗口外的 key 会一直堆积占内存。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ 模块七：高可用与消息可靠 ============ -->
+  <section class="module" id="mod7">
+    <h2>⑦ 高可用与消息可靠 <span class="cnt">架构高可用 · 消息三重保障</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d7q1">高可用架构：从「冗余 + 故障转移 + 容错」三个维度拆解</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="d7q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>高可用的三根支柱（先给框架，面试有条理）</h4>
+        <ul>
+          <li><b>冗余（Redundancy）：</b>任何组件都至少 2 份，消除单点。</li>
+          <li><b>故障转移（Failover）：</b>某份挂了，能自动切到另一份。</li>
+          <li><b>容错（Fault Tolerance）：</b>故障发生时，能「隔离 + 降级」，不让它扩散。</li>
+        </ul>
+
+        <h4>四层架构逐层拆解</h4>
+        <ol>
+          <li><b>接入层：</b>DNS（域名解析 + 多机房调度）→ CDN（静态加速 + 边缘缓存）→ LVS/Nginx（四层/七层负载均衡）。要点：<b>无状态</b>，可任意水平扩。</li>
+          <li><b>应用层：</b>多实例水平扩容、无状态化（session 外置到 Redis）、优雅上下线（actuator 健康检查）、异步化（MQ 削峰）、缓存（Redis 抗读）。</li>
+          <li><b>容错层：</b>超时（别让线程无限等）、重试（要幂等）、熔断（快速失败）、降级（兜底）、限流（保护自己）、隔离（线程池/信号量，防止级联）。</li>
+          <li><b>数据层：</b>DB 主从 + 读写分离、分库分表、Redis 哨兵/集群、MQ 集群（多副本）。</li>
+        </ol>
+
+        <h4>高可用的量化指标（高频追问）</h4>
+        <ul>
+          <li><b>可用性 = MTBF / (MTBF + MTTR)</b>：MTBF 平均无故障时间，MTTR 平均修复时间。想提高可用性，要么「少故障」（提 MTBF），要么「快恢复」（降 MTTR）。</li>
+          <li><b>几个 9 的含义：</b></li>
+        </ul>
+        <table class="tb">
+          <thead><tr><th>可用性</th><th>年停机时间</th><th>通俗理解</th></tr></thead>
+          <tbody>
+            <tr><td>99%（2 个 9）</td><td>约 3.65 天</td><td>基本可用</td></tr>
+            <tr><td>99.9%（3 个 9）</td><td>约 8.76 小时</td><td>较高可用</td></tr>
+            <tr><td>99.99%（4 个 9）</td><td>约 52.6 分钟</td><td>高可用</td></tr>
+            <tr><td>99.999%（5 个 9）</td><td>约 5.26 分钟</td><td>极高可用（电信级）</td></tr>
+          </tbody>
+        </table>
+
+        <h4>「消除单点」的具体清单（面试加分）</h4>
+        <ul>
+          <li>应用：多实例 + 负载均衡。</li>
+          <li>Nginx：主备（keepalived 虚拟 IP）。</li>
+          <li>Redis：主从 + 哨兵（高可用）/ 集群（高可用 + 扩展）。</li>
+          <li>MySQL：主从 + 故障切换（MHA/Orchestrator）。</li>
+          <li>MQ：多副本 / 多 Broker 集群。</li>
+          <li>注册中心：Nacos/Eureka 本身也要集群部署。</li>
+        </ul>
+        <div class="followup"><b>一句话扛住追问：</b>高可用 = 冗余 + 故障转移 + 容错。冗余消除单点，故障转移保证自动切换，容错（超时/熔断/降级/限流/隔离）保证故障不扩散。量化看「几个 9」，本质是「降 MTTR + 提 MTBF」。最后一定补一个真实案例（如主库宕机切从库、缓存雪崩降级），这是区分「背答案」和「真做过」的关键。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d7q2">消息不丢失：生产、存储、消费三段式的完整分析</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="d7q2">已掌握</span></summary>
+      <div class="bd">
+        <p>一条消息从生产到消费，会在三个环节「可能丢失」，要逐段堵住。</p>
+
+        <h4>第一段：生产端（发消息时丢）</h4>
+        <ul>
+          <li><b>丢的原因：</b>用「异步/单向发送（oneway）」，生产者不确认 Broker 是否收到，网络抖动或 Broker 宕机就丢。</li>
+          <li><b>解决（RocketMQ）：</b>用<b>同步发送</b>，拿到 <code>SendResult</code> 状态为 <code>SEND_OK</code> 才算成功；失败则<b>重试</b>。</li>
+          <li><b>解决（Kafka）：</b><code>acks=all</code>（所有副本确认）+ <code>retries</code> 重试 + <code>enable.idempotence=true</code>（幂等，防重试导致的重复）。</li>
+        </ul>
+
+        <h4>第二段：Broker 存储端（存储时丢）</h4>
+        <ul>
+          <li><b>丢的原因：</b>消息写进<b>内存（page cache）就返回</b>，还没落盘就宕机 → 丢；或主节点挂了、从节点还没同步 → 丢。</li>
+          <li><b>解决（RocketMQ）：</b><b>同步刷盘</b>（<code>SYNC_FLUSH</code>，落盘才返回）+ <b>同步复制</b>（master 同步到 slave 才确认）。</li>
+          <li><b>解决（Kafka）：</b><code>min.insync.replicas</code> 保证最少同步副本数，<code>acks=all</code> 配合。</li>
+        </ul>
+
+        <h4>第三段：消费端（消费时丢）</h4>
+        <ul>
+          <li><b>丢的原因：</b><b>自动提交 offset</b>——消息一到就自动 ACK，但业务处理失败/进程崩溃，这条消息就被「确认」了，永远不会再消费。</li>
+          <li><b>解决：</b><b>手动提交 offset</b>，业务处理<b>成功后再提交</b>。这样处理失败的消息不会被确认，下次会重新消费。</li>
+        </ul>
+
+        <h4>「不丢」的代价（高频追问）</h4>
+        <ul>
+          <li>同步刷盘、同步复制都是「用延迟/吞吐换可靠性」，消息落盘 + 多副本确认都会显著降低吞吐。</li>
+          <li>所以不是所有消息都要「绝对不丢」：<b>核心业务消息（支付、订单）严格配置，日志、埋点可以异步</b>。</li>
+        </ul>
+
+        <div class="followup"><b>一句话扛住追问：</b>消息不丢要堵三段：生产端「同步发送 + 重试」、Broker 端「同步刷盘 + 主从同步复制」、消费端「手动 ACK，处理成功才提交」。代价是性能下降，所以只对关键消息严格配置。能讲清「每段丢在哪、怎么堵」，比背参数强。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d7q3">消息不重复、不乱序：为什么「不可兼得」+ 局部有序方案</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="d7q3">已掌握</span></summary>
+      <div class="bd">
+        <h4>为什么消息一定会重复（先理解根因）</h4>
+        <ul>
+          <li>消息系统的投递语义是 <b>at-least-once（至少一次）</b>：为了保证「不丢」，消费端处理成功后才 ACK，但如果「处理成功了、ACK 还没发出去就网络断了」，Broker 会认为没消费，<b>重新投递</b> → 重复。</li>
+          <li>所以「不丢」和「不重」是矛盾的：要「不丢」就得允许重投，重投就必然「可能重复」。<b>重复无法避免，只能靠消费端幂等化解。</b></li>
+        </ul>
+
+        <h4>如何保证不重复（消费端幂等）</h4>
+        <ul>
+          <li>给每条消息一个<b>业务唯一 ID</b>（订单号、消息 key），消费时做去重：</li>
+          <li><b>数据库唯一索引</b>（最可靠）、<b>Redis setnx</b> 标记、<b>去重表</b>。</li>
+          <li>处理逻辑本身幂等（如状态机、乐观锁），重复处理也不会产生错误副作用。</li>
+        </ul>
+
+        <h4>为什么消息会乱序</h4>
+        <ul>
+          <li>为了提高吞吐，消息分布在<b>多个队列/分区</b>上并行消费，不同队列的消费速度不同，顺序自然无法保证。</li>
+          <li>甚至同一队列里，消费者重启、重平衡也可能造成顺序错乱。</li>
+        </ul>
+
+        <h4>如何保证不乱序</h4>
+        <ul>
+          <li><b>全局有序：</b>只用一个队列，FIFO 消费。牺牲吞吐，只适合极少量、强顺序场景，一般不这么做。</li>
+          <li><b>局部有序（主流）：</b>把「需要有序的消息」路由到<b>同一个队列</b>，队列内 FIFO 保证顺序。RocketMQ 用 <code>MessageQueueSelector</code> 按业务 key（如订单 ID）选择队列；Kafka 按 key 哈希分区。</li>
+        </ul>
+
+        <h4>核心结论：四者不可兼得</h4>
+        <p>「<b>不丢 + 不重 + 有序 + 高吞吐</b>」无法同时满足：</p>
+        <ul>
+          <li>要「不丢」→ 允许重投 → 可能「重」。</li>
+          <li>要「有序」→ 限制并发/单队列 → 牺牲「吞吐」。</li>
+        </ul>
+        <p>工程最优组合：<b>至少一次投递（不丢）+ 消费端幂等（化解重复）+ 按业务 key 局部有序（需要顺序的地方保证顺序）</b>。</p>
+
+        <div class="followup"><b>一句话扛住追问：</b>消息「不丢」和「不重」本质矛盾——保证不丢就必然可能重复，所以重复靠「消费端幂等 + 业务唯一 ID 去重」化解；乱序靠「同一业务 key 路由到同一队列」实现局部有序。能讲清「四者不可兼得 + 各让一步」的权衡，是这道题的高分答法。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d7q4">Redis 哨兵 vs 集群：解决不同问题 + 槽位/hash tag 机制</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="d7q4">已掌握</span></summary>
+      <div class="bd">
+        <p><b>先厘清核心：哨兵解决「高可用」，集群解决「高可用 + 水平扩展」，两者解决的问题不完全相同。</b></p>
+        <table class="tb">
+          <thead><tr><th>维度</th><th>哨兵 Sentinel</th><th>集群 Cluster</th></tr></thead>
+          <tbody>
+            <tr><td>核心目标</td><td>主从自动故障切换（高可用）</td><td>数据分片 + 故障切换（高可用 + 扩展）</td></tr>
+            <tr><td>数据分布</td><td>所有节点数据一致（全量主从复制）</td><td>数据按槽（slot）分散到不同主节点</td></tr>
+            <tr><td>容量上限</td><td>受单机内存限制（主节点多大就多大）</td><td>多主节点，容量线性扩展</td></tr>
+            <tr><td>适用</td><td>数据量 < 单机内存、中小规模</td><td>数据量大、高并发、需水平扩展</td></tr>
+          </tbody>
+        </table>
+
+        <h4>哨兵原理（监控 + 选举 + 切换）</h4>
+        <ol>
+          <li>哨兵是<b>独立进程</b>，持续监控主从节点的存活。</li>
+          <li>主节点宕机 → 多个哨兵<b>主观下线 → 客观下线</b>（过半哨兵确认才算真的挂，避免误判）。</li>
+          <li>哨兵们<b>投票选举</b>一个新主节点（从节点中选数据最新的），通知其他从节点和客户端切换。</li>
+          <li>哨兵要部署<b>奇数个（通常 3 个）</b>，避免哨兵本身单点，且过半投票才生效。</li>
+        </ol>
+
+        <h4>集群原理（16384 个 slot）</h4>
+        <ul>
+          <li>集群把数据分成 <b>16384 个 hash slot</b>，每个 key 通过 <code>CRC16(key) % 16384</code> 算出落在哪个槽。</li>
+          <li>每个主节点负责一部分槽（如 3 主节点各负责约 5461 个），节点间通过 <b>gossip 协议</b>通信同步元数据。</li>
+          <li>每个主节点配从节点，主挂掉后从节点自动提升。</li>
+        </ul>
+
+        <h4>集群的两个关键约束（高频追问）</h4>
+        <ul>
+          <li><b>多 key 操作受限：</b><code>mget</code>、<code>mset</code>、事务、多 key 的 Lua，要求所有 key 在<b>同一个槽</b>，否则报 <code>CROSSSLOT</code> 错误。</li>
+          <li><b>hash tag 解决：</b>用 <code>{}</code> 包裹的部分参与 hash 计算，<code>{user:1}:name</code> 和 <code>{user:1}:age</code> 会落到同一个槽，从而允许一起操作。</li>
+        </ul>
+
+        <div class="followup"><b>一句话扛住追问：</b>哨兵解决「高可用」（主从自动切换），但数据还是全量复制、受单机内存限制；集群解决「高可用 + 水平扩展」（16384 slot 分片）。选型看「数据量是否超单机」——超了就上集群。能答出「hash slot + hash tag 解决多 key 跨槽问题」，说明你真正用过集群。</div>
+      </div>
+    </details>
+  </section>
+</main>
+</div>
+
+<script>
+(function(){
+  var STORE='dist-ha-progress-v1';
+  var qs=document.querySelectorAll('details.q');
+  var mods=document.querySelectorAll('section.module');
+  function load(){try{return JSON.parse(localStorage.getItem(STORE)||'{}');}catch(e){return {};}}
+  var prog=load();
+
+  function qid(q){return q.querySelector('.qn').getAttribute('data-id')||q.querySelector('.q-title').textContent.trim().slice(0,30);}
+  function qlv(q){var s=q.querySelector('.lv');return s?s.className.match(/lv(\d)/)[1]:'1';}
+
+  function save(){localStorage.setItem(STORE,JSON.stringify(prog));}
+
+  function refresh(){
+    var total=0,done=0;
+    mods.forEach(function(m){
+      if(m.id==='mod0')return;
+      var cks=m.querySelectorAll('.ck input');
+      var md=0,mc=0;
+      cks.forEach(function(cb){
+        var id=cb.getAttribute('data-id');
+        var on=!!prog[id];
+        cb.checked=on;
+        mc++; if(on)md++;
+      });
+      total+=mc; done+=md;
+      var pct=mc?Math.round(md/mc*100):0;
+      var nav=document.querySelector('.nav-item[data-mod="'+m.id+'"] .pct');
+      if(nav)nav.textContent=pct+'%';
+    });
+    document.getElementById('ov-total').textContent=total;
+    document.getElementById('ov-done').textContent=done;
+    document.getElementById('ov-pct').textContent=(total?Math.round(done/total*100):0)+'%';
+  }
+
+  qs.forEach(function(q){
+    var cb=q.querySelector('.ck input');
+    cb.addEventListener('change',function(){
+      var id=cb.getAttribute('data-id');
+      if(cb.checked)prog[id]=1; else delete prog[id];
+      save(); refresh();
+    });
+  });
+
+  var se=document.getElementById('search');
+  se.addEventListener('input',function(){
+    var kw=se.value.trim().toLowerCase();
+    qs.forEach(function(q){
+      var txt=q.textContent.toLowerCase();
+      var hit=!kw||txt.indexOf(kw)>=0;
+      q.classList.toggle('hide',!hit);
+    });
+  });
+
+  var btns=document.querySelectorAll('.fbtn[data-lv]');
+  var curLv='all';
+  btns.forEach(function(b){
+    b.addEventListener('click',function(){
+      curLv=b.getAttribute('data-lv');
+      btns.forEach(function(x){x.classList.toggle('active',x===b);});
+      applyFilter();
+    });
+  });
+  function applyFilter(){
+    var kw=se.value.trim().toLowerCase();
+    qs.forEach(function(q){
+      var hit=curLv==='all'||qlv(q)===curLv;
+      var kh=!kw||q.textContent.toLowerCase().indexOf(kw)>=0;
+      q.classList.toggle('hide',!(hit&&kh));
+    });
+  }
+
+  document.getElementById('btn-expand').addEventListener('click',function(){
+    qs.forEach(function(q){q.open=true;});
+  });
+  document.getElementById('btn-collapse').addEventListener('click',function(){
+    qs.forEach(function(q){q.open=false;});
+  });
+
+  refresh();
+})();
+</script>
+</body>
+</html>

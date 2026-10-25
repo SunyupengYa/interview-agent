@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>肥仔 · Java 面试辅导 Agent</title>
+<style>
+:root{--bg:#f6f6f4;--card:#fff;--line:#e6e6e2;--tx:#1f2328;--tx2:#5c6570;--accent:#1d4ed8;--accent-bg:#eef3ff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.7 -apple-system,"PingFang SC","Microsoft YaHei",sans-serif;display:flex;justify-content:center}
+.app{width:min(860px,100%);height:100vh;display:flex;flex-direction:column;padding:16px}
+header{display:flex;align-items:baseline;gap:10px;padding:4px 4px 12px}
+header h1{font-size:16px;margin:0}
+header span{font-size:12px;color:var(--tx2)}
+#chat{flex:1;overflow-y:auto;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.msg{max-width:88%;padding:10px 14px;border-radius:12px;white-space:pre-wrap;word-break:break-word}
+.msg.user{align-self:flex-end;background:var(--accent);color:#fff;border-bottom-right-radius:4px}
+.msg.bot{align-self:flex-start;background:#fbfbfa;border:1px solid var(--line);border-bottom-left-radius:4px}
+.msg.bot b{font-weight:600}
+.srcs{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px}
+.src{font-size:11px;color:var(--tx2);background:var(--accent-bg);color:var(--accent);border-radius:6px;padding:2px 8px;cursor:default}
+.meta{font-size:11px;color:var(--tx2);margin-top:6px}
+form{display:flex;gap:8px;padding-top:12px}
+input{flex:1;padding:11px 14px;border:1px solid var(--line);border-radius:10px;font-size:14px;outline:none;font-family:inherit}
+input:focus{border-color:var(--accent)}
+button{padding:0 22px;border:0;border-radius:10px;background:var(--accent);color:#fff;font-size:14px;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><h1>🐷 肥仔 · Java 面试辅导 Agent</h1><span id="route-info">LangGraph4j 状态机 · RAG · DeepSeek</span></header>
+  <div id="chat"></div>
+  <form id="f">
+    <input id="q" placeholder="问点面试题，比如：缓存穿透、击穿、雪崩怎么应对？" autocomplete="off">
+    <button id="btn">发送</button>
+  </form>
+</div>
+<script>
+const chat = document.getElementById('chat');
+const sessionId = 'web-' + Math.random().toString(36).slice(2, 8);
+
+function add(cls, text) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + cls;
+  div.textContent = text;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+  return div;
+}
+
+function renderSources(div, sources) {
+  if (!sources || !sources.length) return;
+  const wrap = document.createElement('div');
+  wrap.className = 'srcs';
+  sources.slice(0, 4).forEach(s => {
+    const tag = document.createElement('span');
+    tag.className = 'src';
+    tag.textContent = `${s.questionNo || ''} ${s.question || ''} · ${s.source} · ${Number(s.score).toFixed(2)}`.trim();
+    tag.title = s.text || '';
+    wrap.appendChild(tag);
+  });
+  div.appendChild(wrap);
+}
+
+document.getElementById('f').addEventListener('submit', async e => {
+  e.preventDefault();
+  const input = document.getElementById('q');
+  const btn = document.getElementById('btn');
+  const q = input.value.trim();
+  if (!q) return;
+  input.value = ''; btn.disabled = true;
+  add('user', q);
+  const bot = add('bot', '思考中…');
+  try {
+    const r = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({sessionId, message: q})
+    });
+    const d = await r.json();
+    if (d.error) throw new Error(d.error);
+    bot.textContent = d.answer || '（空回复）';
+    renderSources(bot, d.sources);
+    const meta = document.createElement('div');
+    meta.className = 'meta';
+    meta.textContent = `意图: ${d.intent === 'chat' ? '闲聊直答' : '知识问答(RAG)'}`;
+    bot.appendChild(meta);
+  } catch (err) {
+    bot.textContent = '出错了：' + err.message;
+  } finally {
+    btn.disabled = false;
+    input.focus();
+    chat.scrollTop = chat.scrollHeight;
+  }
+});
+
+add('bot', '你好，我是肥仔 🐷。我读完了你那 9 本面试手册（1000+ 知识块），\n问我 JVM / 并发 / Redis / MySQL / MQ / 分布式 / Spring Cloud 的面试题，\n我会带着引用来源回答；知识库里没有的我会直说，不瞎编。');
+</script>
+</body>
+</html>

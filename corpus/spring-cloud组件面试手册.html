@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spring Cloud 组件面试手册 · 用途与常考题</title>
+<style>
+:root{
+  --bg:#f5f6f8; --card:#ffffff; --line:#e5e7eb; --line2:#d1d5db;
+  --tx:#1f2937; --tx2:#6b7280; --tx3:#9ca3af;
+  --ac:#2563eb; --ac-bg:#eff6ff; --ac-line:#bfdbfe;
+  --must:#dc2626; --must-bg:#fef2f2; --must-line:#fecaca;
+  --high:#d97706; --high-bg:#fffbeb; --high-line:#fde68a;
+  --bonus:#059669; --bonus-bg:#ecfdf5; --bonus-line:#a7f3d0;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font:15px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
+a{color:var(--ac);text-decoration:none}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:272px;flex:0 0 272px;background:#0f172a;color:#e2e8f0;position:sticky;top:0;height:100vh;overflow-y:auto;padding:20px 0}
+.sidebar .brand{padding:0 20px 16px;border-bottom:1px solid #1e293b;font-size:16px;font-weight:600;color:#fff;line-height:1.4}
+.sidebar .brand small{display:block;font-size:12px;font-weight:400;color:#94a3b8;margin-top:4px}
+.nav-item{display:block;padding:9px 20px;color:#cbd5e1;font-size:13.5px;border-left:3px solid transparent}
+.nav-item:hover{background:#1e293b;color:#fff}
+.nav-item.active{background:#1e293b;color:#fff;border-left-color:#3b82f6}
+.nav-item .pct{float:right;font-size:12px;color:#64748b}
+.main{flex:1;min-width:0;padding:28px 36px 80px;max-width:1000px}
+.toolbar{position:sticky;top:0;background:var(--bg);padding:12px 0;z-index:10;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.toolbar input[type=search]{flex:1;min-width:200px;padding:9px 14px;border:1px solid var(--line2);border-radius:8px;font-size:14px;background:var(--card)}
+.toolbar input[type=search]:focus{outline:2px solid var(--ac-line);border-color:var(--ac)}
+.fbtn{padding:8px 14px;border:1px solid var(--line2);border-radius:8px;background:var(--card);font-size:13px;cursor:pointer;white-space:nowrap}
+.fbtn.active{background:var(--ac);color:#fff;border-color:var(--ac)}
+h1{font-size:24px;margin:8px 0 6px}
+.lead{color:var(--tx2);font-size:14px;margin-bottom:20px}
+.overview{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.ov{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+.ov .num{font-size:26px;font-weight:700;color:var(--ac)}
+.ov .lab{font-size:12px;color:var(--tx2)}
+section.module{margin:32px 0 8px}
+section.module>h2{font-size:20px;padding-bottom:8px;border-bottom:2px solid var(--line);display:flex;align-items:center;gap:10px}
+section.module>h2 .cnt{font-size:13px;color:var(--tx2);font-weight:400}
+.q{border:1px solid var(--line);border-radius:10px;background:var(--card);margin:14px 0;overflow:hidden}
+.q>summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;align-items:flex-start;gap:10px}
+.q>summary::-webkit-details-marker{display:none}
+.q>summary::before{content:"▸";color:var(--tx3);font-size:14px;margin-top:2px;flex:0 0 auto;transition:transform .15s}
+.q[open]>summary::before{transform:rotate(90deg)}
+.q .q-title{flex:1}
+.q .q-title .qn{font-weight:600}
+.lv{display:inline-block;font-size:11px;padding:1px 8px;border-radius:10px;margin-left:6px;vertical-align:1px;font-weight:500}
+.lv1{background:var(--must-bg);color:var(--must);border:1px solid var(--must-line)}
+.lv2{background:var(--high-bg);color:var(--high);border:1px solid var(--high-line)}
+.lv3{background:var(--bonus-bg);color:var(--bonus);border:1px solid var(--bonus-line)}
+.ck{margin-top:3px;font-size:13px;color:var(--tx2);display:flex;align-items:center;gap:6px}
+.ck input{width:15px;height:15px;cursor:pointer}
+.q .bd{padding:2px 16px 16px 40px}
+.q .bd h4{font-size:14px;margin:14px 0 6px;color:#111827}
+.q .bd p{margin:6px 0}
+.q .bd ul,.q .bd ol{margin:6px 0;padding-left:22px}
+.q .bd li{margin:3px 0}
+.q .bd code,.code{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px}
+pre{background:#0f172a;color:#ffffff;border-radius:8px;padding:16px 18px;overflow-x:auto;font-family:Menlo,Consolas,"Courier New",monospace;font-size:14.5px;line-height:1.75;margin:10px 0}
+pre code{background:none;border:none;padding:0;color:inherit}
+.followup{border-left:3px solid var(--ac);background:var(--ac-bg);border-radius:0 8px 8px 0;padding:10px 14px;margin:10px 0;font-size:14px}
+.followup b{color:var(--ac)}
+.pit{border-left:3px solid var(--must);background:var(--must-bg);border-radius:0 8px 8px 0;padding:10px 14px;margin:10px 0;font-size:14px}
+.pit b{color:var(--must)}
+table.tb{width:100%;border-collapse:collapse;margin:10px 0;font-size:13.5px}
+table.tb th,table.tb td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+table.tb th{background:#f8fafc;font-weight:600}
+.hide{display:none!important}
+.glossary{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:24px}
+.glossary h2{font-size:18px;margin:0 0 4px}
+.glossary .gsub{font-size:13px;color:var(--tx2);margin-bottom:16px}
+.glossary table{width:100%;border-collapse:collapse;font-size:13.5px}
+.glossary th,.glossary td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+.glossary th{background:#f8fafc;font-weight:600;width:130px}
+.glossary td code{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px;color:var(--ac);font-weight:600}
+.topbtns{display:flex;gap:8px}
+@media print{
+  .sidebar,.toolbar{display:none}
+  .layout{display:block}
+  .main{padding:0;max-width:none}
+  .q{border-color:#ccc;break-inside:avoid}
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0b1220;--card:#111827;--line:#1f2937;--line2:#374151;--tx:#e5e7eb;--tx2:#9ca3af;--tx3:#6b7280;--ac:#60a5fa;--ac-bg:#1e3a5f;--ac-line:#2563eb;--must:#f87171;--must-bg:#3f1d1d;--must-line:#7f1d1d;--high:#fbbf24;--high-bg:#3a2c0a;--high-line:#78350f;--bonus:#34d399;--bonus-bg:#0a2e20;--bonus-line:#065f46}
+  .q .bd code,.code{background:#1e293b;border-color:#334155}
+  table.tb th{background:#1e293b}
+  .glossary th{background:#1e293b}
+  .glossary td code{background:#1e293b;border-color:#334155}
+  .q .bd h4{color:#f3f4f6}
+  pre{background:#020617}
+}
+/* 修复：行内 code 底纹样式(.q .bd code 优先级高于 pre code)会污染代码块，此规则强制清除 */pre code,.q .bd pre code,.bd pre code,.glossary pre code{background:none!important;border:none!important;padding:0!important;border-radius:0!important;color:inherit;font-size:14.5px;line-height:1.75}</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="brand">Spring Cloud 组件面试手册<small>5 年 Java 后端 · 组件用途 + 常考题</small></div>
+  <a class="nav-item active" href="#mod0" data-mod="mod0">总览 · 组件地图</a>
+  <a class="nav-item" href="#mod1" data-mod="mod1">① Nacos 注册中心 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod2" data-mod="mod2">② 配置中心（Nacos/Apollo） <span class="pct"></span></a>
+  <a class="nav-item" href="#mod3" data-mod="mod3">③ 网关 Gateway <span class="pct"></span></a>
+  <a class="nav-item" href="#mod4" data-mod="mod4">④ 负载均衡 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod5" data-mod="mod5">⑤ OpenFeign 调用 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod6" data-mod="mod6">⑥ Sentinel 熔断降级 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod7" data-mod="mod7">⑦ Seata 分布式事务 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod8" data-mod="mod8">⑧ SkyWalking 链路追踪 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod9" data-mod="mod9">⑨ RocketMQ 消息 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod10" data-mod="mod10">⑩ Alibaba 全家桶汇总 <span class="pct"></span></a>
+  <div style="padding:16px 20px;font-size:12px;color:#64748b;border-top:1px solid #1e293b;margin-top:16px">
+    进度保存在本机 localStorage<br>清缓存会丢
+  </div>
+</aside>
+
+<main class="main">
+  <div class="toolbar">
+    <input type="search" id="search" placeholder="搜索组件、题目、关键词（如：Nacos、Gateway、Feign、Sentinel、Seata、SkyWalking、RocketMQ…）">
+    <div class="topbtns">
+      <button class="fbtn" data-lv="all">全部</button>
+      <button class="fbtn" data-lv="1">必考</button>
+      <button class="fbtn" data-lv="2">高频</button>
+      <button class="fbtn" data-lv="3">加分</button>
+    </div>
+    <div class="topbtns">
+      <button class="fbtn" id="btn-expand">全部展开</button>
+      <button class="fbtn" id="btn-collapse">全部折叠</button>
+    </div>
+  </div>
+
+  <h1>Spring Cloud 组件面试手册</h1>
+  <p class="lead">面向 <b>5 年 Java 后端</b>，<b>以组件为轴心</b>：每个组件讲清「<b>用途 → 核心原理 → 常考面试题</b>」。覆盖 Spring Cloud 微服务生态十大核心组件。难度标注：<span class="lv lv1">必考</span> <span class="lv lv2">高频</span> <span class="lv lv3">加分</span>。</p>
+
+  <div class="overview">
+    <div class="ov"><div class="num" id="ov-total">0</div><div class="lab">总题量</div></div>
+    <div class="ov"><div class="num" id="ov-done">0</div><div class="lab">已掌握</div></div>
+    <div class="ov"><div class="num" id="ov-pct">0%</div><div class="lab">整体进度</div></div>
+    <div class="ov"><div class="num" id="ov-mod">10</div><div class="lab">组件模块</div></div>
+  </div>
+
+  <!-- ============ 总览 ============ -->
+  <section class="module" id="mod0">
+    <div class="glossary">
+      <h2>组件地图 · 用途速查表</h2>
+      <p class="gsub">先把每个组件「解决什么问题」记牢。5 年经验面试，面试官默认你会用，考的是「原理 + 为什么用它 + 对比同类」。</p>
+      <table>
+        <thead><tr><th>组件</th><th>一句话用途</th><th>常被对比的替代品</th></tr></thead>
+        <tbody>
+          <tr><th>注册中心</th><td><code>Nacos / Eureka / Consul / ZK</code></td><td>服务发现 + 健康检查，谁在、谁活着</td></tr>
+          <tr><th>配置中心</th><td><code>Nacos Config / Apollo</code></td><td>配置集中管理 + 动态刷新，改配置不用重启</td></tr>
+          <tr><th>网关</th><td><code>Spring Cloud Gateway / Zuul</code></td><td>统一入口：路由、鉴权、限流、灰度</td></tr>
+          <tr><th>负载均衡</th><td><code>Ribbon / Spring Cloud LoadBalancer</code></td><td>客户端侧从多实例里挑一个调用</td></tr>
+          <tr><th>远程调用</th><td><code>OpenFeign / Dubbo</code></td><td>像调本地方法一样调远程服务</td></tr>
+          <tr><th>熔断降级</th><td><code>Sentinel / Hystrix / Resilience4j</code></td><td>流量控制 + 快速失败，防止雪崩</td></tr>
+          <tr><th>分布式事务</th><td><code>Seata</code></td><td>跨服务数据一致性</td></tr>
+          <tr><th>链路追踪</th><td><code>SkyWalking / Zipkin / Sleuth</code></td><td>一次请求的完整调用链可视化</td></tr>
+          <tr><th>消息</th><td><code>RocketMQ / Kafka / RabbitMQ</code></td><td>异步解耦、削峰、最终一致</td></tr>
+        </tbody>
+      </table>
+      <div class="followup" style="margin-top:16px"><b>面试主线：</b>「服务怎么互相发现（Nacos）→ 配置怎么改不用重启（配置中心）→ 请求怎么进来（Gateway）→ 怎么挑实例（负载均衡）→ 怎么调用（Feign）→ 调用挂了怎么办（Sentinel）→ 数据怎么一致（Seata）→ 怎么排障（SkyWalking）→ 怎么异步解耦（RocketMQ）」。沿着这条链讲，就是一套完整的微服务架构叙述。</div>
+    </div>
+  </section>
+
+  <!-- ============ ① Nacos 注册中心 ============ -->
+  <section class="module" id="mod1">
+    <h2>① Nacos 注册中心 <span class="cnt">服务发现 · 健康检查 · AP/CP</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="n1q1">Nacos 是做什么的？注册中心和配置中心分别解决什么问题？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="n1q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>一句话用途</h4>
+        <p>Nacos（Naming and Configuration Service）是阿里开源的<b>「注册中心 + 配置中心」二合一</b>组件，微服务架构的基础设施。</p>
+        <h4>两个核心能力</h4>
+        <ul>
+          <li><b>注册中心（服务发现）：</b>服务提供者启动时注册自己的地址，消费者从 Nacos 拉取可用服务列表。解决「服务 A 怎么找到服务 B 的地址」。</li>
+          <li><b>配置中心（动态配置）：</b>把配置集中管理在 Nacos，改配置后动态推送给所有实例，不用重启、不用重新打包。</li>
+        </ul>
+        <h4>为什么微服务离不开它</h4>
+        <ul>
+          <li>服务实例的 IP/端口是动态变化的（扩容、缩容、重启、宕机），不能写死在代码里。</li>
+          <li>几十上百个服务，配置散落在各自 application.yml，改一处要改几十处、还要重启。</li>
+        </ul>
+        <div class="followup"><b>一句话：</b>注册中心解决「<b>谁在、在哪</b>」，配置中心解决「<b>配置改了怎么不重启生效</b>」。这是微服务的两个地基。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="n1q2">Nacos 如何实现服务注册与健康检查？实例下线的完整流程？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="n1q2">已掌握</span></summary>
+      <div class="bd">
+        <h4>注册流程</h4>
+        <ol>
+          <li>服务提供者启动后，向 Nacos Server 发送 <code>POST /nacos/v1/ns/instance</code> 注册请求，携带 ip、port、服务名、权重、元数据。</li>
+          <li>默认注册为<b>临时实例（ephemeral=true）</b>，走 AP 模式（Distro 协议）同步。</li>
+          <li>消费者通过 <code>GET /nacos/v1/ns/instance/list</code> 拉取服务列表，并<b>本地缓存 + 定时拉取</b>。</li>
+        </ol>
+        <h4>健康检查（两类实例不同机制）</h4>
+        <table class="tb">
+          <thead><tr><th>实例类型</th><th>检查方式</th><th>原理</th></tr></thead>
+          <tbody>
+            <tr><td>临时实例</td><td>客户端<b>主动心跳</b></td><td>客户端每 5s 发心跳；15s 未收到标记不健康；30s 未收到自动摘除</td></tr>
+            <tr><td>持久实例</td><td>服务端<b>主动探测</b></td><td>Nacos Server 主动发请求探测实例是否存活（走 Raft CP 模式）</td></tr>
+          </tbody>
+        </table>
+        <h4>下线流程</h4>
+        <ol>
+          <li>服务正常关闭时，主动发送注销请求（<code>DELETE</code>），立即摘除实例。</li>
+          <li>若进程被杀、机器宕机（来不及注销），靠<b>心跳超时</b>兜底：15s 不健康 → 30s 移除。</li>
+        </ol>
+        <div class="pit"><b>坑：</b>临时实例依赖心跳，若客户端 GC 停顿、网络抖动导致心跳超时，会被<b>误摘除</b>。所以有了「15s 不健康 / 30s 才移除」的两级缓冲，避免误杀。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="n1q3">Nacos 和 Eureka、Zookeeper、Consul 的区别？CAP 取舍？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="n1q3">已掌握</span></summary>
+      <div class="bd">
+        <h4>CAP 取舍对照</h4>
+        <table class="tb">
+          <thead><tr><th>组件</th><th>CAP</th><th>一致性协议</th><th>健康检查</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td>Eureka</td><td>AP</td><td>无（弱一致，最终一致）</td><td>客户端心跳</td><td>2.0 停更，自我保护模式</td></tr>
+            <tr><td>Nacos</td><td>AP + CP 可切换</td><td>Distro（AP）/ Raft（CP）</td><td>临时心跳 + 持久探测</td><td>注册+配置一体，国内主流</td></tr>
+            <tr><td>Zookeeper</td><td>CP</td><td>ZAB（类 Raft）</td><td>心跳 + 会话</td><td>强一致，Leader 挂掉期间不可用</td></tr>
+            <tr><td>Consul</td><td>CP</td><td>Raft</td><td>服务端探测</td><td>强一致，功能全但重</td></tr>
+          </tbody>
+        </table>
+        <h4>核心区别（面试要点）</h4>
+        <ul>
+          <li><b>Nacos vs Eureka：</b>Nacos 是「注册 + 配置」一体，且 AP/CP 可切换；Eureka 只做注册、纯 AP、已停更。</li>
+          <li><b>AP vs CP 的本质：</b>网络分区发生时，AP 系统保证「能响应但数据可能旧」，CP 系统保证「数据一致但可能拒绝服务」。注册中心选 AP 更合适——<b>宁可拿到稍旧的服务列表，也不能整个注册中心不可用</b>。</li>
+        </ul>
+        <div class="followup"><b>为什么注册中心倾向 AP：</b>注册中心挂了服务就全乱。短暂拿到过期实例列表，最多调用失败再重试；但 CP 若在选举期间不可用，所有服务都无法发现，是致命的。Nacos 用「临时实例 AP + 持久实例 CP」兼顾两种场景。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ ② 配置中心 ============ -->
+  <section class="module" id="mod2">
+    <h2>② 配置中心 <span class="cnt">Nacos Config · Apollo · 动态刷新</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="n2q1">Nacos 配置中心如何实现配置动态刷新？原理是什么？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="n2q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>动态刷新原理</h4>
+        <ol>
+          <li>客户端启动时，从 Nacos Server 拉取配置，本地缓存。</li>
+          <li>客户端通过<b>长轮询（Long Polling）</b>监听配置变化：发请求到 Nacos，Nacos 挂起 30s（Hold），期间配置有变更就立即返回，否则 30s 超时后再发下一次。</li>
+          <li>客户端发现配置变了，触发<b>配置变更监听器</b>。</li>
+        </ol>
+        <h4>让配置生效的两种方式</h4>
+        <table class="tb">
+          <thead><tr><th>方式</th><th>注解</th><th>适用</th></tr></thead>
+          <tbody>
+            <tr><td>属性刷新</td><td><code>@Value</code> + <code>@RefreshScope</code></td><td>普通配置项（如开关、阈值）</td></tr>
+            <tr><td>原生动态</td><td><code>@NacosValue(autoRefreshed=true)</code></td><td>Nacos 客户端原生支持，无需 RefreshScope</td></tr>
+          </tbody>
+        </table>
+        <h4>@RefreshScope 原理</h4>
+        <p>给 Bean 套一层<b>代理 + 缓存</b>，配置变更事件触发时，销毁旧 Bean 并重建，下次访问拿到新值。</p>
+        <div class="pit"><b>坑：</b><code>@RefreshScope</code> 生成代理有性能开销，且可能有「旧对象残留」问题；频繁刷新的配置项不要滥用。敏感配置（密码、密钥）要加密存储（Nacos 支持配置加密插件）。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="n2q2">配置的优先级顺序？不同环境（dev/prod）怎么隔离？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="n2q2">已掌握</span></summary>
+      <div class="bd">
+        <h4>配置优先级（从高到低）</h4>
+        <p>命令行参数 &gt; JVM 系统属性 &gt; 环境变量 &gt; <b>Nacos 配置中心</b> &gt; 本地 application.yml &gt; bootstrap.yml（旧版）。</p>
+        <h4>环境隔离的三层</h4>
+        <table class="tb">
+          <thead><tr><th>维度</th><th>Nacos 概念</th><th>用途</th></tr></thead>
+          <tbody>
+            <tr><td>命名空间 Namespace</td><td>隔离环境（dev/test/prod）</td><td>不同环境完全隔离，prod 与 test 互不可见</td></tr>
+            <tr><td>分组 Group</td><td>同一环境内分组</td><td>不同应用 / 不同场景的配置分组</td></tr>
+            <tr><td>Data ID</td><td>具体配置文件</td><td>如 <code>order-service.yaml</code>，配 <code>spring.profiles.active</code> 区分</td></tr>
+          </tbody>
+        </table>
+        <h4>Data ID 命名规范</h4>
+        <p>默认 <code>${spring.application.name}-${spring.profiles.active}.${file-extension}</code>，如 <code>order-service-dev.yaml</code>。</p>
+        <div class="followup"><b>最佳实践：</b>Namespace 隔离环境（最彻底）、Group 隔离应用分组、Data ID 用 <code>应用名-profile.后缀</code> 区分。灰度配置可用「配置的灰度发布」按 IP 灰度。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="n2q3">Nacos Config 和 Apollo 的区别？怎么选？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="n2q3">已掌握</span></summary>
+      <div class="bd">
+        <table class="tb">
+          <thead><tr><th>维度</th><th>Nacos Config</th><th>Apollo</th></tr></thead>
+          <tbody>
+            <tr><td>定位</td><td>注册 + 配置一体</td><td>专注配置中心（携程开源）</td></tr>
+            <tr><td>部署</td><td>简单（一个服务搞定）</td><td>较重（config + admin + portal + 多 DB）</td></tr>
+            <tr><td>配置治理</td><td>基础功能（命名空间/分组/灰度）</td><td>强大（版本发布、审批、回滚、审计）</td></tr>
+            <tr><td>动态刷新</td><td>长轮询 + RefreshScope</td><td>长轮询 + 自带刷新机制</td></tr>
+            <tr><td>适用</td><td>中小项目，已用 Nacos 做注册</td><td>大公司、配置治理要求高（权限/审计/灰度）</td></tr>
+          </tbody>
+        </table>
+        <div class="followup"><b>选型：</b>已用 Nacos 做注册中心 → 顺手用 Nacos Config，运维简单；配置项极多、需要严格的权限审批和发布流程 → Apollo。多数中小团队 Nacos 够用。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ ③ 网关 Gateway ============ -->
+  <section class="module" id="mod3">
+    <h2>③ 网关 Gateway <span class="cnt">路由 · 断言 · 过滤器 · 非阻塞</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="g1q1">Spring Cloud Gateway 的核心职责？三大核心概念？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="g1q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>核心职责（统一入口）</h4>
+        <ul>
+          <li><b>路由转发：</b>根据路径/Header 转发到下游服务。</li>
+          <li><b>统一鉴权：</b>JWT 校验、权限过滤，不用每个服务各自做。</li>
+          <li><b>限流：</b>基于 Redis + Lua 令牌桶/漏桶。</li>
+          <li><b>熔断降级、灰度发布、日志审计、跨域统一处理。</b></li>
+        </ul>
+        <h4>三大核心概念</h4>
+        <table class="tb">
+          <thead><tr><th>概念</th><th>作用</th></tr></thead>
+          <tbody>
+            <tr><td><code>Route</code> 路由</td><td>转发规则：匹配条件 + 目标地址</td></tr>
+            <tr><td><code>Predicate</code> 断言</td><td>匹配条件（路径、Header、Method、时间、Cookie 等）</td></tr>
+            <tr><td><code>Filter</code> 过滤器</td><td>请求/响应处理（全局 GlobalFilter / 局部 GatewayFilter）</td></tr>
+          </tbody>
+        </table>
+        <p>请求进来：先过 <code>Predicate</code> 匹配路由 → 再过 <code>Filter</code> 链处理 → 转发到下游。</p>
+        <div class="followup"><b>追问：</b>全局过滤（如 Token 校验）用 <code>GlobalFilter</code>，实现 <code>filter(ServerWebExchange, GatewayFilterChain)</code>，注意 <code>Order</code> 控制执行顺序。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="g1q2">Spring Cloud Gateway 和 Zuul 的区别？为什么 Gateway 性能更好？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="g1q2">已掌握</span></summary>
+      <div class="bd">
+        <table class="tb">
+          <thead><tr><th>维度</th><th>Spring Cloud Gateway</th><th>Zuul 1.x</th></tr></thead>
+          <tbody>
+            <tr><td>底层技术</td><td>WebFlux + Reactor（Netty）</td><td>Servlet 阻塞 IO（Tomcat）</td></tr>
+            <tr><td>模型</td><td>非阻塞、异步、响应式</td><td>同步阻塞</td></tr>
+            <tr><td>高并发性能</td><td>优（线程开销小）</td><td>差（每请求一线程）</td></tr>
+            <tr><td>WebSocket 长连接</td><td>支持</td><td>支持有限</td></tr>
+            <tr><td>维护状态</td><td>活跃（官方主推）</td><td>Zuul 1.x 停更（Zuul 2 迟迟未稳定）</td></tr>
+          </tbody>
+        </table>
+        <h4>为什么非阻塞性能更好</h4>
+        <ul>
+          <li>Zuul 1.x 是 Servlet 同步模型：每个请求占用一个线程，请求转发要等下游响应，线程阻塞。</li>
+          <li>Gateway 用 Netty + Reactor 非阻塞：少量事件循环线程处理海量并发，线程不阻塞等待，吞吐更高。</li>
+        </ul>
+        <div class="pit"><b>注意：</b>Gateway 底层是 WebFlux，若网关里写了阻塞逻辑（如同步 JDBC 调用），会阻塞事件循环线程，反而性能变差。网关内要避免阻塞操作。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="g1q3">如何用 Gateway 实现限流、鉴权、灰度发布？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="g1q3">已掌握</span></summary>
+      <div class="bd">
+        <h4>限流</h4>
+        <p>用内置的 <code>RequestRateLimiter</code> 过滤器 + Redis，基于<b>令牌桶</b>算法（<code>RedisRateLimiter</code>），配置 <code>replenishRate</code>（每秒补充令牌数）和 <code>burstCapacity</code>（桶容量）。</p>
+        <pre><code>spring:
+  cloud:
+    gateway:
+      routes:
+        - id: order-service
+          uri: lb://order-service
+          predicates:
+            - Path=/order/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 100   # 每秒 100 个
+                redis-rate-limiter.burstCapacity: 200   # 桶容量 200</code></pre>
+        <h4>鉴权</h4>
+        <p>自定义 <code>GlobalFilter</code>：拦截请求 → 校验 JWT Token（验签 + 过期时间）→ 解析用户信息放 Header 透传给下游 → 校验失败返回 401。</p>
+        <h4>灰度发布</h4>
+        <p>通过 <code>Header</code> 或 <code>Cookie</code> 断言匹配灰度用户，路由到灰度版本服务：<code>- Header=X-Version, gray</code> → <code>uri: lb://order-service-gray</code>。</p>
+        <div class="followup"><b>核心：</b>网关是「横切逻辑」的最佳落点——鉴权、限流、灰度、日志，都在这做，下游服务专注业务。这是网关存在的最大意义。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ ④ 负载均衡 ============ -->
+  <section class="module" id="mod4">
+    <h2>④ 负载均衡 <span class="cnt">Ribbon · LoadBalancer · 算法</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="lb1q1">客户端负载均衡和服务端负载均衡的区别？Ribbon 属于哪种？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="lb1q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>两种负载均衡</h4>
+        <table class="tb">
+          <thead><tr><th>维度</th><th>客户端负载均衡</th><th>服务端负载均衡</th></tr></thead>
+          <tbody>
+            <tr><td>代表</td><td>Ribbon / Spring Cloud LoadBalancer</td><td>Nginx / LVS / F5</td></tr>
+            <tr><td>决策位置</td><td>调用方自己从实例列表选一个</td><td>集中式代理选一个转发</td></tr>
+            <tr><td>实例列表来源</td><td>从注册中心拉取，本地缓存</td><td>由 Nginx 配置 upstream 维护</td></tr>
+            <tr><td>优点</td><td>无额外网络跳转，灵活</td><td>集中管理，配置简单</td></tr>
+            <tr><td>缺点</td><td>每个客户端都要集成</td><td>多一次网络跳转，代理本身是瓶颈/单点</td></tr>
+          </tbody>
+        </table>
+        <h4>Ribbon 原理</h4>
+        <ol>
+          <li>从注册中心（如 Nacos）拉取服务实例列表，本地维护。</li>
+          <li>调用时通过 <code>IRule</code> 接口从列表选一个实例。</li>
+          <li>发起请求，若失败可按重试策略换实例重试。</li>
+        </ol>
+        <div class="followup"><b>记忆点：</b>微服务内部服务间调用用<b>客户端负载均衡</b>（Ribbon/LoadBalancer），对外入口用<b>服务端负载均衡</b>（Nginx）。两者配合使用。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="lb1q2">负载均衡算法有哪些？各自特点和适用场景？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="lb1q2">已掌握</span></summary>
+      <div class="bd">
+        <table class="tb">
+          <thead><tr><th>算法</th><th>原理</th><th>适用场景</th></tr></thead>
+          <tbody>
+            <tr><td>轮询 RoundRobin</td><td>依次轮流分配</td><td>实例性能均等（默认）</td></tr>
+            <tr><td>随机 Random</td><td>随机选一个</td><td>简单场景</td></tr>
+            <tr><td>加权轮询</td><td>按权重分配，权重高多分</td><td>实例性能不均</td></tr>
+            <tr><td>最小连接 BestAvailable</td><td>选并发最小的实例</td><td>请求耗时差异大</td></tr>
+            <tr><td>响应时间加权</td><td>响应越快的权重越高</td><td>动态调整（WeightedResponseTime）</td></tr>
+            <tr><td>一致性哈希</td><td>同 key 路由到同实例</td><td>需要会话粘滞 / 缓存亲和</td></tr>
+          </tbody>
+        </table>
+        <div class="pit"><b>注意：</b>Ribbon 已进入维护模式（不再开发新功能），Spring Cloud 官方用 <code>Spring Cloud LoadBalancer</code> 替代。面试要能说出「Ribbon 停更、主流用 LoadBalancer」。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="lb1q3">Spring Cloud LoadBalancer 相比 Ribbon 有什么变化？</span><span class="lv lv3">加分</span></span><span class="ck"><input type="checkbox" data-id="lb1q3">已掌握</span></summary>
+      <div class="bd">
+        <h4>为什么要替换 Ribbon</h4>
+        <ul>
+          <li>Ribbon 由 Netflix 维护，已停止更新，且依赖过多、代码耦合重。</li>
+          <li>Spring Cloud 官方推出 <code>Spring Cloud LoadBalancer</code>，轻量、模块化、响应式支持。</li>
+        </ul>
+        <h4>LoadBalancer 特点</h4>
+        <ul>
+          <li>核心接口 <code>ReactiveLoadBalancer</code> / <code>ServiceInstanceListSupplier</code>。</li>
+          <li>默认提供轮询、随机，支持自定义 <code>ServiceInstanceListSupplier</code> 实现算法。</li>
+          <li>与 Nacos、Eureka 等服务发现无缝集成。</li>
+        </ul>
+        <div class="followup"><b>面试表述：</b>「我们项目用的是 Nacos + Spring Cloud LoadBalancer，因为 Ribbon 停更了。LoadBalancer 默认轮询，特殊场景自定义 ServiceInstanceListSupplier 实现加权/一致性哈希。」</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ ⑤ OpenFeign 调用 ============ -->
+  <section class="module" id="mod5">
+    <h2>⑤ OpenFeign 远程调用 <span class="cnt">动态代理 · 声明式 · 对比 Dubbo</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="f1q1">OpenFeign 的原理？为什么接口方法能直接变成 HTTP 调用？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="f1q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>一句话用途</h4>
+        <p>OpenFeign 是<b>声明式 HTTP 客户端</b>：在接口上写 <code>@FeignClient</code>，就能像调本地方法一样调远程服务，不用手动拼 URL、处理序列化。</p>
+        <h4>原理（动态代理）</h4>
+        <ol>
+          <li>启动时扫描 <code>@FeignClient</code> 注解的接口。</li>
+          <li>为接口生成<b>动态代理对象</b>（JDK 动态代理）。</li>
+          <li>调用接口方法时，代理拦截 → 根据方法上的注解（<code>@GetMapping</code>、<code>@RequestParam</code> 等）拼出 HTTP 请求（方法、路径、参数）。</li>
+          <li>交给 <code>Encoder</code> 序列化请求体 → 经负载均衡选实例 → 发起 HTTP 请求。</li>
+          <li>拿到响应，<code>Decoder</code> 反序列化成返回值类型。</li>
+        </ol>
+        <pre><code>@FeignClient(name = "order-service")   // 服务名
+public interface OrderClient {
+  @GetMapping("/order/{id}")           // 映射为 GET http://order-service/order/{id}
+  Order getById(@PathVariable("id") Long id);
+}</code></pre>
+        <div class="followup"><b>核心：</b>动态代理 + 注解解析 + 编解码器。名字里「Feign」意为「伪装」，把远程调用伪装成本地调用。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="f1q2">OpenFeign 和 Dubbo 的区别？如何选型？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="f1q2">已掌握</span></summary>
+      <div class="bd">
+        <table class="tb">
+          <thead><tr><th>维度</th><th>OpenFeign</th><th>Dubbo</th></tr></thead>
+          <tbody>
+            <tr><td>协议</td><td>HTTP/REST</td><td>自定义 RPC 协议（TCP 长连接）</td></tr>
+            <tr><td>序列化</td><td>JSON 等</td><td>Hessian2 / Protobuf 等二进制</td></tr>
+            <tr><td>性能</td><td>较低（HTTP 文本开销）</td><td>高（长连接 + 二进制）</td></tr>
+            <tr><td>生态</td><td>Spring Cloud 体系</td><td>阿里系，Dubbo 3 支持 Triple 协议（gRPC 兼容）</td></tr>
+            <tr><td>跨语言</td><td>天然支持</td><td>较弱（Triple 协议改进）</td></tr>
+            <tr><td>服务治理</td><td>依赖 Spring Cloud 全家桶</td><td>内建路由、负载均衡、集群容错</td></tr>
+          </tbody>
+        </table>
+        <div class="followup"><b>选型：</b>Spring Cloud 体系、需要 HTTP 网关、可能跨语言 → Feign；内部高并发、强服务治理、Java 统一栈 → Dubbo。也可混用：对外 HTTP（Feign/网关），内部 RPC（Dubbo）。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="f1q3">Feign 调用超时、重试、日志、拦截器怎么配置？有什么坑？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="f1q3">已掌握</span></summary>
+      <div class="bd">
+        <h4>常用配置</h4>
+        <pre><code>feign:
+  client:
+    config:
+      default:
+        connectTimeout: 2000      # 连接超时
+        readTimeout: 5000         # 读取超时
+        loggerLevel: basic        # 日志级别
+  # 重试（Feign 本身不重试，需集成 Spring Retry）</code></pre>
+        <h4>三个坑</h4>
+        <ul>
+          <li><b>超时与重试叠加导致雪崩：</b>重试次数 × 超时时间 会放大下游压力，要合理设置（幂等接口才重试）。</li>
+          <li><b>Feign 的线程池隔离：</b>默认不隔离，大量慢调用会耗尽调用方线程，需配合 Sentinel/Hystrix 隔离。</li>
+          <li><b>请求头丢失：</b>Feign 调用默认不传递上游请求的 Header（如 Token、TraceId），需配 <code>RequestInterceptor</code> 手动透传。</li>
+        </ul>
+        <div class="followup"><b>拦截器（透传 Header）：</b>实现 <code>RequestInterceptor</code>，从 <code>RequestContextHolder</code> 拿当前请求的 Header，塞进 Feign 请求，保证 Token、TraceId 全链路透传。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ ⑥ Sentinel 熔断降级 ============ -->
+  <section class="module" id="mod6">
+    <h2>⑥ Sentinel 熔断降级 <span class="cnt">限流 · 熔断 · 降级 · 对比 Hystrix</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="s1q1">Sentinel 的限流、熔断、降级分别是什么？怎么区分？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="s1q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>三个概念（易混淆，务必分清）</h4>
+        <table class="tb">
+          <thead><tr><th>概念</th><th>触发条件</th><th>动作</th><th>目的</th></tr></thead>
+          <tbody>
+            <tr><td><b>限流</b></td><td>QPS / 并发数超阈值</td><td>拒绝或排队</td><td>保护自己不被流量打垮</td></tr>
+            <tr><td><b>熔断</b></td><td>错误率 / 慢调用比例超阈值</td><td>快速失败，进入 open 状态</td><td>保护下游，防止级联故障</td></tr>
+            <tr><td><b>降级</b></td><td>调用失败 / 超时 / 熔断</td><td>走 fallback 兜底逻辑</td><td>保证核心功能可用</td></tr>
+          </tbody>
+        </table>
+        <h4>熔断状态机</h4>
+        <ol>
+          <li><b>Closed（关闭）：</b>正常调用，统计错误率/慢调用。</li>
+          <li><b>Open（打开）：</b>超阈值，快速失败（不再真实调用下游）。</li>
+          <li><b>Half-Open（半开）：</b>过一段时间，放少量探测请求，成功则转 Closed，失败继续 Open。</li>
+        </ol>
+        <div class="followup"><b>一句话区分：</b>限流管「进来的流量」，熔断管「出去的下游」，降级是「失败后的兜底」。三者配合构建完整容错体系。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="s1q2">Sentinel 和 Hystrix 的区别？为什么 Sentinel 更主流？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="s1q2">已掌握</span></summary>
+      <div class="bd">
+        <table class="tb">
+          <thead><tr><th>维度</th><th>Sentinel</th><th>Hystrix</th></tr></thead>
+          <tbody>
+            <tr><td>隔离策略</td><td>信号量 + 线程池（可选）</td><td>线程池隔离为主（开销大）</td></tr>
+            <tr><td>限流规则</td><td>丰富：QPS、并发、预热、排队</td><td>简单</td></tr>
+            <tr><td>规则管理</td><td>动态规则（运行时改，控制台推送）</td><td>静态配置</td></tr>
+            <tr><td>监控</td><td>实时监控 + 控制台</td><td>dashboard 功能简单</td></tr>
+            <tr><td>状态</td><td>活跃（阿里开源）</td><td>停止维护</td></tr>
+          </tbody>
+        </table>
+        <h4>Sentinel 的限流算法</h4>
+        <p>默认<b>滑动窗口</b>（LeapArray 结构）统计，支持<b>令牌桶（预热模式 Warm Up）</b>和<b>漏桶（排队等待）</b>。</p>
+        <div class="followup"><b>核心优势：</b>规则可动态调整（不用重启）、限流维度丰富、性能开销小（信号量优先）。Hystrix 线程池隔离虽彻底但线程切换开销大，停更后国内主流转向 Sentinel。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="s1q3">Sentinel 的滑动窗口限流是怎么实现的？为什么比固定窗口准？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="s1q3">已掌握</span></summary>
+      <div class="bd">
+        <h4>固定窗口的「临界突刺」问题</h4>
+        <p>固定窗口按整秒统计，前 1 秒的末尾和后 1 秒的开头，各来一波请求，<b>2 倍阈值</b>的流量会穿过，统计不准。</p>
+        <h4>滑动窗口原理</h4>
+        <ol>
+          <li>把时间窗口（如 1 秒）切成多个<b>小窗口（bucket）</b>，如 1 秒切 20 个，每个 50ms。</li>
+          <li>每个 bucket 独立计数，随着时间滑动，淘汰过期的 bucket。</li>
+          <li>统计时累加当前窗口内所有 bucket 的计数。</li>
+          <li>核心数据结构 <code>LeapArray</code>（环形数组），按当前时间定位 bucket。</li>
+        </ol>
+        <h4>优点</h4>
+        <p>精度高（窗口越小越平滑），避免了固定窗口的边界突刺，也避免了漏桶/令牌桶的「精确计时」复杂度，是工程上精度与性能的折中。</p>
+        <div class="followup"><b>追问：</b>Sentinel 支持 QPS 和并发线程数两种阈值；QPS 用滑动窗口计数，线程数用当前活跃线程判断。预热模式（Warm Up）用令牌桶思想，让系统冷启动时流量缓升。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ ⑦ Seata 分布式事务 ============ -->
+  <section class="module" id="mod7">
+    <h2>⑦ Seata 分布式事务 <span class="cnt">AT 模式 · 三组件 · undo_log</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="st1q1">Seata 是什么？四种事务模式分别是什么？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="st1q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>一句话用途</h4>
+        <p>Seata 是阿里开源的<b>分布式事务解决方案</b>，解决「跨多个微服务/数据库的操作如何保证一致性」。</p>
+        <h4>四种模式</h4>
+        <table class="tb">
+          <thead><tr><th>模式</th><th>侵入性</th><th>原理</th><th>适用</th></tr></thead>
+          <tbody>
+            <tr><td><b>AT</b></td><td>无侵入（默认）</td><td>自动生成反向 SQL（undo_log）</td><td>通用，最常用</td></tr>
+            <tr><td><b>TCC</b></td><td>高侵入</td><td>业务自己实现 Try/Confirm/Cancel</td><td>强一致性、性能要求高</td></tr>
+            <tr><td><b>SAGA</b></td><td>中</td><td>长事务拆多步 + 补偿</td><td>长流程、多系统</td></tr>
+            <tr><td><b>XA</b></td><td>无侵入</td><td>数据库层两阶段提交</td><td>数据库支持 XA 协议</td></tr>
+          </tbody>
+        </table>
+        <div class="followup"><b>选型：</b>默认 AT（无侵入、够用）；需要强预留（冻结库存）→ TCC；长流程 → SAGA；老系统 + 数据库原生 XA → XA。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="st1q2">Seata AT 模式的原理？三个组件（TC/TM/RM）各自作用？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="st1q2">已掌握</span></summary>
+      <div class="bd">
+        <h4>三个组件</h4>
+        <table class="tb">
+          <thead><tr><th>组件</th><th>全称</th><th>作用</th></tr></thead>
+          <tbody>
+            <tr><td><code>TC</code></td><td>Transaction Coordinator</td><td>事务协调器（Seata Server），维护全局事务状态</td></tr>
+            <tr><td><code>TM</code></td><td>Transaction Manager</td><td>事务管理器，发起全局事务（<code>@GlobalTransactional</code>）</td></tr>
+            <tr><td><code>RM</code></td><td>Resource Manager</td><td>资源管理器，各分支事务，负责 undo_log 和分支注册</td></tr>
+          </tbody>
+        </table>
+        <h4>AT 模式两阶段流程</h4>
+        <ol>
+          <li><b>一阶段（业务 SQL 正常执行）：</b>Seata 拦截业务 SQL，解析出 <b>before image（改前数据）</b>和 <b>after image（改后数据）</b>，存入 <code>undo_log</code> 表，并注册分支事务到 TC。</li>
+          <li><b>二阶段提交：</b>TC 通知各 RM 删除 undo_log（异步完成）。</li>
+          <li><b>二阶段回滚：</b>TC 通知各 RM 用 before image 生成<b>反向 SQL</b>，把数据改回去。</li>
+        </ol>
+        <h4>无侵入的关键</h4>
+        <p>业务代码只加一个 <code>@GlobalTransactional</code> 注解，其余全靠 Seata <b>数据源代理 + SQL 解析 + undo_log</b> 自动完成，不用写回滚逻辑。</p>
+        <div class="pit"><b>坑：</b>AT 默认读未提交，全局事务未提交时其他事务可能读到脏数据；写数据会加全局锁降低并发；回滚时若数据已被其他事务改过（脏写），需校验 after image 是否匹配。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="st1q3">AT 模式和 TCC 模式怎么选？各自优缺点？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="st1q3">已掌握</span></summary>
+      <div class="bd">
+        <table class="tb">
+          <thead><tr><th>维度</th><th>AT</th><th>TCC</th></tr></thead>
+          <tbody>
+            <tr><td>侵入性</td><td>无（加注解即可）</td><td>高（每个接口写 3 个方法）</td></tr>
+            <tr><td>性能</td><td>较低（SQL 解析 + 全局锁）</td><td>高（无全局锁，资源预留）</td></tr>
+            <tr><td>隔离性</td><td>弱（有脏读/脏写风险）</td><td>强（Try 阶段资源预留）</td></tr>
+            <tr><td>适用</td><td>通用业务，快速接入</td><td>资金、库存等强一致 + 高并发</td></tr>
+          </tbody>
+        </table>
+        <h4>TCC 三个方法</h4>
+        <ul>
+          <li><b>Try：</b>资源预留（冻结库存、预扣余额），做检查。</li>
+          <li><b>Confirm：</b>确认执行，真正扣减。</li>
+          <li><b>Cancel：</b>释放预留资源，回滚。</li>
+        </ul>
+        <div class="pit"><b>TCC 两个难题：</b>①<b>空回滚</b>（Try 没执行成功，Cancel 却先到，要识别并直接返回）；②<b>悬挂</b>（Cancel 先于 Try 执行，Try 后到却执行了，要防）。这两个是 TCC 必问的坑。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ ⑧ SkyWalking 链路追踪 ============ -->
+  <section class="module" id="mod8">
+    <h2>⑧ SkyWalking 链路追踪 <span class="cnt">TraceId · Span · 无侵入</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="sw1q1">链路追踪是做什么的？SkyWalking 的原理？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="sw1q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>一句话用途</h4>
+        <p>微服务下一个请求横跨多个服务，链路追踪把<b>整个调用链可视化</b>，快速定位「哪个服务、哪个方法」慢了或报错。</p>
+        <h4>核心概念</h4>
+        <table class="tb">
+          <thead><tr><th>概念</th><th>含义</th></tr></thead>
+          <tbody>
+            <tr><td><code>Trace</code></td><td>一次完整请求，一个 TraceId 贯穿全程</td></tr>
+            <tr><td><code>Span</code></td><td>一次调用（一个服务/一个方法），有父 Span 和子 Span</td></tr>
+            <tr><td><code>TraceId</code></td><td>全局唯一，标识一次请求</td></tr>
+            <tr><td><code>SpanId</code></td><td>标识一次调用在链中的位置</td></tr>
+          </tbody>
+        </table>
+        <h4>SkyWalking 原理（无侵入）</h4>
+        <ol>
+          <li>通过 <b>Java Agent（字节码增强）</b>启动时挂载，无需改业务代码、无需埋点。</li>
+          <li>自动拦截主流框架（Spring MVC、Dubbo、Feign、MyBatis、Redis、MQ 等），生成 Span。</li>
+          <li>TraceId 通过请求头（如 <code>sw8</code>）在服务间<b>透传</b>。</li>
+          <li>数据上报到 <b>OAP（后端分析平台）</b>，聚合存储，通过 <b>UI</b> 展示调用拓扑、耗时、错误。</li>
+        </ol>
+        <div class="followup"><b>优势：</b>无侵入（Agent 探针）、全栈支持、可视化拓扑。对比 Zipkin 需埋点、Sleuth 是埋点规范（已并入 Micrometer Tracing）。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="sw1q2">SkyWalking、Zipkin、Sleuth 的区别？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="sw1q2">已掌握</span></summary>
+      <div class="bd">
+        <table class="tb">
+          <thead><tr><th>组件</th><th>定位</th><th>侵入性</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td><b>SkyWalking</b></td><td>完整 APM（追踪 + 指标 + 日志）</td><td>无（Agent）</td><td>国内主流，功能全面</td></tr>
+            <tr><td><b>Zipkin</b></td><td>分布式追踪系统</td><td>需埋点（或 Sleuth 配合）</td><td>Twitter 开源，需自建存储</td></tr>
+            <tr><td><b>Sleuth</b></td><td>Spring Cloud 追踪规范/埋点</td><td>埋点（自动）</td><td>已并入 Micrometer Tracing，负责生成 TraceId/Span，配合 Zipkin 等展示</td></tr>
+          </tbody>
+        </table>
+        <div class="followup"><b>关系：</b>Sleuth 是「埋点 + TraceId 生成」，Zipkin/SkyWalking 是「收集 + 展示」。SkyWalking 一体化（埋点 + 收集 + 展示全包），所以最省事。5 年经验要能说清「Sleuth 是规范、SkyWalking 是完整方案」。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="sw1q3">TraceId 如何在服务间透传？异步、线程池场景会丢吗？</span><span class="lv lv3">加分</span></span><span class="ck"><input type="checkbox" data-id="sw1q3">已掌握</span></summary>
+      <div class="bd">
+        <h4>同步调用透传</h4>
+        <p>TraceId 存在 <code>ThreadLocal</code> 里（Sleuth 的 <code>TraceContext</code>），跨服务时通过请求头（HTTP Header / MQ 消息属性 / Dubbo attachment）传递，下游从 Header 取出继续。</p>
+        <h4>会丢的场景（高频坑）</h4>
+        <ul>
+          <li><b>异步线程池：</b>ThreadLocal 不跨线程，新线程拿不到 TraceId → 用 <code>TaskDecorator</code> 包装线程池，提交任务时把 TraceId 传入。</li>
+          <li><b>MQ 消费：</b>生产者把 TraceId 放消息 Header，消费者取出后重新设置到 ThreadLocal。</li>
+          <li><b>Feign 调用：</b>需 <code>RequestInterceptor</code> 手动透传（Feign 默认不传 Header）。</li>
+        </ul>
+        <div class="pit"><b>核心：</b>TraceId 的本质是「请求上下文跨线程、跨进程传递」。任何打破「同线程 + 同进程」的边界（线程池、异步、MQ），都要手动透传，否则链路就断了。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ ⑨ RocketMQ 消息 ============ -->
+  <section class="module" id="mod9">
+    <h2>⑨ RocketMQ 消息 <span class="cnt">削峰 · 解耦 · 最终一致</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="mq1q1">消息队列在微服务中的作用？RocketMQ 的核心概念？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="mq1q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>三大作用</h4>
+        <ul>
+          <li><b>削峰填谷：</b>高并发请求先入 MQ，消费者按自身能力消费，保护下游 DB。</li>
+          <li><b>异步解耦：</b>下单后异步发短信、加积分，主流程不用等。</li>
+          <li><b>最终一致：</b>配合本地消息表/事务消息，实现跨服务最终一致。</li>
+        </ul>
+        <h4>RocketMQ 核心概念</h4>
+        <table class="tb">
+          <thead><tr><th>概念</th><th>含义</th></tr></thead>
+          <tbody>
+            <tr><td><code>Producer</code></td><td>消息生产者</td></tr>
+            <tr><td><code>Consumer</code></td><td>消息消费者（支持 Pull / Push）</td></tr>
+            <tr><td><code>Broker</code></td><td>消息存储 + 转发节点</td></tr>
+            <tr><td><code>NameServer</code></td><td>路由注册中心（轻量，非 ZooKeeper）</td></tr>
+            <tr><td><code>Topic</code> / <code>Tag</code></td><td>主题（消息分类）/ 标签（二级分类）</td></tr>
+            <tr><td><code>Message Queue</code></td><td>主题下的队列，实现并行消费</td></tr>
+          </tbody>
+        </table>
+        <div class="followup"><b>为什么选 RocketMQ：</b>阿里开源、事务消息支持好、吞吐高（万级 TPS）、延迟低，是国内 Java 微服务消息场景的主流。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="mq1q2">如何保证消息不丢失？生产、存储、消费三段分析。</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="mq1q2">已掌握</span></summary>
+      <div class="bd">
+        <h4>三段式分析（RocketMQ）</h4>
+        <ol>
+          <li><b>生产端：</b>用<b>同步发送</b>（<code>SendResult</code> 返回 OK 才算成功），失败重试；避免 oneway 单向发送。</li>
+          <li><b>Broker 端：</b><b>同步刷盘</b>（<code>SYNC_FLUSH</code>，落盘才返回）+ <b>主从同步复制</b>（master 同步到 slave 才确认）。</li>
+          <li><b>消费端：</b><b>手动 ACK</b>，业务处理成功后再提交 offset；避免自动 ACK（消息一到就确认，处理失败会丢）。</li>
+        </ol>
+        <h4>代价</h4>
+        <p>「不丢失」的代价是性能下降（同步刷盘、同步复制都是延迟换可靠）。核心业务（支付、订单）才需要这么严格的配置。</p>
+        <div class="pit"><b>核心认知：</b>消息系统的可靠性是「木桶效应」，三段任何一段漏了都会丢。面试要能完整说三段，而不是只说「手动 ACK」。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="mq1q3">如何保证消息不重复消费、不乱序？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="mq1q3">已掌握</span></summary>
+      <div class="bd">
+        <h4>不重复消费（幂等）</h4>
+        <ul>
+          <li>消息系统是「至少一次投递」（at-least-once），<b>重复不可避免，消费端必须幂等</b>。</li>
+          <li>方案：用业务唯一 ID（订单号、消息 key）去重——数据库唯一索引 / Redis setnx / 去重表。</li>
+        </ul>
+        <h4>不乱序</h4>
+        <ul>
+          <li><b>乱序原因：</b>多队列并行消费，顺序天然无法保证。</li>
+          <li><b>全局有序：</b>单一队列（牺牲吞吐，一般不这么干）。</li>
+          <li><b>局部有序：</b>同一业务 key（订单 ID）路由到同一队列（<code>MessageQueueSelector</code>），队列内 FIFO 保证顺序。</li>
+        </ul>
+        <div class="followup"><b>面试金句：</b>「不丢 + 不重 + 有序 + 高吞吐」四者不可兼得。工程上「至少一次 + 消费端幂等 + 按业务 key 局部有序」是最务实组合。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="mq1q4">RocketMQ 的事务消息是怎么实现最终一致的？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="mq1q4">已掌握</span></summary>
+      <div class="bd">
+        <h4>事务消息流程</h4>
+        <ol>
+          <li>生产者发送<b>半消息（half message）</b>，此时消费者<b>看不到</b>。</li>
+          <li>生产者执行<b>本地事务</b>。</li>
+          <li>本地事务成功 → <b>提交（commit）</b>半消息，消费者可见；失败 → <b>回滚（rollback）</b>。</li>
+          <li>Broker 长时间未收到确认，会<b>回查</b>（回调生产者的 checkLocalTransaction 接口）确认本地事务状态。</li>
+        </ol>
+        <h4>解决的问题</h4>
+        <p>「本地事务成功」和「消息发送成功」无法原子。事务消息通过「半消息 + 本地事务 + 回查」保证两者最终一致。</p>
+        <div class="followup"><b>对比本地消息表：</b>事务消息更优雅（无需本地表 + 定时扫描），但依赖 RocketMQ 特性。本地消息表方案通用，任何 MQ 都能用。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ ⑩ Alibaba 全家桶汇总 ============ -->
+  <section class="module" id="mod10">
+    <h2>⑩ Spring Cloud Alibaba 全家桶 <span class="cnt">组件清单 · 架构串联</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="sca1q1">Spring Cloud Alibaba 全家桶有哪些组件？各自作用？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="sca1q1">已掌握</span></summary>
+      <div class="bd">
+        <table class="tb">
+          <thead><tr><th>组件</th><th>作用</th><th>替代的 Netflix 组件</th></tr></thead>
+          <tbody>
+            <tr><td><b>Nacos</b></td><td>服务注册发现 + 配置中心</td><td>Eureka + Config</td></tr>
+            <tr><td><b>Sentinel</b></td><td>流量控制、熔断降级、系统保护</td><td>Hystrix</td></tr>
+            <tr><td><b>Seata</b></td><td>分布式事务（AT/TCC/SAGA/XA）</td><td>（Netflix 无对应）</td></tr>
+            <tr><td><b>RocketMQ</b></td><td>分布式消息</td><td>（Netflix 无对应）</td></tr>
+            <tr><td><b>Dubbo</b></td><td>RPC 框架（可选）</td><td>（Feign 是官方）</td></tr>
+            <tr><td><b>Gateway</b></td><td>网关（Spring 官方）</td><td>Zuul</td></tr>
+            <tr><td><b>LoadBalancer</b></td><td>负载均衡（Spring 官方）</td><td>Ribbon</td></tr>
+          </tbody>
+        </table>
+        <div class="followup"><b>为什么用 Alibaba 版：</b>Netflix 组件（Eureka、Hystrix、Ribbon、Zuul）陆续停更，Alibaba 组件活跃、功能强、国内生态好，成为国内微服务事实标准。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="sca1q2">用这些组件串一个完整的微服务架构，怎么讲？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="sca1q2">已掌握</span></summary>
+      <div class="bd">
+        <h4>完整架构叙述（面试直接背）</h4>
+        <ol>
+          <li><b>请求进入：</b>客户端 → Nginx → <b>Gateway</b> 网关（鉴权、限流、灰度、路由）。</li>
+          <li><b>服务发现：</b>所有服务启动时注册到 <b>Nacos</b>，网关和调用方从 Nacos 拉取实例列表。</li>
+          <li><b>配置管理：</b>各服务配置集中放在 <b>Nacos Config</b>，改配置动态刷新，不用重启。</li>
+          <li><b>服务调用：</b>服务间用 <b>OpenFeign</b>（声明式 HTTP）调用，经 <b>LoadBalancer</b> 负载均衡选实例。</li>
+          <li><b>容错保护：</b><b>Sentinel</b> 做限流、熔断、降级，防止雪崩。</li>
+          <li><b>数据一致性：</b>跨服务事务用 <b>Seata</b>；异步解耦、削峰用 <b>RocketMQ</b>。</li>
+          <li><b>可观测：</b><b>SkyWalking</b> 链路追踪 + Prometheus 监控 + ELK 日志。</li>
+        </ol>
+        <div class="followup"><b>加分：</b>讲完架构，补一句「为什么这么选」（如「Ribbon 停更所以用 LoadBalancer」「Eureka 停更所以用 Nacos」），体现你是「选型」而不是「堆组件」。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="sca1q3">Spring Cloud Alibaba 和 Spring Cloud Netflix 的核心区别？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="sca1q3">已掌握</span></summary>
+      <div class="bd">
+        <table class="tb">
+          <thead><tr><th>维度</th><th>Spring Cloud Netflix</th><th>Spring Cloud Alibaba</th></tr></thead>
+          <tbody>
+            <tr><td>注册中心</td><td>Eureka（停更）</td><td>Nacos（活跃，注册+配置）</td></tr>
+            <tr><td>熔断</td><td>Hystrix（停更）</td><td>Sentinel（活跃，功能强）</td></tr>
+            <tr><td>负载均衡</td><td>Ribbon（停更）</td><td>LoadBalancer（官方）</td></tr>
+            <tr><td>网关</td><td>Zuul 1.x（停更）</td><td>Gateway（官方）</td></tr>
+            <tr><td>维护方</td><td>Netflix（已放弃大部分）</td><td>阿里 + 社区活跃</td></tr>
+            <tr><td>生态</td><td>较封闭</td><td>整合 RocketMQ、Seata、Dubbo 等</td></tr>
+          </tbody>
+        </table>
+        <div class="followup"><b>结论：</b>Netflix 全家桶已事实性停更，国内新项目基本都用 Alibaba 版（Nacos + Sentinel + Seata + RocketMQ）+ Spring 官方组件（Gateway + LoadBalancer）。这是 5 年经验面试的常识，答错很减分。</div>
+      </div>
+    </details>
+  </section>
+</main>
+</div>
+
+<script>
+(function(){
+  var STORE='sc-component-progress-v1';
+  var qs=document.querySelectorAll('details.q');
+  var mods=document.querySelectorAll('section.module');
+  function load(){try{return JSON.parse(localStorage.getItem(STORE)||'{}');}catch(e){return {};}}
+  var prog=load();
+
+  function qid(q){return q.querySelector('.qn').getAttribute('data-id')||q.querySelector('.q-title').textContent.trim().slice(0,30);}
+  function qlv(q){var s=q.querySelector('.lv');return s?s.className.match(/lv(\d)/)[1]:'1';}
+
+  function save(){localStorage.setItem(STORE,JSON.stringify(prog));}
+
+  function refresh(){
+    var total=0,done=0;
+    mods.forEach(function(m){
+      if(m.id==='mod0')return;
+      var cks=m.querySelectorAll('.ck input');
+      var md=0,mc=0;
+      cks.forEach(function(cb){
+        var id=cb.getAttribute('data-id');
+        var on=!!prog[id];
+        cb.checked=on;
+        mc++; if(on)md++;
+      });
+      total+=mc; done+=md;
+      var pct=mc?Math.round(md/mc*100):0;
+      var nav=document.querySelector('.nav-item[data-mod="'+m.id+'"] .pct');
+      if(nav)nav.textContent=pct+'%';
+    });
+    document.getElementById('ov-total').textContent=total;
+    document.getElementById('ov-done').textContent=done;
+    document.getElementById('ov-pct').textContent=(total?Math.round(done/total*100):0)+'%';
+  }
+
+  qs.forEach(function(q){
+    var cb=q.querySelector('.ck input');
+    cb.addEventListener('change',function(){
+      var id=cb.getAttribute('data-id');
+      if(cb.checked)prog[id]=1; else delete prog[id];
+      save(); refresh();
+    });
+  });
+
+  var se=document.getElementById('search');
+  se.addEventListener('input',function(){
+    var kw=se.value.trim().toLowerCase();
+    qs.forEach(function(q){
+      var txt=q.textContent.toLowerCase();
+      var hit=!kw||txt.indexOf(kw)>=0;
+      q.classList.toggle('hide',!hit);
+    });
+  });
+
+  var btns=document.querySelectorAll('.fbtn[data-lv]');
+  var curLv='all';
+  btns.forEach(function(b){
+    b.addEventListener('click',function(){
+      curLv=b.getAttribute('data-lv');
+      btns.forEach(function(x){x.classList.toggle('active',x===b);});
+      applyFilter();
+    });
+  });
+  function applyFilter(){
+    var kw=se.value.trim().toLowerCase();
+    qs.forEach(function(q){
+      var hit=curLv==='all'||qlv(q)===curLv;
+      var kh=!kw||q.textContent.toLowerCase().indexOf(kw)>=0;
+      q.classList.toggle('hide',!(hit&&kh));
+    });
+  }
+
+  document.getElementById('btn-expand').addEventListener('click',function(){
+    qs.forEach(function(q){q.open=true;});
+  });
+  document.getElementById('btn-collapse').addEventListener('click',function(){
+    qs.forEach(function(q){q.open=false;});
+  });
+
+  refresh();
+})();
+</script>
+</body>
+</html>

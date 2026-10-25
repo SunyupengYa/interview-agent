@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MySQL 集群知识手册 · 主从复制 / 高可用 / 分库分表 / 一致性</title>
+<style>
+:root{
+  --bg:#f5f6f8; --card:#ffffff; --text:#1f2328; --muted:#656d76; --line:#e5e7eb;
+  --accent:#185fa5; --accent-soft:#e6f1fb; --lv1:#b42318; --lv2:#b54708; --lv3:#0f6e56;
+  --warn:#fff7e6; --warn-line:#f0c98a;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;font-size:15px}
+a{color:var(--accent);text-decoration:none}
+a:hover{text-decoration:underline}
+
+/* 顶栏 */
+.topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:10px 20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.topbar h1{font-size:17px;margin:0;font-weight:600}
+.topbar .sub{font-size:12px;color:var(--muted)}
+.search{flex:1;min-width:220px;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:7px 12px}
+.search input{border:0;outline:0;flex:1;font-size:14px;background:transparent;color:var(--text)}
+.tools{display:flex;gap:8px;align-items:center}
+.tools button{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;color:var(--text)}
+.tools button:hover{border-color:var(--accent);color:var(--accent)}
+.progress{font-size:12px;color:var(--muted);white-space:nowrap}
+.progress b{color:var(--accent);font-size:14px}
+
+/* 布局 */
+.layout{display:flex;max-width:1240px;margin:0 auto;padding:16px}
+.sidebar{width:230px;flex-shrink:0;position:sticky;top:64px;align-self:flex-start;max-height:calc(100vh - 80px);overflow-y:auto;padding-right:14px}
+.sidebar a{display:block;padding:7px 12px;border-radius:6px;font-size:13.5px;color:var(--text);margin-bottom:2px}
+.sidebar a:hover{background:var(--accent-soft);text-decoration:none}
+.sidebar a.act{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.sidebar .grp{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 4px 12px;font-weight:600}
+.main{flex:1;min-width:0;padding-left:20px}
+
+/* 模块卡片 */
+.module{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:20px;overflow:hidden}
+.mhead{padding:18px 22px;border-bottom:1px solid var(--line);cursor:pointer;display:flex;align-items:center;gap:12px}
+.mhead h2{font-size:19px;margin:0;font-weight:600}
+.mhead .num{font-size:12px;color:var(--accent);font-weight:600;background:var(--accent-soft);padding:2px 10px;border-radius:20px;white-space:nowrap}
+.mhead .cnt{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap}
+.mintro{padding:14px 22px;font-size:14px;color:var(--muted);background:#fafbfc;border-bottom:1px solid var(--line);margin:0}
+.mbody{padding:8px 22px 22px}
+
+/* 考点块 */
+.ck{display:flex;gap:10px;padding:12px 0;border-bottom:1px solid #f0f1f3;align-items:flex-start}
+.ck:last-child{border-bottom:0}
+.ck input{margin-top:4px;accent-color:var(--accent);cursor:pointer;flex-shrink:0}
+.ck .label{font-size:14px;cursor:pointer}
+.ck.done .label{color:var(--muted);text-decoration:line-through}
+
+/* 题目 */
+.q{border:1px solid var(--line);border-radius:10px;margin:10px 0}
+.q summary{padding:13px 16px;cursor:pointer;font-weight:500;font-size:15px;list-style:none;display:flex;align-items:center;gap:10px}
+.q summary::-webkit-details-marker{display:none}
+.q summary::before{content:"▸";color:var(--muted);transition:transform .15s;font-size:13px}
+.q[open] summary::before{transform:rotate(90deg)}
+.q summary .lv{font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap}
+.lv.lv1{background:#fcebeb;color:#b42318}
+.lv.lv2{background:#fff7e6;color:#b54708}
+.lv.lv3{background:#e1f5ee;color:#0f6e56}
+.q summary .qtag{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap}
+.q .a{padding:2px 18px 16px;font-size:14px}
+.q .a h4{margin:14px 0 6px;font-size:13.5px;font-weight:600;color:var(--accent)}
+.q .a p{margin:6px 0}
+.q .a ul,.q .a ol{margin:6px 0;padding-left:22px}
+.q .a li{margin:4px 0}
+.q .a code{background:#f0f1f3;padding:1px 6px;border-radius:4px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;color:#b42318}
+.q .a pre{background:#0f172a;color:#ffffff;border-radius:8px;padding:16px 18px;overflow-x:auto;font-family:Menlo,Consolas,"Courier New",monospace;font-size:14.5px;line-height:1.75;margin:10px 0}
+.q .a pre code{background:transparent;color:inherit;padding:0}
+.followup{background:var(--warn);border:1px solid var(--warn-line);border-radius:8px;padding:10px 14px;margin:12px 0;font-size:13.5px}
+.followup b{color:#b54708}
+.pitfall{background:#fff0f0;border:1px solid #f0b8b8;border-radius:8px;padding:10px 14px;margin:12px 0;font-size:13.5px}
+.pitfall b{color:#b42318}
+table.tb{border-collapse:collapse;width:100%;font-size:13px;margin:10px 0}
+table.tb th,table.tb td{border:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top}
+table.tb th{background:#fafbfc;font-weight:600}
+
+/* 筛选条 */
+.filterbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 22px;border-bottom:1px solid var(--line);font-size:13px}
+.filterbar .fl{display:flex;gap:6px;align-items:center}
+.filterbar label{cursor:pointer;padding:4px 10px;border:1px solid var(--line);border-radius:20px;font-size:12.5px;color:var(--muted)}
+.filterbar input[type=radio]{display:none}
+.filterbar input[type=radio]:checked + label{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+.hide{display:none!important}
+
+/* 打印 */
+@media print{
+  .topbar,.sidebar,.filterbar{display:none!important}
+  .layout{display:block;max-width:none;padding:0}
+  .main{padding:0}
+  .module{border:1px solid #ccc;page-break-inside:avoid}
+  body{background:#fff}
+  .q{page-break-inside:avoid}
+  .q[open] .a{display:block}
+}
+/* 修复：行内 code 底纹样式(.q .bd code 优先级高于 pre code)会污染代码块，此规则强制清除 */pre code,.q .bd pre code,.bd pre code,.glossary pre code{background:none!important;border:none!important;padding:0!important;border-radius:0!important;color:inherit;font-size:14.5px;line-height:1.75}</style>
+</head>
+<body>
+<div class="topbar">
+  <h1>MySQL 集群手册</h1>
+  <span class="sub">主从复制 · 高可用 · 分库分表 · 一致性</span>
+  <div class="search"><input id="q" placeholder="搜索题目 / 关键词…" oninput="doSearch(this.value)"></div>
+  <div class="tools">
+    <button onclick="toggleAll()" id="btnToggle">展开全部</button>
+    <button onclick="toggleTheme()" id="btnTheme">暗色</button>
+    <button onclick="resetProgress()">重置进度</button>
+  </div>
+  <div class="progress" id="prog">进度 0 / 0</div>
+</div>
+
+<div class="layout">
+  <nav class="sidebar" id="side">
+    <div class="grp">概览</div>
+    <a href="#m0" class="act">学习路径与权衡</a>
+    <div class="grp">四大方向</div>
+    <a href="#m1">① 主从复制</a>
+    <a href="#m2">② 高可用切换</a>
+    <a href="#m3">③ 分库分表</a>
+    <a href="#m4">④ 分布式一致性</a>
+  </nav>
+
+  <main class="main" id="main">
+
+  <!-- ============ 概览 ============ -->
+  <section class="module" id="m0">
+    <div class="mhead"><span class="num">概览</span><h2>学习路径与核心权衡</h2></div>
+    <p class="mintro">四层不是并列的四个知识点，而是一条「单机撑不住 → 加副本 → 副本要容错 → 容量到顶就拆」的演进链。面试官会按这个顺序层层追问，你也要按这个顺序建立心智模型。</p>
+    <div class="mbody">
+      <table class="tb">
+        <thead><tr><th>方向</th><th>解决什么问题</th><th>核心机制</th><th>代价 / 坑</th></tr></thead>
+        <tbody>
+          <tr><td><b>① 主从复制</b></td><td>读多写少，单机读扛不住</td><td>binlog 异步复制</td><td>主从延迟、数据可能丢</td></tr>
+          <tr><td><b>② 高可用切换</b></td><td>主库挂了业务全停</td><td>自动选主 + VIP 切换</td><td>脑裂、选主误判、数据不一致</td></tr>
+          <tr><td><b>③ 分库分表</b></td><td>单库数据量/写入到顶</td><td>水平拆分 + 路由</td><td>跨库事务/join 失效、分布式 ID</td></tr>
+          <tr><td><b>④ 一致性</b></td><td>副本之间数据要一致</td><td>共识协议（Paxos/Raft）</td><td>写性能大幅下降、需多数派存活</td></tr>
+        </tbody>
+      </table>
+
+      <details class="q" open>
+        <summary>学习顺序建议 <span class="lv lv3">路径</span><span class="qtag">先看这个</span></summary>
+        <div class="a">
+          <p>按依赖关系学，不要跳：</p>
+          <ol>
+            <li><b>先吃透 binlog 和复制原理</b>（模块①）——这是后面所有东西的地基，MHA/MGR/Orchestrator 都建立在对复制的理解上。</li>
+            <li><b>再学高可用切换</b>（模块②）——理解「主挂了怎么办」，顺便把脑裂、选主这些分布式概念先建立直觉。</li>
+            <li><b>然后学分库分表</b>（模块③）——这是「拆数据」，和「复制数据」是正交的两件事，别混。</li>
+            <li><b>最后学一致性</b>（模块④）——MGR 本质是「复制 + 共识」，没前面的基础会学得很虚。</li>
+          </ol>
+          <div class="followup"><b>面试技巧：</b>被问「你们线上 MySQL 怎么部署的」，标准答法是顺着这条链讲：「单主 + 一主两从读写分离 → 高可用用 MHA/Orchestrator 做自动切换 → 数据量大了再考虑分库分表」。能把这个演进讲清楚，就证明你不是只背过单个知识点。</div>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- ============ 模块1：主从复制 ============ -->
+  <section class="module" id="m1">
+    <div class="mhead"><span class="num">①</span><h2>主从复制（Replication）</h2><span class="cnt">12 题</span></div>
+    <p class="mintro">地基模块。所有高可用方案都建立在对复制的理解上。核心抓住一条线：<b>主库写 binlog → 从库 IO 线程拉取 → 从库 SQL 线程回放</b>，再沿着「异步 → 半同步 → 延迟 → 数据一致性」层层追问。</p>
+    <div class="mbody">
+
+      <div class="ck"><input type="checkbox" data-id="m1-kc"><span class="label">能脱离资料画出「主库写 binlog → IO 线程 → relay log → SQL 线程」完整链路，并说出每个线程的作用</span></div>
+
+      <details class="q">
+        <summary><span class="lv lv1">必考</span>说说 MySQL 主从复制的原理和完整流程<span class="qtag">Q1</span></summary>
+        <div class="a">
+          <p>复制是<b>异步的、基于 binlog</b>的，核心三个角色、两个线程：</p>
+          <ol>
+            <li><b>主库（Master）</b>：所有写操作记录到 <code>binlog</code>（二进制日志），按事务提交顺序写入。</li>
+            <li><b>从库（Slave）</b>上有两个线程：
+              <ul>
+                <li><code>IO 线程</code>：主动连接主库，请求主库从某个 binlog 位点开始发送日志，主库通过 <code>dump 线程</code> 推送，从库收到后写入本地 <code>relay log</code>（中继日志）。</li>
+                <li><code>SQL 线程</code>：读取 relay log 并回放执行，把主库的变更在从库重做一遍。</li>
+              </ul>
+            </li>
+          </ol>
+          <p>所以本质是「<b>主库记录 → 从库拉取 → 从库重放</b>」。</p>
+          <p><b>关于「谁主动」——要区分两个动作，别混：</b>① <b>连接和请求</b>是<b>从库主动发起</b>的（从库拨号连主库、报自己的位点/GTID，这就是 pull 的含义）；② 连接建立后，<b>数据流</b>是<b>主库持续推给从库</b>的。所以准确说是「<b>从库主动拉位点，主库被请求后持续推增量</b>」。关键证据：主库的 <code>dump 线程</code>是为每个连上来的从库临时开的，从库一断它就结束，主库不保存任何「从库追到哪了」的状态；从库断了要自己重连、自己重新报位点。若真是「主库主动推」，主库就得记住每个从库的地址和进度——MySQL 不是这种架构。</p>
+          <div class="followup"><b>追问 1：为什么从库要两个线程而不是一个？</b>IO 线程负责网络拉取（慢，可能被网络阻塞），SQL 线程负责本地执行（慢，可能被慢 SQL 阻塞）。分开后两者解耦，拉取和回放可以并行，否则网络卡一下回放就全停。</div>
+          <div class="followup"><b>追问 2：主从复制的数据是怎么保证顺序的？</b>靠 binlog 里的 <code>GTID</code> 或 <code>文件名+偏移量</code> 定位。每个事务有一个全局唯一 ID，从库按顺序消费，保证执行顺序和主库一致。</div>
+          <div class="pitfall"><b>踩坑：</b>别把「主从复制」说成「数据同步备份」。它是<b>异步的最终一致</b>，不是同步的强一致，主库提交后从库可能还没执行，主库一挂这部分数据可能丢。这个区别面试官特别爱追问。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv1">必考</span>binlog 有三种格式，区别是什么？怎么选？<span class="qtag">Q2</span></summary>
+        <div class="a">
+          <table class="tb">
+            <thead><tr><th>格式</th><th>记录内容</th><th>优点</th><th>缺点</th></tr></thead>
+            <tbody>
+              <tr><td><code>STATEMENT</code></td><td>SQL 语句原文</td><td>日志小、省空间</td><td>主从不一致风险高（含 <code>now()</code>、<code>limit</code> 无 order by、UUID 等不确定函数时结果会不同）</td></tr>
+              <tr><td><code>ROW</code>（默认）</td><td>每行数据变化的前后镜像</td><td>精确、不会出现不一致，利于恢复</td><td>日志量大，尤其批量 update/delete</td></tr>
+              <tr><td><code>MIXED</code></td><td>多数用 statement，不确定时自动转 row</td><td>折中</td><td>依然有边界，需理解判断逻辑</td></tr>
+            </tbody>
+          </table>
+          <p><b>现在线上默认 <code>ROW</code> 格式</b>（MySQL 5.7+ 默认就是 ROW）。选 ROW 的原因：精确可靠，配合 <code>binlog_row_image=FULL</code> 可以做闪回、数据订正。</p>
+          <div class="followup"><b>追问：ROW 格式日志量太大怎么办？</b>用 <code>binlog_row_image=MINIMAL</code>（只记录变化列）、<code>binlog_rows_query_log_events</code> 控制、或对批量操作分批执行。</div>
+          <div class="pitfall"><b>踩坑：</b>MIXED 格式下，一条语句里既有确定部分又有 <code>now()</code>，MySQL 会整条转 ROW，但判断逻辑复杂，出问题难排查。所以主流做法是直接全 ROW，不要 MIXED。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv1">必考</span>主从延迟是怎么产生的？怎么监控和排查？<span class="qtag">Q3</span></summary>
+        <div class="a">
+          <p><b>延迟的本质</b>：从库 SQL 线程是<b>单线程回放</b>（5.7 之前），主库可以多线程并发写，从库只能串行执行，主库写太快从库就跟不上。此外还有：</p>
+          <ul>
+            <li><b>从库机器性能差</b>：CPU/IO 不如主库，回放慢。</li>
+            <li><b>大事务</b>：一个大事务在从库回放要很久，阻塞后续所有事务。</li>
+            <li><b>慢 SQL</b>：主库上能走索引，从库因为统计信息不同走了全表扫描。</li>
+            <li><b>锁冲突</b>：从库上还跑着只读查询/备份，抢锁。</li>
+          </ul>
+          <p><b>监控指标</b>：<code>Seconds_Behind_Master</code>（从库落后主库的秒数，最常用，但不精确）、<code>relay log 堆积</code>、GTID 差异。</p>
+          <p><b>排查链路</b>：看 <code>SHOW SLAVE STATUS</code> → 看 <code>Seconds_Behind_Master</code> 是否持续增长 → 抓当前正在执行的 relay log 事件 → 定位是哪个慢 SQL / 大事务。</p>
+          <div class="followup"><b>追问：Seconds_Behind_Master 为 0 就代表没延迟吗？</b>不是。它是「从库已回放到的时间戳」与「主库当前时间戳」之差，但主库可能有一段时间没写数据了，这个值会显示 0 或负数，实际可能积压了没回放。更准确看 <code>relay log</code> 的堆积和 GTID 集合差异。</div>
+          <div class="pitfall"><b>踩坑：</b>别在从库上跑大查询或备份，否则会和回放抢资源，进一步放大延迟。延迟敏感的业务要「读主库」或做「读写分离 + 强制读主」。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv1">必考</span>半同步复制是什么？和异步、全同步的区别？<span class="qtag">Q4</span></summary>
+        <div class="a">
+          <p>三种复制模式对比，核心是「<b>主库提交前要不要等从库确认</b>」：</p>
+          <table class="tb">
+            <thead><tr><th>模式</th><th>主库行为</th><th>数据安全性</th><th>性能</th></tr></thead>
+            <tbody>
+              <tr><td><b>异步</b></td><td>写完 binlog 就返回，不等从库</td><td>可能丢数据</td><td>最高</td></tr>
+              <tr><td><b>半同步</b></td><td>等<b>至少一个</b>从库收到并写入 relay log 后返回（5.7+ 是 AFTER_SYNC）</td><td>不丢已提交数据（从库可能没回放完）</td><td>中等，有网络开销</td></tr>
+              <tr><td><b>全同步</b></td><td>等所有从库都回放执行完才返回</td><td>最强一致</td><td>最低，基本不用</td></tr>
+            </tbody>
+          </table>
+          <p><b>半同步的价值</b>：在「性能」和「数据不丢」之间取平衡——主库挂掉时，至少有一个从库已经收到了最新数据，切换过去不丢已提交的事务。</p>
+          <div class="followup"><b>追问：半同步如果从库迟迟不确认，主库会怎样？</b>会等到超时（<code>rpl_semi_sync_master_timeout</code>，默认 10 秒），超时后<b>降级为异步复制</b>，避免主库被一个慢从库拖死。降级后数据安全性回到异步水平。</div>
+          <div class="pitfall"><b>踩坑：</b>半同步只能保证「从库收到」，不保证「从库执行完」。所以从库上读到的数据可能还不是最新的——这依然是<b>最终一致</b>，不是强一致。要强一致得用 MGR/PXC（见模块④）。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv2">高频</span>读写分离怎么实现？会带来什么问题？<span class="qtag">Q5</span></summary>
+        <div class="a">
+          <p><b>实现方式</b>：</p>
+          <ul>
+            <li><b>应用层</b>：用中间件（ShardingSphere、MyCat）或 ORM 插件（如 MyBatis 的读写分离插件），按 SQL 类型路由——写走主库、读走从库。</li>
+            <li><b>数据库中间件层</b>：引入 Proxy（如 ProxySQL、MySQL Router），对应用透明。</li>
+          </ul>
+          <p><b>核心问题：主从延迟导致「刚写完读不到」</b>。用户刚写入一条数据，立刻查询却查不到（因为读走了延迟的从库）。</p>
+          <p><b>解决方案</b>：</p>
+          <ul>
+            <li><b>强制读主</b>：写操作后的关键读（如「写后立即读」）强制走主库。</li>
+            <li><b>半同步复制</b>：降低延迟窗口。</li>
+            <li><b>延迟容忍</b>：允许读从库但接受短暂不一致（适合对一致性要求低的场景）。</li>
+          </ul>
+          <div class="followup"><b>追问：怎么判断一个读能不能走从库？</b>看业务语义——「用户刚提交订单，立即跳转到订单详情页」这种写后读必须走主库；「列表页浏览」「报表统计」这类不关心实时性的可以走从库。</div>
+          <div class="pitfall"><b>踩坑：</b>不要把「事务内」的读也路由到从库。一个事务里前面写主库、后面读从库，会因为主从延迟读到旧数据，造成逻辑错误。事务内的读要跟着事务的写库走。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv2">高频</span>GTID 是什么？和传统位点复制比有什么优势？<span class="qtag">Q6</span></summary>
+        <div class="a">
+          <p><b>GTID（Global Transaction Identifier）</b>：每个事务在全局范围内有一个唯一 ID，格式 <code>server_uuid:transaction_id</code>，随 binlog 一起记录。</p>
+          <p><b>传统位点复制的痛点</b>：靠「binlog 文件名 + 偏移量」定位，主从切换后从库要重新找位点，容易出错，尤其在级联复制、多从库场景下。</p>
+          <p><b>GTID 的优势</b>：</p>
+          <ul>
+            <li><b>切换简单</b>：从库知道「我已经执行过哪些 GTID」，切换后自动找没执行过的继续拉，不用手工算位点。</li>
+            <li><b>故障恢复容易</b>：新主库能判断哪些事务从库已执行，避免重复或遗漏。</li>
+            <li><b>主从一致校验方便</b>：对比两边 GTID 集合即可知道差异。</li>
+          </ul>
+          <div class="followup"><b>追问：GTID 有什么限制？</b>某些操作不支持（如 <code>CREATE TABLE ... SELECT</code> 这种非事务性语句），且要求所有事务都用 GTID 模式，不能混用。另外 GTID 模式下 <code>SQL 线程回放</code>遇到未知事务会报错。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv2">高频</span>主从复制的数据一致性怎么保证？<span class="qtag">Q7</span></summary>
+        <div class="a">
+          <p>主从复制是<b>最终一致</b>，无法做到强一致。要保证「尽量不丢数据、尽量一致」，靠几个手段叠加：</p>
+          <ul>
+            <li><b>ROW 格式 binlog</b>：避免 statement 格式的不确定函数导致不一致。</li>
+            <li><b>半同步复制</b>：保证已提交事务至少有一个从库收到。</li>
+            <li><b>GTID</b>：精确判断两边事务差异，方便补数据。</li>
+            <li><b>定期校验</b>：用 <code>pt-table-checksum</code> 对比主从数据差异，<code>pt-table-sync</code> 修复。</li>
+          </ul>
+          <div class="followup"><b>追问：如果发现主从数据已经不一致了，怎么排查修复？</b>用 <code>pt-table-checksum</code> 找出不一致的表和行，再用 <code>pt-table-sync</code> 生成修复 SQL，或直接重做从库（全量备份 + 恢复 + 重新挂复制）。</div>
+          <div class="pitfall"><b>踩坑：</b>「主从复制保证数据一致」是错误说法。正确说法是「主从复制是<b>异步的最终一致</b>，配合半同步 + ROW 格式 + 校验工具可以<b>接近</b>一致但不保证强一致」。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv2">高频</span>主库挂了，怎么从从库恢复出一个新主库？<span class="qtag">Q8</span></summary>
+        <div class="a">
+          <p><b>手工切换步骤</b>（理解了这个流程，就理解了高可用工具在自动化什么）：</p>
+          <ol>
+            <li><b>确认主库状态</b>：是真挂了还是网络抖动，避免误切（双主脑裂）。</li>
+            <li><b>选一个数据最全的从库</b>：比较各从库的 GTID / relay log 位点，选执行到最远的那个。</li>
+            <li><b>让该从库追平</b>：把 relay log 里还没回放完的部分全部回放完（否则会丢数据）。</li>
+            <li><b>提升为新主库</b>：<code>STOP SLAVE; RESET SLAVE ALL;</code> 停止它作为从库的角色，开始接受写。</li>
+            <li><b>其他从库改指向新主库</b>：<code>CHANGE MASTER TO</code> 指到新主库，用 GTID 自动找位点。</li>
+            <li><b>切换应用入口</b>：VIP 漂移或配置改成新主库地址。</li>
+          </ol>
+          <div class="followup"><b>追问：这个流程有哪些风险点？</b>① 误判主库挂了导致双主（脑裂）；② 选的从库数据不是最新的导致丢数据；③ 切换过程中业务还在写老主库导致数据分叉。这正是 MHA/MGR/Orchestrator 这些工具要解决的问题（见模块②）。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv2">高频</span>MySQL 5.7 的多线程复制（MTS）解决什么问题？<span class="qtag">Q9</span></summary>
+        <div class="a">
+          <p><b>问题</b>：传统复制从库 SQL 线程是<b>单线程</b>，主库多线程并发写，从库单线程回放，成为性能瓶颈，导致主从延迟。</p>
+          <p><b>MTS（Multi-Threaded Slave）</b>：从库 SQL 线程变成多个 <code>worker 线程</code>并行回放。</p>
+          <p><b>并行回放的前提</b>：要保证「不破坏事务执行顺序」。5.7 用 <code>LOGICAL_CLOCK</code>（逻辑时钟）方式，主库给事务打上「基于组提交」的序号，同一组的事务可以并行回放（因为它们在主库就是并行提交的，没有冲突）。</p>
+          <div class="followup"><b>追问：并行回放会不会导致执行顺序错乱？</b>不会。只有「在主库上就是同一组提交、没有依赖关系」的事务才会被并行回放，有依赖的（同一行数据的先后修改）会按顺序执行。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv3">加分</span>级联复制和多源复制是什么？<span class="qtag">Q10</span></summary>
+        <div class="a">
+          <ul>
+            <li><b>级联复制</b>：A → B → C，B 既是 A 的从库，又是 C 的主库。用于减轻主库 dump 线程压力（一主多从时主库要给每个从库推送，从库多了压力大，用中间层从库转发）。</li>
+            <li><b>多源复制</b>：一个从库同时作为多个主库的从库，把多个主库的数据汇聚到一个从库（用于数据汇总、报表、分库合并场景）。</li>
+          </ul>
+          <div class="pitfall"><b>踩坑：</b>级联复制会放大延迟——每一层都多一跳。多源复制要注意不同主库的库名/表名冲突。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv3">加分</span>如何搭建一主一从？（部署步骤速记）<span class="qtag">Q11</span></summary>
+        <div class="a">
+          <ol>
+            <li>主库配置 <code>server-id</code>、开启 <code>log-bin</code>、<code>binlog_format=ROW</code>、<code>gtid_mode=ON</code>。</li>
+            <li>从库配置不同的 <code>server-id</code>。</li>
+            <li>主库创建复制账号：<code>GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%' IDENTIFIED BY '...'</code>。</li>
+            <li>主库全量备份（<code>mysqldump --single-transaction --master-data=2</code> 或 <code>xtrabackup</code>），记录 GTID 位点。</li>
+            <li>从库导入备份，执行 <code>CHANGE MASTER TO ... MASTER_AUTO_POSITION=1</code>，然后 <code>START SLAVE</code>。</li>
+          </ol>
+          <p>验证：<code>SHOW SLAVE STATUS\G</code> 看 <code>Slave_IO_Running</code> 和 <code>Slave_SQL_Running</code> 都是 Yes。</p>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv3">加分</span>relay log 和 binlog 有什么区别？<span class="qtag">Q12</span></summary>
+        <div class="a">
+          <ul>
+            <li><b>binlog</b>：主库产生的、记录自己所有变更的日志，是复制的「源」。</li>
+            <li><b>relay log（中继日志）</b>：从库 IO 线程把主库 binlog 拉下来后存在本地的中转日志，SQL 线程从 relay log 读取并回放。</li>
+          </ul>
+          <p>本质：<b>relay log 是 binlog 在从库上的一份「本地缓存副本」</b>。两者格式一样，但 relay log 回放完就可以清理（<code>relay_log_purge</code>）。</p>
+          <div class="followup"><b>追问：为什么要有 relay log，直接从网络读到就执行不行吗？</b>解耦网络和回放——IO 线程只管拉、SQL 线程只管执行，relay log 是中间的缓冲，避免网络抖动直接卡住回放。</div>
+        </div>
+      </details>
+
+    </div>
+  </section>
+
+  <!-- ============ 模块2：高可用切换 ============ -->
+  <section class="module" id="m2">
+    <div class="mhead"><span class="num">②</span><h2>高可用切换（HA）</h2><span class="cnt">8 题</span></div>
+    <p class="mintro">解决「主库挂了怎么办」。核心矛盾是<b>「快速切换」和「避免误切」</b>——切慢了业务长时间不可用，切错了（脑裂）数据分叉更致命。理解 MHA/MGR/Orchestrator 各自的取舍。</p>
+    <div class="mbody">
+
+      <div class="ck"><input type="checkbox" data-id="m2-kc"><span class="label">能说清「脑裂为什么危险」「选主凭什么」这两个高可用的核心问题</span></div>
+
+      <details class="q">
+        <summary><span class="lv lv1">必考</span>脑裂是什么？为什么危险？怎么避免？<span class="qtag">Q1</span></summary>
+        <div class="a">
+          <p><b>脑裂（Split-Brain）</b>：主从之间网络分区后，从库以为主库挂了，把自己提升为新主库；但老主库其实还活着，还在接受写入。结果<b>两个节点都认为自己是主库</b>，各自接受写，数据分叉，且无法合并。</p>
+          <p><b>为什么危险</b>：数据分叉后两条数据线各自演进，切换回来自动合并几乎不可能，会造成<b>数据丢失或覆盖</b>，且用户写入的数据会「消失」。</p>
+          <p><b>如何避免</b>：</p>
+          <ul>
+            <li><b>引入第三方仲裁（Quorum）</b>：让多数派节点投票决定谁是主，少数派自动「自杀」或停止服务（如 MGR 的多数派机制）。</li>
+            <li><b>Fencing（隔离）</b>：切换前先把老主库「隔离」掉（切断它的写能力），比如通过存储锁、或让老主库「自杀」（MGR 的做法）。</li>
+            <li><b>人工确认 + 心跳</b>：判断主库真挂需要多路心跳（网络、进程、磁盘），避免单一判断误判。</li>
+          </ul>
+          <div class="followup"><b>追问：MHA 为什么可能脑裂，MGR 为什么不会？</b>MHA 靠一个管理节点（Manager）单点判断，如果 Manager 和主库之间的网络断了但主库还活着，Manager 可能误判主库挂了去切从库，造成脑裂。MGR 靠组内多数派投票（Paxos），少数派无法达成共识就不能成为主，从机制上避免脑裂。</div>
+          <div class="pitfall"><b>踩坑：</b>「脑裂就是主从网络断了」说得太浅。要讲到「<b>两个节点都认为自己是主，各自接受写，数据分叉无法合并</b>」这个本质危害，以及「用多数派/隔离机制让其中一方自动退出」这个解法。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv1">必考</span>MHA 是什么？工作原理？有什么优缺点？<span class="qtag">Q2</span></summary>
+        <div class="a">
+          <p><b>MHA（Master High Availability）</b>：基于主从复制的<b>外置高可用方案</b>（第三方开源，日本 DeNA 开发），核心是一个 <code>Manager</code> 管理节点 + 多个 <code>Node</code> 部署在每台 MySQL 上。</p>
+          <p><b>工作原理</b>：</p>
+          <ol>
+            <li>Manager 定期检测主库心跳。</li>
+            <li>发现主库挂了，从所有从库中<b>选一个数据最新</b>的（比较 relay log 位点）。</li>
+            <li>让其他从库的<b>差异数据</b>（它们各自 binlog 里比新主库多的部分）补到新主库上，实现「数据补齐」，尽量不丢。</li>
+            <li>提升新主库，其余从库改指新主库，VIP 漂移。</li>
+          </ol>
+          <p><b>优点</b>：切换速度快（通常 10-30 秒）、能补数据减少丢失、成熟稳定。</p>
+          <p><b>缺点</b>：Manager 是单点（本身要 HA）；靠位点判断可能误判；<b>只支持一主多从、主从复制</b>，不支持 MGR。</p>
+          <div class="followup"><b>追问：MHA 的「数据补齐」怎么做到的？</b>切换时，MHA 会把「其他从库有、但新主库没有」的 binlog 事件识别出来，应用到新主库上，让新主库追上最新，减少切换丢数据。前提是从库的 binlog 都还在（没被清理）。</div>
+          <div class="pitfall"><b>踩坑：</b>MHA 已经<b>不再积极维护</b>（作者停更），新项目一般不选它，更多用 MGR 或 Orchestrator。但面试问「用过哪些 HA 方案」时，能讲清 MHA 原理说明你有老项目经验。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv1">必考</span>MGR（组复制）是什么？和传统主从复制的本质区别？<span class="qtag">Q3</span></summary>
+        <div class="a">
+          <p><b>MGR（MySQL Group Replication）</b>：MySQL 官方 5.7.17 引入的<b>内置高可用 + 强一致</b>方案，基于 <b>Paxos 变体（XCom）</b>实现。</p>
+          <p><b>本质区别</b>：传统主从是「<b>异步复制</b>」，主库提交后从库慢慢追；MGR 是「<b>同步复制</b>」，一个事务要在组内<b>多数派节点都确认</b>后才能提交（<code>group_replication_consistency</code> 控制）。</p>
+          <table class="tb">
+            <thead><tr><th>维度</th><th>传统主从</th><th>MGR</th></tr></thead>
+            <tbody>
+              <tr><td>复制方式</td><td>异步</td><td>同步（Paxos 共识）</td></tr>
+              <tr><td>选主</td><td>人工/外置工具</td><td>自动（多数派投票）</td></tr>
+              <tr><td>脑裂</td><td>可能发生</td><td>机制上避免（少数派自动退出）</td></tr>
+              <tr><td>数据一致性</td><td>最终一致</td><td>强一致</td></tr>
+              <tr><td>写性能</td><td>高</td><td>较低（要多数派确认）</td></tr>
+              <tr><td>部署复杂度</td><td>低</td><td>高</td></tr>
+            </tbody>
+          </table>
+          <p><b>MGR 有单主（single-primary）和多主（multi-primary）两种模式</b>，生产一般用单主模式，避免多主写冲突。</p>
+          <div class="followup"><b>追问：MGR 为什么能自动选主、避免脑裂？</b>因为它用 Paxos 达成共识——只有拿到<b>多数派（N/2+1）</b>投票的节点才能当选主库。网络分区后，少数派（拿不到多数票）自动退出组，不能成为主，从而避免双主。</div>
+          <div class="pitfall"><b>踩坑：</b>MGR 的「同步」不是「全同步」，而是「多数派确认」。3 节点时只要 2 个确认就能提交，所以<b>强一致但允许一个节点落后</b>。另外 MGR 要求节点数通常是 3 或 5 的奇数。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv2">高频</span>Orchestrator 是什么？和 MHA/MGR 的区别？<span class="qtag">Q4</span></summary>
+        <div class="a">
+          <p><b>Orchestrator</b>：GitHub 开源的 <b>MySQL 拓扑管理 + 高可用</b>工具（后被 Vitess/PlanetScale 采用）。</p>
+          <p><b>核心能力</b>：</p>
+          <ul>
+            <li><b>拓扑发现与可视化</b>：自动发现并维护整个复制拓扑，提供 Web 界面。</li>
+            <li><b>自动故障切换</b>：检测主库故障，自动选主、切换、通知。</li>
+            <li><b>人工操作辅助</b>：拖拽式切换主从、重搭从库等。</li>
+          </ul>
+          <p><b>和 MHA 的区别</b>：MHA 只做「主库挂了的切换」，Orchestrator 管的是<b>整个拓扑</b>（包括中间层、级联、故障恢复后的重建），能力更全面，且是活跃维护的开源项目。</p>
+          <p><b>和 MGR 的区别</b>：MGR 是「数据库内置的一致性方案」，Orchestrator 是「外置的、基于普通主从复制的运维工具」，它不提供强一致，但更灵活，可以管复杂的异构拓扑。</p>
+          <div class="followup"><b>追问：什么时候选 Orchestrator，什么时候选 MGR？</b>已经有大量普通主从架构、不想大改、且能接受最终一致 → Orchestrator；新建系统、要强一致、能接受写性能损失 → MGR。很多公司是「MGR 做核心库 + Orchestrator 管周边从库」组合。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv2">高频</span>VIP（虚拟 IP）在高可用里起什么作用？怎么漂移？<span class="qtag">Q5</span></summary>
+        <div class="a">
+          <p><b>VIP 的作用</b>：让应用连接一个<b>固定的虚拟 IP</b>，而不是具体某台 MySQL 的 IP。主库切换时，VIP 漂移到新主库，应用无感知，不用改连接配置。</p>
+          <p><b>漂移机制</b>：用 <code>keepalived</code> 或 <code>MHA 自带的 VIP 脚本</code>，检测到主库切换后，把 VIP 从老主库摘除、绑定到新主库，通过 ARP 广播让同网段的机器更新路由。</p>
+          <p><b>另一个方案：不用 VIP，用 Proxy</b>。引入 MySQL Router / ProxySQL 作为连接入口，由 Proxy 感知后端主从变化，应用连 Proxy 即可，比 VIP 更灵活（还能做读写分离、连接池）。</p>
+          <div class="followup"><b>追问：VIP 漂移的隐患？</b>① 如果老主库还活着但网络分区，VIP 可能还在老主库上，新主库抢 VIP 会冲突；② ARP 缓存更新不及时，部分客户端还在连老主库。所以 VIP 通常配合「隔离老主库」一起用。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv2">高频</span>主从切换时，怎么做到「数据零丢失」？<span class="qtag">Q6</span></summary>
+        <div class="a">
+          <p><b>完全零丢失做不到</b>（异步复制下主库已提交但没同步到从库的数据，主库一挂就丢了），但可以<b>尽量逼近</b>：</p>
+          <ul>
+            <li><b>半同步复制</b>：已提交事务至少有一个从库收到，切换过去不丢已提交数据。</li>
+            <li><b>MHA 数据补齐</b>：切换时把其他从库多余的 binlog 补到新主库。</li>
+            <li><b>用 MGR/强一致</b>：多数派确认后才提交，从机制上保证不丢（但要接受写性能代价）。</li>
+          </ul>
+          <p><b>关键认知</b>：数据零丢失是「<b>CAP 里的一致性</b>」问题，代价是性能。生产上常见做法是「半同步 + MHA/Orchestrator」，在性能和丢数据之间取平衡。</p>
+          <div class="pitfall"><b>踩坑：</b>别夸口「我们的切换零丢失」。除非用了强一致方案，否则严格说都存在「主库挂了那一瞬间已提交未同步的数据会丢」的窗口。诚实说清楚这个窗口，比吹牛更显专业。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv3">加分</span>什么是「双主」架构？M-M 有什么坑？<span class="qtag">Q7</span></summary>
+        <div class="a">
+          <p><b>双主（Master-Master）</b>：两台机器互为主从，各自都能写，都复制对方的数据。</p>
+          <p><b>坑</b>：</p>
+          <ul>
+            <li><b>写冲突</b>：两边同时写同一行，复制到对端会冲突（主键冲突、数据覆盖）。</li>
+            <li><b>自增 ID 冲突</b>：两台都用 <code>auto_increment</code> 会生成相同 ID，要配置 <code>auto_increment_increment=2</code> + <code>auto_increment_offset</code> 错开。</li>
+            <li><b>脑裂风险</b>：和所有「双活写」一样，网络分区后数据分叉。</li>
+          </ul>
+          <p><b>实际用法</b>：双主常用于「<b>主备切换演练</b>」或「<b>单向写</b>」（平时只写一台，另一台备用），真正「双活双写」很少用（除非 MGR 多主模式 + 冲突检测）。</p>
+          <div class="pitfall"><b>踩坑：</b>「双主就是两台都能写」是危险的理解。生产上双主绝大多数是「<b>备用写</b>」，不是同时写，否则写冲突和 ID 冲突会让你头疼。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv3">加分</span>PXC（Percona XtraDB Cluster）和 MGR 的区别？<span class="qtag">Q8</span></summary>
+        <div class="a">
+          <ul>
+            <li><b>PXC</b>：基于 <b>Galera</b> 的多主强一致集群，Percona 出品，事务提交前要在所有（或多数）节点「<b>写入集验证 + 同步</b>」，是<b>同步复制</b>。</li>
+            <li><b>MGR</b>：MySQL 官方方案，基于 Paxos，<b>多数派确认</b>即可提交。</li>
+          </ul>
+          <p><b>主要区别</b>：</p>
+          <table class="tb">
+            <thead><tr><th>维度</th><th>PXC（Galera）</th><th>MGR</th></tr></thead>
+            <tbody>
+              <tr><td>出品方</td><td>Percona / Codership</td><td>MySQL 官方</td></tr>
+              <tr><td>复制机制</td><td>写入集同步（全同步）</td><td>Paxos 多数派</td></tr>
+              <tr><td>多主写入</td><td>原生支持多主</td><td>单主为主，多主需额外处理冲突</td></tr>
+              <tr><td>成熟度</td><td>更早、更成熟</td><td>官方持续演进</td></tr>
+            </tbody>
+          </table>
+          <div class="followup"><b>追问：为什么说 PXC 是「全同步」？</b>因为它要求事务的「写入集」在提交前被<b>所有节点确认</b>（可配 <code>wsrep_sync_wait</code> 控制），比 MGR 的「多数派确认」更强，但写延迟也更高、对网络要求更苛刻（不适合跨机房）。</div>
+        </div>
+      </details>
+
+    </div>
+  </section>
+
+  <!-- ============ 模块3：分库分表 ============ -->
+  <section class="module" id="m3">
+    <div class="mhead"><span class="num">③</span><h2>分库分表（Sharding）</h2><span class="cnt">8 题</span></div>
+    <p class="mintro">解决「单库数据量/写入到顶」。核心矛盾是「<b>拆了以后查询和事务变难</b>」——分片键设计决定一切。注意区分「分库」和「分表」是两件事，也别忘了「先优化再拆分」。</p>
+    <div class="mbody">
+
+      <div class="ck"><input type="checkbox" data-id="m3-kc"><span class="label">能说清「分片键怎么选」「拆分后跨库 join/事务怎么办」「分布式 ID 怎么生成」三大难点</span></div>
+
+      <details class="q">
+        <summary><span class="lv lv1">必考</span>分库分表解决什么问题？什么时候才需要分？<span class="qtag">Q1</span></summary>
+        <div class="a">
+          <p><b>解决两个瓶颈</b>：</p>
+          <ul>
+            <li><b>单库数据量太大</b>：一张表几千万上亿行，查询/DDL 越来越慢，索引也扛不住。</li>
+            <li><b>单库写入到顶</b>：写入 QPS 超过单库承载，或单库磁盘/连接数打满。</li>
+          </ul>
+          <p><b>但「先别急着分」</b>——分库分表代价很大（跨库 join/事务失效、运维复杂度暴涨）。拆分前先做：</p>
+          <ol>
+            <li><b>SQL 和索引优化</b>：慢 SQL 是不是没走索引？</li>
+            <li><b>读写分离</b>：读压力大先加从库。</li>
+            <li><b>冷热分离 / 归档</b>：历史数据移走，只留热数据。</li>
+            <li><b>缓存</b>：热点数据加 Redis。</li>
+          </ol>
+          <p>这些都做完了还是扛不住，才考虑拆分。</p>
+          <div class="followup"><b>追问：单表多大算「该分了」？</b>经验值（非绝对）：单表超过 <b>1000 万 ~ 5000 万行</b>、或单库超过 <b>几十 GB</b>、或写入/查询 QPS 到顶，开始评估拆分。但要看硬件和业务，不是死数字。</div>
+          <div class="pitfall"><b>踩坑：</b>面试一上来就说「我们数据量大所以分库分表」会显得没经验。要体现「<b>先优化，拆是最后手段</b>」的判断力，面试官很看重这个。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv1">必考</span>分库和分表有什么区别？水平拆分 vs 垂直拆分？<span class="qtag">Q2</span></summary>
+        <div class="a">
+          <p><b>分库 vs 分表</b>：</p>
+          <ul>
+            <li><b>分库</b>：数据分散到<b>不同数据库实例</b>，解决单库写入/容量瓶颈，但跨库 join/事务直接失效。</li>
+            <li><b>分表</b>：数据分散到<b>同一个库里的多张表</b>（如 <code>order_0</code> ~ <code>order_7</code>），解决单表数据量大的查询慢问题，仍在同一个库里，还能用库内 join（需指定表）。</li>
+          </ul>
+          <p><b>水平拆分 vs 垂直拆分</b>：</p>
+          <table class="tb">
+            <thead><tr><th>类型</th><th>怎么拆</th><th>解决的问题</th><th>例子</th></tr></thead>
+            <tbody>
+              <tr><td><b>水平拆分</b></td><td>按行拆，同一张表的数据按某个字段分散到多张表/多库</td><td>单表数据量大、写入瓶颈</td><td>订单表按 <code>user_id</code> 拆 16 张表</td></tr>
+              <tr><td><b>垂直拆分</b></td><td>按列/按业务拆，把不同业务或不同字段分到不同表/库</td><td>表字段太多、不同业务耦合</td><td>用户信息拆成「基础信息表 + 扩展信息表」；订单库和用户库分开</td></tr>
+            </tbody>
+          </table>
+          <div class="followup"><b>追问：什么时候垂直拆、什么时候水平拆？</b>先垂直拆（按业务拆分，降低耦合、各库独立扩展），再对单库内的大表做水平拆分。通常是「<b>垂直拆业务 → 水平拆数据</b>」两步走。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv1">必考</span>分片键（sharding key）怎么选？选错了会怎样？<span class="qtag">Q3</span></summary>
+        <div class="a">
+          <p><b>分片键的选择原则</b>：</p>
+          <ul>
+            <li><b>尽量让查询都带上分片键</b>：这样能精确路由到单个分片，避免全分片扫描。</li>
+            <li><b>分布均匀</b>：避免热点（某几个分片数据特别多、请求特别集中）。</li>
+            <li><b>避免用自增 ID / 时间戳直接做键</b>：会数据倾斜（新数据全落到最后一个分片）。</li>
+          </ul>
+          <p><b>常见分片键</b>：<code>user_id</code>（用户维度，电商最常用）、<code>order_id</code>（订单维度）、<code>tenant_id</code>（多租户）。</p>
+          <p><b>选错的后果</b>：</p>
+          <ul>
+            <li><b>热点问题</b>：某分片被大量访问，其他分片闲置。</li>
+            <li><b>跨分片查询</b>：大部分查询不带分片键，每次都要扫所有分片再聚合，性能反而更差。</li>
+            <li><b>数据倾斜</b>：分片数据量不均，某分片先到顶。</li>
+          </ul>
+          <div class="followup"><b>追问：如果业务查询就是不带分片键怎么办？</b>两种思路：① 建<b>全局二级索引</b>（用 ES 或单独索引表，先查索引定位分片再回表）；② 用<b>基因法/冗余</b>，把可能被查的字段也编码进分片键。</div>
+          <div class="pitfall"><b>踩坑：</b>「分片键选 user_id，但按订单号查询就要扫全表」——这类矛盾要在设计阶段就识别。分片键一旦定了，后期改动的代价极大（要全量迁移数据）。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv1">必考</span>ShardingSphere 是什么？架构和工作原理？<span class="qtag">Q4</span></summary>
+        <div class="a">
+          <p><b>ShardingSphere</b>：Apache 开源的分布式数据库中间件生态，核心组件 <b>ShardingSphere-JDBC</b> 和 <b>ShardingSphere-Proxy</b>。</p>
+          <ul>
+            <li><b>ShardingSphere-JDBC</b>：<b>以 jar 包形式嵌入应用</b>，在应用层做 SQL 解析、路由、改写、结果归并。应用无感知，性能好（无额外网络跳转）。</li>
+            <li><b>ShardingSphere-Proxy</b>：<b>独立的数据库代理进程</b>，对应用表现为一个 MySQL 服务，适合多种语言、集中管理，但多一跳网络。</li>
+          </ul>
+          <p><b>核心工作流程</b>（一条 SQL 怎么被处理）：</p>
+          <ol>
+            <li><b>SQL 解析</b>：解析成 AST，识别表名、分片键、条件。</li>
+            <li><b>路由</b>：根据分片键 + 分片算法，算出要路由到哪个（些）分片。</li>
+            <li><b>改写</b>：把逻辑表名 <code>order</code> 改写成真实表名 <code>order_3</code>，聚合查询改写等。</li>
+            <li><b>执行</b>：把改写后的 SQL 下发到目标分片执行。</li>
+            <li><b>归并</b>：多个分片的结果合并（排序、分页、聚合）。</li>
+          </ol>
+          <div class="followup"><b>追问：JDBC 版和 Proxy 版怎么选？</b>单语言 Java 栈、追求性能、想少一层运维 → JDBC 版；多语言、要集中管控、已有中间件团队 → Proxy 版。</div>
+          <div class="pitfall"><b>踩坑：</b>归并阶段的「跨分片排序、分页、聚合」是性能重灾区。比如 <code>ORDER BY ... LIMIT</code> 跨分片时，要把每个分片的前 N 条都取出来再全局排序，分片越多开销越大。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv1">必考</span>分布式 ID 怎么生成？雪花算法是什么？<span class="qtag">Q5</span></summary>
+        <div class="a">
+          <p><b>为什么需要分布式 ID</b>：分库分表后，每个分片的 <code>auto_increment</code> 会从 1 开始重复，需要全局唯一的 ID。</p>
+          <p><b>几种方案</b>：</p>
+          <table class="tb">
+            <thead><tr><th>方案</th><th>优点</th><th>缺点</th></tr></thead>
+            <tbody>
+              <tr><td><b>UUID</b></td><td>简单、无中心</td><td>无序，作为主键会导致索引页分裂，且太长</td></tr>
+              <tr><td><b>数据库自增</b></td><td>简单、有序</td><td>单点瓶颈、有性能上限</td></tr>
+              <tr><td><b>Redis INCR</b></td><td>性能好</td><td>依赖 Redis 持久化，重启可能重复</td></tr>
+              <tr><td><b>雪花算法（Snowflake）</b></td><td>高性能、趋势递增、无中心</td><td>依赖时钟，时钟回拨会重复</td></tr>
+            </tbody>
+          </table>
+          <p><b>雪花算法（Snowflake）</b>：64 位长整型，分四段：</p>
+          <ul>
+            <li><b>1 位符号位</b>（固定 0）</li>
+            <li><b>41 位时间戳</b>（毫秒级，可用约 69 年）</li>
+            <li><b>10 位机器 ID</b>（5 位机房 + 5 位机器，最多 1024 台）</li>
+            <li><b>12 位序列号</b>（同一毫秒内递增，最多 4096 个）</li>
+          </ul>
+          <p><b>优点</b>：<b>趋势递增</b>（时间戳在前），作为主键利于索引；本地生成无网络开销。</p>
+          <div class="followup"><b>追问：雪花算法的「时钟回拨」问题怎么解决？</b>时钟回拨会导致生成的 ID 比之前小、可能重复。解法：① 回拨时等待时钟追回；② 用「上次时间戳」缓存，回拨时用备份序列号；③ 用美团 Leaf 等方案，靠 ZK 协调；④ 检测到回拨直接抛异常拒绝服务。</div>
+          <div class="pitfall"><b>踩坑：</b>别用 UUID 做主键（无序导致 B+ 树频繁页分裂，插入性能暴跌）。要「<b>趋势递增</b>」的 ID。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv2">高频</span>分库分表后，跨库 join 和事务怎么办？<span class="qtag">Q6</span></summary>
+        <div class="a">
+          <p><b>跨库 join</b>：分库后不同库的数据无法直接 SQL join。解法：</p>
+          <ul>
+            <li><b>字段冗余</b>：把要 join 的字段冗余到同一张表，避免 join。</li>
+            <li><b>应用层组装</b>：拆成多个查询，在应用层合并结果（最常见）。</li>
+            <li><b>全局表（广播表）</b>：把每个分片都要用的小表（如字典表）在每个库都放一份。</li>
+            <li><b>宽表 / 汇总表</b>：按查询维度预聚合。</li>
+          </ul>
+          <p><b>跨库事务</b>：本地事务无法跨库。解法：</p>
+          <ul>
+            <li><b>避免跨库事务</b>：设计时让「需要事务的操作都落在同一分片」（分片键选好）。</li>
+            <li><b>柔性事务 / 最终一致</b>：如本地消息表、可靠消息、TCC、Seata 的 AT 模式。</li>
+            <li><b>分布式事务框架</b>：Seata、ShardingSphere 的 XA。</li>
+          </ul>
+          <div class="followup"><b>追问：Seata 的 AT 模式怎么做到跨库事务？</b>Seata AT 是「<b>两阶段 + 自动补偿</b>」：一阶段各分支执行本地事务并记录 undo log，二阶段全局提交或回滚（回滚时用 undo log 生成反向 SQL 补偿）。本质是<b>最终一致</b>，不是强一致，中间态对别的事务可见。</div>
+          <div class="pitfall"><b>踩坑：</b>不要试图用「跨库分布式事务」硬扛所有场景，代价极大。正确的思路是<b>「能避免就避免」</b>——通过分片键设计、字段冗余，让绝大多数事务落在单分片内。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv2">高频</span>分库分表后，分页、排序、聚合查询怎么做？<span class="qtag">Q7</span></summary>
+        <div class="a">
+          <p>这些问题都源于「<b>数据分散了，但查询要全局结果</b>」，需要「归并」。</p>
+          <ul>
+            <li><b>分页（LIMIT）</b>：跨分片分页不能直接 <code>LIMIT 0,10</code>，因为每个分片的前 10 条不是全局前 10 条。正确做法：<b>每个分片取 <code>LIMIT 0, offset+limit</code>，再全局排序取 <code>[offset, offset+limit]</code></b>。深分页性能差（要取大量数据），要用「<b>游标分页</b>」（记录上一页最后一条的主键，用 <code>WHERE id > last_id</code>）替代。</li>
+            <li><b>排序（ORDER BY）</b>：每个分片各自排序，再归并排序。</li>
+            <li><b>聚合（COUNT / SUM / MAX）</b>：每个分片算局部聚合，再全局汇总。注意 <code>COUNT</code> 是加和、<code>MAX</code> 是取最大、<code>AVG</code> 不能简单平均（要 sum/count）。</li>
+          </ul>
+          <div class="followup"><b>追问：为什么 AVG 不能把各分片的平均值再平均？</b>因为各分片行数不同，加权不同。正确做法是各分片返回 <code>SUM</code> 和 <code>COUNT</code>，全局用 <code>总 SUM / 总 COUNT</code>。</div>
+          <div class="pitfall"><b>踩坑：</b>深分页（翻到第 100 页）在分库分表下是灾难，尽量用游标分页或限制最大页数。这是面试里体现工程经验的好点。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv3">加分</span>分库分表后怎么做平滑扩容（数据迁移）？<span class="qtag">Q8</span></summary>
+        <div class="a">
+          <p>从「8 库」扩到「16 库」，需要<b>数据重新分布 + 平滑切换</b>，常用「<b>双写 + 灰度 + 对比 + 切流</b>」：</p>
+          <ol>
+            <li><b>建新分片</b>：按新分片规则建好新库新表。</li>
+            <li><b>双写</b>：新数据同时写老分片和新分片（通过中间件路由或应用双写）。</li>
+            <li><b>历史数据迁移</b>：用工具把存量数据按新规则迁移到新分片。</li>
+            <li><b>数据校验</b>：对比老新数据一致性（行数、抽样校验）。</li>
+            <li><b>灰度切读</b>：先切一部分读流量到新分片，验证无误。</li>
+            <li><b>全量切流</b>：读写都切到新分片，下线老分片。</li>
+          </ol>
+          <div class="followup"><b>追问：双写期间数据不一致怎么办？</b>双写天然有「两边写成功但另一条失败」的窗口。方案：① 双写走同一事务（不跨库则不行）；② 迁移完成前以老分片为准，用对账/补偿任务修复不一致；③ 用 binlog 订阅（如 Canal）同步增量。</div>
+          <div class="pitfall"><b>踩坑：</b>扩容一定要「<b>可回滚</b>」——切流前保留老分片一段时间，出问题能切回去。一次性切死没有退路。</div>
+        </div>
+      </details>
+
+    </div>
+  </section>
+
+  <!-- ============ 模块4：分布式一致性 ============ -->
+  <section class="module" id="m4">
+    <div class="mhead"><span class="num">④</span><h2>分布式一致性（Consensus）</h2><span class="cnt">8 题</span></div>
+    <p class="mintro">最高阶模块，是 MGR/PXC 的底层原理。核心抓住一条线：<b>CAP 不可兼得 → 用共识算法（Paxos/Raft）在分区容错前提下选一致性 → 落地到 MGR</b>。这部分答好了是加分项。</p>
+    <div class="mbody">
+
+      <div class="ck"><input type="checkbox" data-id="m4-kc"><span class="label">能讲清 CAP 三选二、Raft 的选主与日志复制、以及「强一致为什么慢」</span></div>
+
+      <details class="q">
+        <summary><span class="lv lv1">必考</span>CAP 理论是什么？为什么说「P 必须选」？<span class="qtag">Q1</span></summary>
+        <div class="a">
+          <p><b>CAP</b>：一个分布式系统在<b>一致性（Consistency）、可用性（Availability）、分区容错（Partition tolerance）</b>三者中，最多只能同时满足两个。</p>
+          <ul>
+            <li><b>C 一致性</b>：所有节点同一时刻读到相同的数据。</li>
+            <li><b>A 可用性</b>：每个请求都能在合理时间内得到响应（不一定是最新数据）。</li>
+            <li><b>P 分区容错</b>：网络分区（节点间通信中断）时系统仍能继续工作。</li>
+          </ul>
+          <p><b>为什么 P 必须选</b>：因为网络分区是<b>不可避免的</b>（网络不可靠是客观事实，不是你能选的）。所以实际是在「<b>分区发生时，选 C 还是 A</b>」之间做权衡：</p>
+          <ul>
+            <li><b>选 CP</b>：分区时放弃可用性，保证一致（如 MGR、ZooKeeper、etcd）。</li>
+            <li><b>选 AP</b>：分区时保证可用，容忍不一致（如传统主从、Eureka）。</li>
+          </ul>
+          <div class="followup"><b>追问：MySQL 主从复制是 AP 还是 CP？</b>是 <b>AP</b>——主从复制是异步的，网络分区时从库依然可读（可用），但可能读到旧数据（不一致）。而 <b>MGR 是 CP</b>——分区时少数派自动退出，宁可不可用也不返回不一致数据。</div>
+          <div class="pitfall"><b>踩坑：</b>「CAP 只能三选二」的严格表述有争议（P 其实必须选），正确的说法是「<b>网络分区发生时，只能在 C 和 A 之间二选一</b>」。能说出这个 nuance，说明你不是死记硬背。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv1">必考</span>强一致、弱一致、最终一致的区别？<span class="qtag">Q2</span></summary>
+        <div class="a">
+          <ul>
+            <li><b>强一致</b>：写入后，任何后续读都能读到最新值（如 MGR 多数派确认后提交）。</li>
+            <li><b>弱一致</b>：写入后不保证能立刻读到，可能读到旧值，也没有「最终会一致」的保证。</li>
+            <li><b>最终一致</b>：弱一致的特例——<b>保证在没有新写入的情况下，经过一段时间后，所有副本会收敛到一致</b>（如传统主从复制）。</li>
+          </ul>
+          <p><b>核心区别在「读写的先后保证」</b>：强一致保证「写后读一定最新」，最终一致只保证「最终会一样，但中间可能读到旧数据」。</p>
+          <div class="followup"><b>追问：MySQL 主从是「最终一致」，那它能做到「读自己刚写的」吗？</b>不能直接保证。写主库后立刻读从库，可能读到旧值（主从延迟）。要「读己之写」，要么读主库，要么用半同步 + 延迟控制。这是「最终一致」和「强一致」的实际差距。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv1">必考</span>Raft 共识算法怎么工作的？（选主 + 日志复制）<span class="qtag">Q3</span></summary>
+        <div class="a">
+          <p><b>Raft</b>：一种「<b>易于理解</b>」的共识算法（相对 Paxos），把问题拆成两个子问题：<b>选主（Leader Election）</b>和<b>日志复制（Log Replication）</b>。节点有三种角色：<b>Leader（主）、Follower（从）、Candidate（候选）</b>。</p>
+          <p><b>选主</b>：</p>
+          <ol>
+            <li>所有节点初始是 Follower，有个随机的<b>选举超时时间</b>。</li>
+            <li>超时没收到 Leader 心跳，Follower 变 Candidate，<b>任期号 +1</b>，给自己投票并请求其他节点投票。</li>
+            <li>拿到<b>多数派（N/2+1）</b>投票的 Candidate 当选 Leader。</li>
+            <li>如果两个 Candidate 同时选举、票数都没过半，则各自超时重来（随机超时避免冲突）。</li>
+          </ol>
+          <p><b>日志复制</b>：</p>
+          <ol>
+            <li>Leader 收到写请求，追加到本地日志。</li>
+            <li>把日志发给所有 Follower。</li>
+            <li>收到<b>多数派</b>确认后，Leader 提交（commit），返回客户端。</li>
+            <li>Follower 在下次心跳时知道日志已提交，再应用到状态机。</li>
+          </ol>
+          <div class="followup"><b>追问：Raft 怎么保证「已提交的日志不会丢」？</b>因为提交需要<b>多数派确认</b>，任意两个「多数派」集合必有交集，所以即使 Leader 挂了，新 Leader 一定包含所有已提交的日志。</div>
+          <div class="pitfall"><b>踩坑：</b>别把「日志复制到 Follower」和「日志已提交」混为一谈。Raft 里日志是<b>先复制、后提交</b>，只有 Leader 收到多数派确认才 commit，此时才对外可见。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv2">高频</span>Paxos 和 Raft 有什么区别？为什么大家都用 Raft？<span class="qtag">Q4</span></summary>
+        <div class="a">
+          <ul>
+            <li><b>Paxos</b>：提出更早（Lamport），理论完备但<b>难理解、难实现</b>，且只解决「<b>单值共识</b>」，做多值共识（连续日志）要叠加 Multi-Paxos，工程落地困难。</li>
+            <li><b>Raft</b>：专门为「<b>易理解、易实现</b>」设计，把共识拆成「选主 + 日志复制 + 安全性」几个清晰模块，直接支持「<b>连续日志</b>」（多值共识），工程上容易落地。</li>
+          </ul>
+          <p><b>为什么都用 Raft</b>：工程可用性。etcd、TiKV、Consul 等都用了 Raft。Paxos 虽然理论上更早，但实现难度高，业界很少直接按原始 Paxos 落地。</p>
+          <div class="followup"><b>追问：Raft 相比 Multi-Paxos 本质优势是什么？</b>Raft 通过「<b>强 Leader + 任期号 + 日志连续性</b>」把「选主」和「日志复制」解耦并强制了更强的约束，使得「哪个日志能提交、谁有最新日志」一目了然，而 Paxos 的这两个问题纠缠在一起，实现极易出错。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv2">高频</span>MGR 是怎么用 Paxos 实现强一致和选主的？<span class="qtag">Q5</span></summary>
+        <div class="a">
+          <p><b>MGR（组复制）底层用 XCom（一个 Paxos 变体）</b>实现组通信和共识。</p>
+          <p><b>事务提交流程（强一致）</b>：</p>
+          <ol>
+            <li>主节点执行事务，把「<b>写集（write-set）</b>」广播给组内所有节点。</li>
+            <li>各节点对写集做<b>冲突检测</b>（多主模式下）并投票。</li>
+            <li>拿到<b>多数派</b>确认后，事务才正式提交。</li>
+            <li>各节点本地应用这个写集。</li>
+          </ol>
+          <p><b>选主 / 脑裂避免</b>：</p>
+          <ul>
+            <li>节点靠组通信维持成员关系，网络分区后，<b>只有能组成多数派的组才能继续服务</b>。</li>
+            <li>少数派（凑不齐多数派）自动「<b>停止服务</b>」（宁可不可用，也不接受写），从而避免脑裂。</li>
+            <li>多数派组内重新选主。</li>
+          </ul>
+          <div class="followup"><b>追问：MGR 为什么要求奇数节点（3/5/7）？</b>为了多数派判断。3 节点多数派是 2（容 1 台挂），5 节点是 3（容 2 台挂）。偶数节点（如 4 节点多数派 3）容错能力和 3 节点一样，反而多一台成本，所以用奇数。</div>
+          <div class="pitfall"><b>踩坑：</b>MGR 的「强一致」代价是<b>写性能下降</b>——每个事务都要跨节点广播 + 等多数派确认，跨机房部署时网络延迟会放大这个代价。所以 MGR 不适合跨地域大延迟场景。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv2">高频</span>为什么强一致方案写性能会差？「多数派」是什么？<span class="qtag">Q6</span></summary>
+        <div class="a">
+          <p><b>强一致写性能差的原因</b>：一个写事务要「<b>跨节点网络广播 + 等待多数派确认</b>」才能提交，多了至少一次网络往返（RTT），且要等最慢的那个「多数派成员」确认。对比异步主从「写本地 binlog 就返回」，性能差距明显。</p>
+          <p><b>多数派（Quorum）</b>：<b>N/2 + 1 个节点</b>。3 节点就是 2 个，5 节点就是 3 个。</p>
+          <p><b>为什么用多数派</b>：</p>
+          <ul>
+            <li>任意两个多数派集合<b>必有交集</b>（所以已提交数据不会丢，见 Raft 那题）。</li>
+            <li>一个集群<b>最多容 N/2 - 1 台节点故障</b>（3 节点容 1 台，5 节点容 2 台）。</li>
+            <li>分区后，<b>只能有一个多数派组</b>，天然避免双主。</li>
+          </ul>
+          <div class="followup"><b>追问：3 节点集群挂 2 台还能服务吗？</b>不能。只剩 1 台，凑不齐多数派（2），会停止服务（CP 选择，宁可不一致也不可用）。这就是「<b>多数派决定了可用节点下限</b>」。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv3">加分</span>什么是「脑裂」在共识系统里的处理？和主从的脑裂有何不同？<span class="qtag">Q7</span></summary>
+        <div class="a">
+          <p><b>共识系统（Raft/MGR）里的脑裂</b>：网络分区后可能出现「两个 Leader」——但这在 Raft 里<b>被任期号 + 多数派机制天然解决</b>：</p>
+          <ul>
+            <li>分区后，旧 Leader 在少数派侧，收不到多数派确认，<b>无法提交任何新日志</b>（等于失去写能力）。</li>
+            <li>多数派侧会重新选出一个新 Leader（任期号更高）。</li>
+            <li>旧 Leader 恢复通信后，发现新 Leader 任期号更高，<b>自动降级为 Follower</b>。</li>
+          </ul>
+          <p><b>和主从脑裂的本质不同</b>：</p>
+          <ul>
+            <li><b>主从</b>：靠外置工具判断，可能「两个节点都认为自己能写」，<b>数据真分叉</b>。</li>
+            <li><b>共识系统</b>：靠「任期号 + 多数派」从<b>机制上保证同一时刻只有一个 Leader 能提交</b>，旧 Leader 无法写入，所以<b>不会真分叉</b>，只是短暂「旧 Leader 以为自己还是主，但写不进去」。</li>
+          </ul>
+          <div class="pitfall"><b>踩坑：</b>要能区分「<b>旧 Leader 以为自己还是主</b>」和「<b>两个主都能写</b>」——前者是共识系统里无害的短暂幻觉，后者是主从架构里危险的真脑裂。</div>
+        </div>
+      </details>
+
+      <details class="q">
+        <summary><span class="lv lv3">加分</span>如何给一个系统选「复制方案」？（决策框架）<span class="qtag">Q8</span></summary>
+        <div class="a">
+          <p>没有银弹，按业务对「<b>一致性 vs 可用性 vs 性能</b>」的取舍选：</p>
+          <table class="tb">
+            <thead><tr><th>场景</th><th>推荐方案</th><th>理由</th></tr></thead>
+            <tbody>
+              <tr><td>读多写少、能接受秒级延迟</td><td><b>主从复制 + 读写分离</b></td><td>性能最好、最成熟、成本低</td></tr>
+              <tr><td>要快速自动切换、数据尽量不丢</td><td><b>半同步 + MHA/Orchestrator</b></td><td>平衡性能和可用性</td></tr>
+              <tr><td>强一致、零丢失、能接受写性能损失</td><td><b>MGR / PXC</b></td><td>金融、账户等一致性敏感场景</td></tr>
+              <tr><td>数据量到顶、写入瓶颈</td><td><b>分库分表 + 中间件</b></td><td>和复制正交，可叠加</td></tr>
+            </tbody>
+          </table>
+          <p><b>决策要点</b>：先问「<b>能接受多少数据丢失 / 多长不一致窗口</b>」，再问「<b>写性能要求多高</b>」，两者决定选异步、半同步还是强一致。</p>
+          <div class="followup"><b>追问：如果老板说「既要零丢失又要高性能」怎么办？</b>诚实告诉他这两者在 CAP 下不能兼得，需要做取舍：要么接受性能损失用强一致，要么接受极小丢失窗口用半同步。硬要两者都占，只能分层——核心数据强一致、边缘数据异步。</div>
+          <div class="pitfall"><b>踩坑：</b>这是面试的「<b>架构判断题</b>」，答「看情况，没有银弹，先问一致性要求」比直接甩一个方案高级得多。体现的是架构权衡能力。</div>
+        </div>
+      </details>
+
+    </div>
+  </section>
+
+  </main>
+</div>
+
+<script>
+(function(){
+  var STORE='mysql-cluster-progress-v1';
+  var main=document.getElementById('main');
+
+  function countCk(){return main.querySelectorAll('.ck input').length;}
+
+  function restore(){
+    var m={};
+    try{m=JSON.parse(localStorage.getItem(STORE))||{};}catch(e){m={};}
+    main.querySelectorAll('.ck').forEach(function(c){
+      var id=c.querySelector('input').dataset.id;
+      if(m[id]){c.classList.add('done');c.querySelector('input').checked=true;}
+    });
+    updateProg();
+  }
+
+  function updateProg(){
+    var tot=countCk();
+    var done=main.querySelectorAll('.ck.done').length;
+    var el=document.getElementById('prog');
+    el.innerHTML='进度 <b>'+done+'</b> / '+tot+'（'+Math.round(done/tot*100)+'%）';
+  }
+
+  main.addEventListener('change',function(e){
+    if(e.target && e.target.matches('.ck input')){
+      var c=e.target.closest('.ck');
+      c.classList.toggle('done',e.target.checked);
+      var m={};
+      try{m=JSON.parse(localStorage.getItem(STORE))||{};}catch(err){m={};}
+      m[e.target.dataset.id]=e.target.checked;
+      localStorage.setItem(STORE,JSON.stringify(m));
+      updateProg();
+    }
+  });
+
+  // 搜索
+  window.doSearch=function(kw){
+    kw=(kw||'').toLowerCase().trim();
+    main.querySelectorAll('.q').forEach(function(q){
+      var txt=q.textContent.toLowerCase();
+      q.classList.toggle('hide',kw && txt.indexOf(kw)<0);
+    });
+    if(!kw){main.querySelectorAll('.module').forEach(function(m){m.classList.remove('hide');});}
+    else{
+      main.querySelectorAll('.module').forEach(function(m){
+        var anyVisible=m.querySelectorAll('.q:not(.hide)').length>0;
+        m.classList.toggle('hide',!anyVisible);
+      });
+    }
+  };
+
+  // 展开/折叠
+  var allOpen=false;
+  window.toggleAll=function(){
+    allOpen=!allOpen;
+    main.querySelectorAll('.q').forEach(function(q){q.open=allOpen;});
+    document.getElementById('btnToggle').textContent=allOpen?'折叠全部':'展开全部';
+  };
+
+  // 主题
+  window.toggleTheme=function(){
+    var dark=document.body.classList.toggle('dark');
+    document.getElementById('btnTheme').textContent=dark?'亮色':'暗色';
+    localStorage.setItem('mysql-cluster-theme',dark?'1':'0');
+    applyTheme(dark);
+  };
+  function applyTheme(dark){
+    var r=document.documentElement.style;
+    if(dark){
+      r.setProperty('--bg','#0d1117');r.setProperty('--card','#161b22');
+      r.setProperty('--text','#e6edf3');r.setProperty('--muted','#8b949e');
+      r.setProperty('--line','#30363d');r.setProperty('--accent-soft','#1f3a5f');
+      r.setProperty('--warn','#2d2413');r.setProperty('--warn-line','#5c4313');
+    }else{
+      r.setProperty('--bg','');r.setProperty('--card','');r.setProperty('--text','');
+      r.setProperty('--muted','');r.setProperty('--line','');r.setProperty('--accent-soft','');
+      r.setProperty('--warn','');r.setProperty('--warn-line','');
+    }
+  }
+
+  // 重置
+  window.resetProgress=function(){
+    if(!confirm('确认清空所有勾选进度？'))return;
+    localStorage.removeItem(STORE);
+    main.querySelectorAll('.ck').forEach(function(c){c.classList.remove('done');c.querySelector('input').checked=false;});
+    updateProg();
+  };
+
+  // 滚动高亮
+  var sideLinks=Array.prototype.slice.call(document.querySelectorAll('#side a'));
+  window.addEventListener('scroll',function(){
+    var cur=null;
+    main.querySelectorAll('.module').forEach(function(m){
+      var top=m.getBoundingClientRect().top;
+      if(top<100)cur=m.id;
+    });
+    sideLinks.forEach(function(a){
+      a.classList.toggle('act',a.getAttribute('href')==='#'+cur);
+    });
+  });
+
+  restore();
+  if(localStorage.getItem('mysql-cluster-theme')==='1'){applyTheme(true);document.getElementById('btnTheme').textContent='亮色';}
+})();
+</script>
+</body>
+</html>

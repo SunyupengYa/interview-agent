@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>框架高频面试题手册 · Spring / Spring Boot / MyBatis</title>
+<style>
+:root{
+  --bg:#f6f6f2;--bg2:#ffffff;--tx:#2a2a26;--tx2:#6b6b64;--bd:#e2e1da;--card:#ffffff;
+  --f1:#EEEDFE;--f2:#E6F1FB;--f3:#E1F5EE;--f4:#FAEEDA;--f5:#FCEBEB;
+  --s1:#534AB7;--s2:#185FA5;--s3:#0F6E56;--s4:#854F0B;--s5:#A32D2D;
+  --t1:#26215C;--t2:#042C53;--t3:#04342C;--t4:#412402;--t5:#501313;
+  --sk1:#CECBF6;--sk2:#B5D4F4;--sk3:#9FE1CB;--sk4:#FAC775;--sk5:#F7C1C1;
+}
+[data-theme="dark"]{
+  --bg:#17181c;--bg2:#1e2026;--tx:#e8e8e2;--tx2:#9a9a92;--bd:#33353d;--card:#1e2026;
+  --f1:#2b2850;--f2:#1b3350;--f3:#123a30;--f4:#3d2c10;--f5:#40191a;
+  --s1:#AFA9EC;--s2:#85B7EB;--s3:#5DCAA5;--s4:#EF9F27;--s5:#F09595;
+  --t1:#CECBF6;--t2:#B5D4F4;--t3:#9FE1CB;--t4:#FAC775;--t5:#F7C1C1;
+  --sk1:#3C3489;--sk2:#185FA5;--sk3:#0F6E56;--sk4:#854F0B;--sk5:#A32D2D;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--tx);line-height:1.65;font-size:14.5px}
+.wrap{max-width:980px;margin:0 auto;padding:24px 18px 80px}
+header{margin-bottom:18px}
+h1{font-size:22px;font-weight:600;margin-bottom:6px}
+.sub{color:var(--tx2);font-size:13.5px}
+.toolbar{position:sticky;top:0;z-index:50;display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:var(--bg);padding:10px 0;border-bottom:1px solid var(--bd);margin-bottom:20px}
+#q{flex:1 1 220px;padding:8px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx);font-size:14px;outline:none}
+#q:focus{border-color:var(--s2)}
+.fbtn{padding:6px 14px;border:1px solid var(--bd);border-radius:20px;background:var(--card);color:var(--tx2);cursor:pointer;font-size:13px}
+.fbtn.on{background:var(--s2);border-color:var(--s2);color:#fff}
+.fbtn:hover{border-color:var(--s2)}
+.pbtn{padding:6px 14px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx2);cursor:pointer;font-size:13px}
+.prog{font-size:13px;color:var(--tx2);margin-left:auto;white-space:nowrap}
+.prog b{color:var(--s3)}
+.module{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:18px 20px;margin-bottom:22px}
+.module>h2{font-size:17px;font-weight:600;padding-bottom:10px;border-bottom:1px solid var(--bd);margin-bottom:6px;display:flex;align-items:center;gap:10px;cursor:pointer}
+.module>h2 .pct{font-size:12px;font-weight:400;color:var(--s3);margin-left:auto}
+.module>.hint{color:var(--tx2);font-size:13px;margin:8px 0 4px}
+details.q{border-bottom:1px solid var(--bd);padding:4px 0}
+details.q:last-child{border-bottom:none}
+details.q summary{cursor:pointer;list-style:none;padding:9px 2px;display:flex;gap:10px;align-items:flex-start;font-weight:500}
+details.q summary::-webkit-details-marker{display:none}
+details.q summary::before{content:"▸";color:var(--tx2);flex:none;transition:transform .15s;margin-top:1px}
+details.q[open] summary::before{transform:rotate(90deg)}
+.lv{flex:none;font-size:11.5px;padding:1px 8px;border-radius:10px;margin-top:2px}
+.lv1{background:var(--f5);color:var(--t5)}
+.lv2{background:var(--f4);color:var(--t4)}
+.lv3{background:var(--f3);color:var(--t3)}
+.bd{padding:2px 2px 14px 24px;font-size:14px}
+.bd p{margin:8px 0}
+.bd ul,.bd ol{padding-left:22px;margin:8px 0}
+.bd li{margin:5px 0}
+.bd b{font-weight:600}
+.bd code{background:var(--bg);border:1px solid var(--bd);border-radius:4px;padding:1px 6px;font-size:13px;font-family:"SF Mono",Consolas,monospace}
+.bd pre{background:#0f172a;color:#ffffff;border-radius:8px;padding:16px 18px;overflow-x:auto;font-family:Menlo,Consolas,"Courier New",monospace;font-size:14.5px;line-height:1.75;margin:10px 0}
+.bd pre code{border:none;background:none;padding:0;font-size:14.5px;line-height:1.75;color:inherit}
+.followup{background:var(--f2);border-left:3px solid var(--s2);border-radius:0 8px 8px 0;padding:9px 13px;margin:10px 0;color:var(--t2)}
+.pit{background:var(--f5);border-left:3px solid var(--s5);border-radius:0 8px 8px 0;padding:9px 13px;margin:10px 0;color:var(--t5)}
+.memo{background:var(--f3);border:1px dashed var(--s3);border-radius:8px;padding:10px 13px;margin:12px 0 4px;color:var(--t3)}
+.memo b{font-weight:600}
+.memo .hook{display:inline-block;background:var(--card);border:1px solid var(--s3);border-radius:6px;padding:2px 10px;margin:2px 6px 2px 0;font-weight:600}
+.flowwrap{margin:12px 0;border:1px solid var(--bd);border-radius:10px;padding:10px 6px;background:var(--bg);overflow-x:auto}
+.flowwrap svg{display:block;min-width:560px;max-width:100%;height:auto}
+.tbl{width:100%;border-collapse:collapse;margin:10px 0;font-size:13.5px}
+.tbl th,.tbl td{border:1px solid var(--bd);padding:7px 10px;text-align:left;vertical-align:top}
+.tbl th{background:var(--bg);font-weight:600;white-space:nowrap}
+.tbl td.k{white-space:nowrap;font-weight:600;color:var(--s2)}
+.ck{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--tx2);margin:6px 0 2px;cursor:pointer;user-select:none}
+.ck input{accent-color:var(--s3);width:15px;height:15px;cursor:pointer}
+.hide{display:none!important}
+@media print{
+  body{background:#fff;font-size:12px}
+  .toolbar,.prog{display:none}
+  .module{border:none;padding:0;margin-bottom:24px;page-break-inside:auto}
+  details.q{page-break-inside:avoid}
+  details.q .bd{display:block!important}
+  .memo,.followup,.pit{border-radius:4px}
+}
+/* 修复：行内 code 底纹样式(.q .bd code 优先级高于 pre code)会污染代码块，此规则强制清除 */pre code,.q .bd pre code,.bd pre code,.glossary pre code{background:none!important;border:none!important;padding:0!important;border-radius:0!important;color:inherit;font-size:14.5px;line-height:1.75}</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <h1>框架高频面试题手册</h1>
+  <div class="sub">Spring 核心 · Spring Boot · MyBatis ｜ 中厂高级开发定位 ｜ 口诀式记忆点 ｜ 进度保存在本机 localStorage</div>
+</header>
+<div class="toolbar">
+  <input id="q" type="text" placeholder="搜索题目、关键词…">
+  <button class="fbtn on" data-lv="all">全部</button>
+  <button class="fbtn" data-lv="1">必考</button>
+  <button class="fbtn" data-lv="2">高频</button>
+  <button class="fbtn" data-lv="3">加分</button>
+  <button class="pbtn" id="btn-expand">全部展开</button>
+  <button class="pbtn" id="btn-collapse">全部折叠</button>
+  <button class="pbtn" id="btn-theme">暗色</button>
+  <span class="prog" id="prog"></span>
+</div>
+
+<section class="module" id="spring">
+<h2>模块① Spring 核心（IoC · Bean · AOP · 事务）<span class="pct">0%</span></h2>
+<div class="hint">先吃透 Bean 生命周期和三级缓存——后面 AOP、事务的题全挂在这两根骨架上。</div>
+
+<details class="q" data-id="sp1">
+<summary><span class="lv lv1">必考</span>IoC 是什么？解决了什么问题？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <p><b>IoC（控制反转）</b>：对象的创建、组装、生命周期管理的<b>控制权</b>，从程序员手里（<code>new</code>）反转给 Spring 容器。你只声明"我需要什么"（<code>@Autowired</code>），不负责"怎么造出来"。</p>
+  <p><b>解决的核心问题</b>：</p>
+  <ul>
+    <li><b>解耦</b>：上层依赖接口，具体实现由容器注入。换实现类（如 MySQL 换 PG）不用改业务代码，改配置即可。</li>
+    <li><b>统一管理生命周期</b>：单例复用、销毁回调，不用自己管对象创建销毁。</li>
+    <li><b>便于测试</b>：测试时注入 Mock 对象，天然支持替换。</li>
+  </ul>
+  <p><b>DI 和 IoC 的关系</b>：IoC 是<b>思想</b>（控制权反转），DI（依赖注入）是<b>实现手段</b>（容器把依赖"注入"进来）。构造器注入、Setter 注入、字段注入都是 DI 的形式。<b>构造器注入最推荐</b>——依赖不可变、必填、不会 NPE，且能暴露循环依赖。</p>
+  <div class="followup"><b>追问：为什么说字段注入不好？</b>不能设 final、脱离容器无法用（纯 new 单测直接 NPE）、隐藏依赖关系（类签名上看不出依赖了谁）、掩盖循环依赖。</div>
+<pre><code>// ❌ 字段注入：不能 final、纯单测 new 出来直接 NPE、类签名看不出依赖了谁
+@Service
+public class OrderService {
+    @Autowired
+    private UserService userService;
+}
+
+// ✅ 构造器注入（Spring 4.3+ 单构造器可省 @Autowired）：不可变、必填、依赖显式
+@Service
+public class OrderService {
+    private final UserService userService;
+    public OrderService(UserService userService) {
+        this.userService = userService;
+    }
+}</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">IoC=创建权反转给容器</span><span class="hook">DI 是 IoC 的手段</span><span class="hook">构造器注入最稳</span></div>
+</div>
+</details>
+
+<details class="q" data-id="sp2">
+<summary><span class="lv lv1">必考</span>讲一下 Bean 的完整生命周期</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <p>按 <b>实例化 → 属性注入 → 初始化 → 使用 → 销毁</b> 五大阶段讲，细节环节见流程图：</p>
+  <div class="flowwrap">
+  <svg viewBox="0 0 680 560" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>Bean 生命周期流程图</title>
+  <desc>Bean 从实例化到销毁的完整流程，含 BeanPostProcessor 两个钩子位置</desc>
+  <defs><marker id="fw1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+  <g><rect x="220" y="16" width="240" height="42" rx="10" fill="var(--f1)" stroke="var(--sk1)" stroke-width="0.5"/><text x="340" y="37" text-anchor="middle" font-size="13" fill="var(--t1)" dominant-baseline="central">① 实例化 Instantiation</text><text x="340" y="50" text-anchor="middle" font-size="11" fill="var(--s1)" dominant-baseline="central">反射调构造器，只造出"毛坯"</text></g>
+  <line x1="340" y1="58" x2="340" y2="76" stroke="var(--s2)" stroke-width="1.5" marker-end="url(#fw1)"/>
+  <g><rect x="220" y="76" width="240" height="42" rx="10" fill="var(--f1)" stroke="var(--sk1)" stroke-width="0.5"/><text x="340" y="97" text-anchor="middle" font-size="13" fill="var(--t1)" dominant-baseline="central">② 属性注入 populate</text><text x="340" y="110" text-anchor="middle" font-size="11" fill="var(--s1)" dominant-baseline="central">@Autowired / @Resource 依赖装配</text></g>
+  <line x1="340" y1="118" x2="340" y2="136" stroke="var(--s2)" stroke-width="1.5" marker-end="url(#fw1)"/>
+  <g><rect x="220" y="136" width="240" height="42" rx="10" fill="var(--f3)" stroke="var(--sk3)" stroke-width="0.5"/><text x="340" y="157" text-anchor="middle" font-size="13" fill="var(--t3)" dominant-baseline="central">③ Aware 回调</text><text x="340" y="170" text-anchor="middle" font-size="11" fill="var(--s3)" dominant-baseline="central">BeanNameAware / ApplicationContextAware…</text></g>
+  <line x1="340" y1="178" x2="340" y2="196" stroke="var(--s2)" stroke-width="1.5" marker-end="url(#fw1)"/>
+  <g><rect x="160" y="196" width="360" height="42" rx="10" fill="var(--f4)" stroke="var(--sk4)" stroke-width="0.5"/><text x="340" y="217" text-anchor="middle" font-size="13" fill="var(--t4)" dominant-baseline="central">④ BeanPostProcessor#postProcessBeforeInitialization</text><text x="340" y="230" text-anchor="middle" font-size="11" fill="var(--s4)" dominant-baseline="central">初始化前的最后加工机会</text></g>
+  <line x1="340" y1="238" x2="340" y2="256" stroke="var(--s2)" stroke-width="1.5" marker-end="url(#fw1)"/>
+  <g><rect x="220" y="256" width="240" height="58" rx="10" fill="var(--f3)" stroke="var(--sk3)" stroke-width="0.5"/><text x="340" y="277" text-anchor="middle" font-size="13" fill="var(--t3)" dominant-baseline="central">⑤ 初始化</text><text x="340" y="293" text-anchor="middle" font-size="11" fill="var(--s3)" dominant-baseline="central">@PostConstruct → InitializingBean#afterPropertiesSet</text><text x="340" y="307" text-anchor="middle" font-size="11" fill="var(--s3)" dominant-baseline="central">→ init-method（按此顺序）</text></g>
+  <line x1="340" y1="314" x2="340" y2="332" stroke="var(--s2)" stroke-width="1.5" marker-end="url(#fw1)"/>
+  <g><rect x="160" y="332" width="360" height="42" rx="10" fill="var(--f4)" stroke="var(--sk4)" stroke-width="0.5"/><text x="340" y="353" text-anchor="middle" font-size="13" fill="var(--t4)" dominant-baseline="central">⑥ BeanPostProcessor#postProcessAfterInitialization</text><text x="340" y="366" text-anchor="middle" font-size="11" fill="var(--s4)" dominant-baseline="central">AOP 代理就在这一步生成（关键！）</text></g>
+  <line x1="340" y1="374" x2="340" y2="392" stroke="var(--s2)" stroke-width="1.5" marker-end="url(#fw1)"/>
+  <g><rect x="220" y="392" width="240" height="42" rx="10" fill="var(--f2)" stroke="var(--sk2)" stroke-width="0.5"/><text x="340" y="413" text-anchor="middle" font-size="13" fill="var(--t2)" dominant-baseline="central">⑦ 放入单例池，正常使用</text><text x="340" y="426" text-anchor="middle" font-size="11" fill="var(--s2)" dominant-baseline="central">singletonObjects（一级缓存）</text></g>
+  <line x1="340" y1="434" x2="340" y2="452" stroke="var(--s2)" stroke-width="1.5" marker-end="url(#fw1)"/>
+  <g><rect x="220" y="452" width="240" height="58" rx="10" fill="var(--f5)" stroke="var(--sk5)" stroke-width="0.5"/><text x="340" y="473" text-anchor="middle" font-size="13" fill="var(--t5)" dominant-baseline="central">⑧ 容器关闭 → 销毁</text><text x="340" y="489" text-anchor="middle" font-size="11" fill="var(--s5)" dominant-baseline="central">@PreDestroy → DisposableBean#destroy</text><text x="340" y="503" text-anchor="middle" font-size="11" fill="var(--s5)" dominant-baseline="central">→ destroy-method</text></g>
+  </svg>
+  </div>
+  <p><b>最容易加分的点</b>：说出 <b>BeanPostProcessor 的两个钩子位置</b>——AOP 的代理对象正是在 <b>postProcessAfterInitialization</b>（AnnotationAwareAspectJAutoProxyCreator）里创建的。这一句能引出后面"三级缓存为什么要提前暴露工厂"的问题。</p>
+  <div class="followup"><b>追问：@PostConstruct 和 afterPropertiesSet 谁先执行？</b>@PostConstruct 先（CommonAnnotationBeanPostProcessor 处理），再 afterPropertiesSet，最后 init-method。三个都配，按这个顺序全执行。</div>
+  <div class="pit"><b>踩坑：</b>别把"生命周期"答成"单例池存取"。面试官等着你提 BeanPostProcessor 和 AOP 代理生成时机，漏了这两点等于只背了一半。</div>
+<pre><code>@Component
+public class CacheWarmUp implements BeanNameAware, InitializingBean, DisposableBean {
+
+    @Autowired
+    private CacheClient cache;                    // ② 属性注入
+
+    @Override
+    public void setBeanName(String name) { ... }  // ③ Aware 回调
+
+    @PostConstruct
+    public void warmUp() { ... }                  // ⑤ 初始化①：先执行
+
+    @Override
+    public void afterPropertiesSet() { ... }      // ⑤ 初始化②
+
+    @PreDestroy
+    public void cleanUp() { ... }                 // ⑧ 销毁：先执行
+}
+// ④⑥ BeanPostProcessor 不需要你写也能讲：容器回调它，
+//     AOP 代理正是在 postProcessAfterInitialization 里生成的</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">造（实例化）</span><span class="hook">装（属性注入）</span><span class="hook">醒（Aware）</span><span class="hook">前洗（BPP-before）</span><span class="hook">启用（初始化三连）</span><span class="hook">后洗（BPP-after→AOP）</span><span class="hook">上岗（单例池）</span><span class="hook">退休（销毁三连）</span></div>
+</div>
+</details>
+
+<details class="q" data-id="sp3">
+<summary><span class="lv lv1">必考</span>什么是循环依赖？Spring 怎么用三级缓存解决？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <p><b>循环依赖</b>：A 依赖 B，B 又依赖 A。手动 new 必死锁，Spring 靠"<b>提前暴露半成品</b>"解决 <b>单例 + Setter/字段注入</b> 的循环依赖。</p>
+  <p><b>三级缓存</b>（DefaultSingletonBeanRegistry 里三个 Map）：</p>
+  <div class="tbl-wrap"><table class="tbl">
+    <tr><th>缓存</th><th>存什么</th><th>作用</th></tr>
+    <tr><td class="k">一级 singletonObjects</td><td>完整的成品 Bean</td><td>正常获取单例的地方</td></tr>
+    <tr><td class="k">二级 earlySingletonObjects</td><td>提前暴露的半成品（已实例化、未完成属性注入）</td><td>循环依赖时快速取，避免重复创建</td></tr>
+    <tr><td class="k">三级 singletonFactories</td><td>ObjectFactory 工厂（能产出早期引用或代理）</td><td><b>关键</b>：按需决定给"原始对象"还是"AOP 代理"</td></tr>
+  </table></div>
+  <div class="flowwrap">
+  <svg viewBox="0 0 680 520" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>三级缓存解决循环依赖流程图</title>
+  <desc>A 创建中提前暴露工厂，B 创建时通过工厂拿到 A 的早期引用，完成装配后 A B 相继完工</desc>
+  <defs><marker id="fw2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+  <text x="340" y="24" text-anchor="middle" font-size="13" fill="var(--t2)" font-weight="500">getBean(A) 的完整推演</text>
+  <g><rect x="120" y="40" width="440" height="46" rx="10" fill="var(--f1)" stroke="var(--sk1)" stroke-width="0.5"/><text x="340" y="63" text-anchor="middle" font-size="13" fill="var(--t1)" dominant-baseline="central">① A 实例化（毛坯）→ 把 A 的工厂放进三级缓存</text></g>
+  <line x1="340" y1="86" x2="340" y2="104" stroke="var(--s2)" stroke-width="1.5" marker-end="url(#fw2)"/>
+  <g><rect x="120" y="104" width="440" height="46" rx="10" fill="var(--f1)" stroke="var(--sk1)" stroke-width="0.5"/><text x="340" y="127" text-anchor="middle" font-size="13" fill="var(--t1)" dominant-baseline="central">② A 属性注入时发现依赖 B → 触发 getBean(B)</text></g>
+  <line x1="340" y1="150" x2="340" y2="168" stroke="var(--s2)" stroke-width="1.5" marker-end="url(#fw2)"/>
+  <g><rect x="120" y="168" width="440" height="64" rx="10" fill="var(--f4)" stroke="var(--sk4)" stroke-width="0.5"/><text x="340" y="192" text-anchor="middle" font-size="13" fill="var(--t4)" dominant-baseline="central">③ B 实例化 → 属性注入发现依赖 A → getBean(A)</text><text x="340" y="218" text-anchor="middle" font-size="12" fill="var(--s4)" dominant-baseline="central">一级没有 → 二级没有 → 三级命中工厂 → 提前拿到 A 的早期引用</text></g>
+  <line x1="340" y1="232" x2="340" y2="250" stroke="var(--s2)" stroke-width="1.5" marker-end="url(#fw2)"/>
+  <g><rect x="120" y="250" width="440" height="46" rx="10" fill="var(--f3)" stroke="var(--sk3)" stroke-width="0.5"/><text x="340" y="273" text-anchor="middle" font-size="13" fill="var(--t3)" dominant-baseline="central">④ B 拿到 A 引用完成装配 → B 变成品 → 进一级缓存</text></g>
+  <line x1="340" y1="296" x2="340" y2="314" stroke="var(--s2)" stroke-width="1.5" marker-end="url(#fw2)"/>
+  <g><rect x="120" y="314" width="440" height="46" rx="10" fill="var(--f3)" stroke="var(--sk3)" stroke-width="0.5"/><text x="340" y="337" text-anchor="middle" font-size="13" fill="var(--t3)" dominant-baseline="central">⑤ 回到 A 的注入流程，注入 B → A 完成初始化 → 进一级缓存</text></g>
+  <line x1="340" y1="360" x2="340" y2="378" stroke="var(--s2)" stroke-width="1.5" marker-end="url(#fw2)"/>
+  <g><rect x="120" y="378" width="440" height="46" rx="10" fill="var(--f2)" stroke="var(--sk2)" stroke-width="0.5"/><text x="340" y="401" text-anchor="middle" font-size="13" fill="var(--t2)" dominant-baseline="central">⑥ A、B 都在一级缓存，循环依赖解除</text></g>
+  <g><rect x="60" y="446" width="560" height="58" rx="10" fill="var(--f5)" stroke="var(--sk5)" stroke-width="0.5"/><text x="340" y="468" text-anchor="middle" font-size="12.5" fill="var(--t5)" dominant-baseline="central">核心思想：A 还没装配完，就先把"获取 A 的工厂"挂出去——</text><text x="340" y="490" text-anchor="middle" font-size="12.5" fill="var(--t5)" dominant-baseline="central">别人问起，工厂立即给早期引用。存"工厂"而不是"对象"，是为了 AOP 代理能延迟按需生成</text></g>
+  </svg>
+  </div>
+<pre><code>// DefaultSingletonBeanRegistry#getSingleton（简化）——三级缓存的取值顺序
+Object o = this.singletonObjects.get(beanName);            // ① 查一级：成品？
+if (o == null) {
+    o = this.earlySingletonObjects.get(beanName);          // ② 查二级：半成品？
+    if (o == null) {
+        ObjectFactory&lt;?&gt; factory = this.singletonFactories.get(beanName); // ③ 查三级
+        if (factory != null) {
+            o = factory.getObject();                       // 调工厂：按需给原始对象或代理
+            this.earlySingletonObjects.put(beanName, o);   // 工厂降级进二级
+            this.singletonFactories.remove(beanName);      // 保证代理只建一次
+        }
+    }
+}</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">三级缓存=提前暴露工厂</span><span class="hook">成品·半成品·工厂</span><span class="hook">B 借工厂拿 A</span></div>
+</div>
+</details>
+
+<details class="q" data-id="sp4">
+<summary><span class="lv lv1">必考</span>为什么必须三级缓存？二级缓存不够吗？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <p>这是三级缓存的高阶追问，答好直接拉开差距。</p>
+  <p><b>结论</b>：如果<b>没有 AOP</b>，二级缓存完全够用（半成品放二级，循环依赖时取半成品）。三级缓存的<b>唯一价值是 AOP</b>——保证"循环依赖场景下注入的也是最终代理对象"，且"代理只生成一次"。</p>
+  <p><b>推理过程</b>：</p>
+  <ol>
+    <li>正常流程：AOP 代理在<b>初始化之后</b>（postProcessAfterInitialization）才生成。</li>
+    <li>但循环依赖要求 A 在<b>属性注入前</b>就把自己借给别人。此时 A 还没初始化，<b>不该提前生成代理</b>（破坏生命周期语义，且无法确定是否真的需要代理）。</li>
+    <li>折中方案：三级缓存存的是<b>工厂（ObjectFactory）</b>，不是对象。B 真来借的时候，工厂里的 <code>getEarlyBeanReference</code> 才<b>按需</b>决定：无 AOP → 给原始对象；有 AOP → 此刻生成代理并返回。</li>
+    <li>同时把工厂从三级缓存<b>降级</b>为二级缓存里的对象，保证同一条消息"代理只建一次"，A 初始化完成时不会二次生成代理。</li>
+  </ol>
+  <div class="followup"><b>追问：直接在实例化后就生成代理放二级缓存不行吗？</b>功能上能解决循环依赖，但违反了 Spring 的设计原则——代理生成必须留在初始化后这一标准时机；而且不循环依赖的对象也被强制提前代理，白白改变所有 Bean 的行为。三级缓存的工厂实现了"<b>只有真发生循环依赖才提前代理</b>"的按需语义。</div>
+  <div class="pit"><b>踩坑：</b>只背"三个 Map 存什么"讲不出"为什么存工厂"是高频丢分点。核心关键词：<b>延迟、按需生成代理</b>。</div>
+<pre><code>// AbstractAutoProxyCreator#getEarlyBeanReference（简化）——工厂里真正干活的逻辑
+public Object getEarlyBeanReference(Object bean, String beanName) {
+    Object cacheKey = getCacheKey(bean.getClass(), beanName);
+    this.earlyProxyReferences.put(cacheKey, bean);    // 记下"已提前代理"，防止初始化后再代理一次
+    return wrapIfNecessary(bean, beanName, cacheKey); // 有切面匹配→此刻生成代理；没有→返回原始对象
+}
+// 这就是"存工厂不存对象"的意义：不发生循环依赖，这方法永远不会被调，
+// 代理生成时机照旧在初始化后——只有真循环了才提前代理</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">二级够用没 AOP</span><span class="hook">三级为代理而生</span><span class="hook">工厂=按需延迟</span></div>
+</div>
+</details>
+
+<details class="q" data-id="sp5">
+<summary><span class="lv lv2">高频</span>构造器注入的循环依赖为什么解决不了？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <p><b>根本原因</b>：三级缓存的解法依赖"<b>先实例化（毛坯）→ 再注入属性</b>"这两步分离。构造器注入时，<b>创建 A 就必须先有 B</b>，还没实例化完 A 就要去拿 B，毛坯根本不存在，<b>没有任何东西可以提前暴露</b>。</p>
+  <pre><code>getBean(A) → 构造 A 需要 B → getBean(B) → 构造 B 需要 A → getBean(A)（一级二三级都没有）
+→ BeanCurrentlyInCreationException</code></pre>
+  <p><b>Spring 的防护</b>：用 <code>singletonsCurrentlyInCreation</code> 集合记录"正在创建中"的 Bean 名，重复进入直接抛异常（防死循环）。</p>
+  <p><b>解决手段</b>：① 改成 Setter/字段注入（不推荐回头路）；② <code>@Lazy</code> 注入——注入一个<b>代理</b>，真正调用方法时才初始化目标 Bean，把"创建时依赖"推迟到"使用时依赖"。</p>
+<pre><code>@Service
+public class AService {
+    private final BService bService;
+    // 注入的是 B 的代理，真正调 bService 方法时才触发 B 的创建
+    // ——把"创建时依赖"推迟成"使用时依赖"，循环被绕开
+    public AService(@Lazy BService bService) {
+        this.bService = bService;
+    }
+}</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">构造器循环=没毛坯可暴露</span><span class="hook">@Lazy=用时才建</span></div>
+</div>
+</details>
+
+<details class="q" data-id="sp6">
+<summary><span class="lv lv2">高频</span>BeanFactory 和 FactoryBean 的区别？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <p>名字像、完全两码事，经典陷阱题：</p>
+  <table class="tbl">
+    <tr><th></th><th>BeanFactory</th><th>FactoryBean</th></tr>
+    <tr><td class="k">是什么</td><td>Spring IoC <b>容器</b>的顶层接口，是"工厂本身"</td><td>一个特殊的 <b>Bean</b>——这个 Bean 能生产别的对象</td></tr>
+    <tr><td class="k">角色</td><td>容器的根接口（ApplicationContext 的父接口）</td><td>复杂对象的构建器，用户实现</td></tr>
+    <tr><td class="k">getBean 语义</td><td>getBean("x") 返回 x 对应的 Bean</td><td>getBean("x") 返回 FactoryBean <b>生产出的对象</b>；getBean("&amp;x") 才返回 FactoryBean 自身</td></tr>
+  </table>
+  <p><b>典型应用</b>：MyBatis 的 <code>SqlSessionFactoryBean</code>、Feign 的 <code>FeignClientFactoryBean</code>——复杂对象不适合用 XML/注解直接声明，就写个 FactoryBean 在 <code>getObject()</code> 里手工构建。Spring Boot 自动装配大量依赖它。</p>
+  <div class="followup"><b>追问：getObject() 返回的对象会被 Spring 管理生命周期吗？</b>会，FactoryBean 生产出的对象照样受容器管理（单例池等），这正是它比静态工厂方法灵活的地方。</div>
+<pre><code>// MyBatis-Spring 里的经典实现（简化）
+public class SqlSessionFactoryBean implements FactoryBean&lt;SqlSessionFactory&gt; {
+    @Override
+    public SqlSessionFactory getObject() {   // getBean("sqlSessionFactory") 返回的是它
+        return buildSqlSessionFactory();     // 复杂构建逻辑手工写在 getObject 里
+    }
+    @Override
+    public Class&lt;?&gt; getObjectType() { return SqlSessionFactory.class; }
+}
+// context.getBean("&amp;sqlSessionFactory") —— 加 &amp; 才拿到 FactoryBean 本身</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">BeanFactory 是厂</span><span class="hook">FactoryBean 是厂里的机器人</span><span class="hook">&amp;拿机器人本身</span></div>
+</div>
+</details>
+
+<details class="q" data-id="sp7">
+<summary><span class="lv lv2">高频</span>Spring Bean 有哪些作用域？单例 Bean 线程安全吗？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <p><b>五种作用域</b>（前两个必背）：</p>
+  <table class="tbl">
+    <tr><th>作用域</th><th>含义</th><th>注意</th></tr>
+    <tr><td class="k">singleton</td><td>容器内唯一实例（默认）</td><td>全容器共享</td></tr>
+    <tr><td class="k">prototype</td><td>每次 getBean 新建</td><td>容器只创建不销毁（销毁回调不生效）</td></tr>
+    <tr><td class="k">request</td><td>每个 HTTP 请求一个</td><td>Web 环境</td></tr>
+    <tr><td class="k">session</td><td>每个会话一个</td><td>Web 环境</td></tr>
+    <tr><td class="k">application</td><td>每个 ServletContext 一个</td><td>Web 环境</td></tr>
+  </table>
+  <p><b>单例 Bean 线程安全吗？</b><b>不保证。</b>单例 = 多线程共享同一个实例；如果 Bean 有<b>可变的成员变量</b>（如 <code>private int count</code>），并发修改就出问题。<b>Spring 不管这事，责任在使用者</b>。</p>
+  <ul>
+    <li><b>为什么实际很少出事</b>：绝大多数 Bean（Service/Controller）是<b>无状态</b>的——成员只有注入的其他单例 Bean，没有可变字段，天然线程安全。</li>
+    <li><b>不安全的典型反例</b>：<code>SimpleDateFormat</code> 当成员变量（这就是 Java 手册里那个事故案例）、计数器、可变缓存对象。</li>
+    <li><b>解法</b>：设计成无状态；必须共享可变状态则用 ThreadLocal / Concurrent 容器 / 加锁；或改 prototype 作用域。</li>
+  </ul>
+<pre><code>@Service  // 默认单例：全容器共享这一个实例
+public class CounterService {
+    private int count = 0;            // ❌ 可变成员变量，多线程共享
+    public void inc() { count++; }    // count++ 非原子，并发必丢更新
+}
+
+// ✅ 解法：绝大多数 Service 本就该无状态（成员只有注入的其他单例 Bean）
+// 确需计数 → 原子类
+private final LongAdder count = new LongAdder();
+public void inc() { count.increment(); }</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">安全与否看状态不看单例</span><span class="hook">无状态=安全</span><span class="hook">SimpleDateFormat=反例</span></div>
+</div>
+</details>
+
+<details class="q" data-id="sp8">
+<summary><span class="lv lv1">必考</span>@Autowired 和 @Resource 的区别？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <table class="tbl">
+    <tr><th></th><th>@Autowired</th><th>@Resource</th></tr>
+    <tr><td class="k">来源</td><td>Spring 自带</td><td>JDK 规范（JSR-250）</td></tr>
+    <tr><td class="k">默认匹配</td><td><b>byType</b>（按类型）</td><td><b>byName</b>（按名称）</td></tr>
+    <tr><td class="k">多实现冲突</td><td>配合 @Qualifier 指定名字；或 @Primary 标首选</td><td>name 属性直接指定</td></tr>
+    <tr><td class="k">required</td><td>required=false 允许注入失败</td><td>无此属性（必须找到）</td></tr>
+  </table>
+  <p><b>关键理解</b>：byType 找到多个候选时的裁决顺序——先 <code>@Primary</code>，再 <code>@Qualifier</code>/<code>name</code> 指定，再按<b>字段名/参数名</b>与 Bean 名匹配，还不行就抛 <code>NoUniqueBeanDefinitionException</code>。</p>
+  <div class="pit"><b>踩坑：</b>@Resource 匹配规则是"先按 name 找，找不到退回 byType"，不是纯 byName。答"按名字注入"没错但不完整，说出回退机制更显理解。</div>
+<pre><code>@Service
+public class PayService {
+    @Autowired                          // 先 byType；多个实现 → 再按字段名匹配
+    @Qualifier("alipayService")         // 仍冲突 → @Qualifier 指名裁决
+    private PayChannel alipay;
+
+    @Resource(name = "wxPayService")    // 先按 name 找，找不到退回 byType
+    private PayChannel wxPay;
+}</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">A 按 type</span><span class="hook">R 按 name</span><span class="hook">多实现靠 Qualifier/Primary 裁决</span></div>
+</div>
+</details>
+
+<details class="q" data-id="sp9">
+<summary><span class="lv lv1">必考</span>AOP 是什么？底层怎么实现的？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <p><b>AOP（面向切面编程）</b>：把<b>横切关注点</b>（日志、事务、权限、限流）从业务代码中抽离，用切面统一织入，业务类保持纯净。核心价值：<b>业务解耦 + 复用</b>。</p>
+  <p><b>底层实现 = 动态代理</b>。Spring AOP 在运行时为目标 Bean 生成代理对象，代理里包着"业务方法 + 切面逻辑"。两种代理：</p>
+  <table class="tbl">
+    <tr><th></th><th>JDK 动态代理</th><th>CGLIB</th></tr>
+    <tr><td class="k">实现方式</td><td><code>Proxy + InvocationHandler</code>，基于<b>接口</b>反射生成</td><td><b>继承</b>目标类，字节码生成子类，覆写方法</td></tr>
+    <tr><td class="k">前提</td><td>目标必须实现接口</td><td>不能代理 final 类 / final 方法（覆写不了）</td></tr>
+    <tr><td class="k">Spring 规则</td><td>有接口时（Spring 5 默认）</td><td>无接口时；<b>Spring Boot 2.x 起默认全用 CGLIB</b>（proxy-target-class=true）</td></tr>
+  </table>
+  <p><b>代理生效时机</b>：容器启动、Bean 初始化后（postProcessAfterInitialization）由 <code>AnnotationAwareAspectJAutoProxyCreator</code> 判断"是否匹配切点"，匹配就生成代理放进单例池——<b>容器里放的是代理，你注入的也是代理</b>。</p>
+  <p><b>执行链</b>：调用代理方法 → 走拦截器链（MethodInterceptor）：<b>前置 @Before → 目标方法 → 后置 @After → 返回 @AfterReturning / 异常 @AfterThrowing</b>，@Around 环绕在最外层可控制全流程。</p>
+  <div class="followup"><b>追问：@Around 和 @Before+@After 什么关系？</b>@Around 最强大——手动调 proceed() 决定目标方法是否执行，可改参数、改返回值、吞异常；@Before/@After 只是通知钩子，不能阻止执行。优先级：@Around 包在最外。</div>
+  <div class="pit"><b>踩坑：</b>别答"AOP 用反射实现"就完了——反射只是 JDK 代理的实现细节，本质是<b>动态代理 + 拦截器链</b>。另外 Spring Boot 2.x 默认 CGLIB 这个变化常被追问（因为 JDK 8+ 接口 default 方法变多、且 CGLIB 不再强依赖接口）。</div>
+<pre><code>@Aspect
+@Component
+public class LogAspect {
+
+    @Pointcut("execution(* com.demo.service..*(..))")
+    public void svc() {}
+
+    @Around("svc()")
+    public Object around(ProceedingJoinPoint pjp) throws Throwable {
+        long start = System.currentTimeMillis();
+        try {
+            return pjp.proceed();       // proceed() 放行：走拦截器链直到目标方法
+        } finally {
+            log.info("{} 耗时 {}ms", pjp.getSignature(),
+                     System.currentTimeMillis() - start);
+        }
+    }
+}
+// @Before/@After 只是钩子；@Around 能改参数、改返回值、甚至不调 proceed() 阻止执行</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">AOP=动态代理织入</span><span class="hook">有接口 JDK 无接口 CGLIB</span><span class="hook">Boot2 全 CGLIB</span><span class="hook">代理生于初始化后</span></div>
+</div>
+</details>
+
+<details class="q" data-id="sp10">
+<summary><span class="lv lv1">必考</span>AOP 在什么情况下失效？（自调用问题）</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <p><b>根因只有一个：绕过了代理对象。</b>AOP 靠代理拦截方法调用，凡是"调用没有经过代理"的场景，切面都失效：</p>
+  <ol>
+    <li><b>自调用（最典型）</b>：同一个类里 <code>this.methodB()</code>——this 是原始对象不是代理，B 上的切面/事务全失效。</li>
+    <li><b>方法不是 public</b>：CGLIB 继承覆写不了？非 public 方法 Spring AOP 直接不拦截（事务对非 public 方法无效）。</li>
+    <li><b>final / static 方法</b>：CGLIB 覆写不了 final；static 方法属于类不属于实例，代理无能为力。</li>
+    <li><b>new 出来的对象</b>：绕开容器，根本没有代理。</li>
+    <li><b>内部类调用外部类方法</b>：同样是 this 引用问题。</li>
+  </ol>
+  <p><b>自调用的三种解法</b>：</p>
+  <ol>
+    <li>注入自己：<code>@Autowired private XxxService self;</code>（用代理调）——注意配合 @Lazy 防止循环依赖问题。</li>
+    <li><code>AopContext.currentProxy()</code>：需要 <code>@EnableAspectJAutoProxy(exposeProxy = true)</code>。</li>
+    <li>拆类：把要被增强的方法挪到另一个 Bean（最干净，架构上消除了自调用）。</li>
+  </ol>
+<pre><code>@Service
+public class OrderService {
+
+    public void create() {
+        this.saveLog();          // ❌ this 是原始对象不是代理 → saveLog 的切面/事务全失效
+    }
+
+    @Transactional
+    public void saveLog() { ... }
+
+    // ✅ 解法1：注入自己（拿到的是代理），配合 @Lazy 防循环依赖
+    @Autowired @Lazy
+    private OrderService self;
+    public void create2() { self.saveLog(); }   // 走代理，生效
+
+    // ✅ 解法2（最干净）：把 saveLog 挪到 LogService，拆类消除自调用
+}</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">失效=绕过代理</span><span class="hook">this 不是代理</span><span class="hook">final/static/new 全失效</span></div>
+</div>
+</details>
+
+<details class="q" data-id="sp11">
+<summary><span class="lv lv1">必考</span>Spring 事务在哪些场景下失效？（高频中的高频）</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <p>和 AOP 失效同根——<b>@Transactional 靠 AOP 代理实现</b>，所有"绕过代理"的场景都失效，再加上事务自身的几个坑：</p>
+  <ol>
+    <li><b>自调用</b>：同类 this 调用带 @Transactional 的方法（最高频，根源同 AOP 自调用）。</li>
+    <li><b>方法非 public</b>：Spring 事务切面只增强 public 方法（protected/private 直接失效，Boot 下不报错、静默失效最可怕）。</li>
+    <li><b>异常被吞</b>：try-catch 把异常吃掉不抛，切面感知不到 → 不回滚。</li>
+    <li><b>异常类型不匹配</b>：默认只回滚 <b>RuntimeException 和 Error</b>，抛受检异常（如 Exception）<b>不回滚</b>——需 <code>rollbackFor = Exception.class</code>。</li>
+    <li><b>类没被 Spring 管理</b>：new 出来的对象，注解是摆设。</li>
+    <li><b>数据库引擎不支持事务</b>：MyISAM 表直接没有事务。</li>
+    <li><b>传播行为设错</b>：内层 NOT_SUPPORTED 挂起外层事务、或 REQUIRES_NEW 各自独立，外层回滚内层不跟着回——不是失效，是"没按你以为的方式回滚"。</li>
+    <li><b>多线程</b>：事务上下文（ThreadLocal 绑定的 Connection）不跨线程，<b>子线程的 DB 操作不在事务里</b>。</li>
+  </ol>
+  <p><b>速记口诀</b>（首字串联）：<b>"私吞自异非" + 引擎 + 线程</b> → <b>私</b>有方法、<b>吞</b>异常、<b>自</b>调用、受检<b>异</b>常默认不回滚、<b>非</b> Spring 管理的对象，加上 MyISAM 引擎和多线程。</p>
+  <div class="followup"><b>追问：为什么默认不回滚受检异常？</b>设计哲学：受检异常（如 IOException）被视为"业务可预期、调用方应处理"的情况，不等于数据一致性被破坏。所以显式 rollbackFor 是生产代码标配。</div>
+  <div class="pit"><b>踩坑：</b>只答"自调用失效"太薄。至少说出 5 条 + 给出口诀，并强调"静默失效不报错"——这比失效本身更危险。</div>
+<pre><code>@Service
+public class StockService {
+
+    // ❌ 自调用：deduct 里 this.deductDb()，事务失效
+    public void deduct() { deductDb(); }
+    @Transactional
+    public void deductDb() { ... }
+
+    // ❌ 吞异常：catch 后不抛，切面感知不到 → 不回滚
+    @Transactional
+    public void pay() {
+        try { doPay(); } catch (Exception e) { log.error("pay fail", e); }
+    }
+
+    // ❌ 受检异常默认不回滚
+    @Transactional
+    public void refund() throws Exception { doRefund(); }
+
+    // ✅ 正确姿势：public 方法 + rollbackFor + 异常继续抛
+    @Transactional(rollbackFor = Exception.class)
+    public void payV2() throws Exception { doPay(); }
+}</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">私吞自异非</span><span class="hook">默认只回滚 RuntimeException</span><span class="hook">事务不跨线程</span></div>
+</div>
+</details>
+
+<details class="q" data-id="sp12">
+<summary><span class="lv lv2">高频</span>讲一下事务的传播行为（Propagation）</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <p><b>传播行为</b>定义：一个事务方法被另一个事务方法调用时，<b>内层方法怎么对待外层的事务</b>。七种，重点记前三种：</p>
+  <table class="tbl">
+    <tr><th>传播行为</th><th>外层有事务时</th><th>外层无事务时</th><th>一句话</th></tr>
+    <tr><td class="k">REQUIRED（默认）</td><td>加入外层事务</td><td>新建事务</td><td>有就蹭，没有就开</td></tr>
+    <tr><td class="k">REQUIRES_NEW</td><td><b>挂起</b>外层，自己开新事务</td><td>新建事务</td><td>各玩各的，互不影响</td></tr>
+    <tr><td class="k">NESTED</td><td>在外层事务里开<b>保存点</b>（Savepoint）</td><td>同 REQUIRED</td><td>内层可独立回滚到保存点，外层整体回滚则全回</td></tr>
+    <tr><td class="k">SUPPORTS</td><td>加入</td><td>非事务执行</td><td>可有可无</td></tr>
+    <tr><td class="k">NOT_SUPPORTED</td><td>挂起外层，非事务执行</td><td>非事务执行</td><td>坚决不要事务</td></tr>
+    <tr><td class="k">MANDATORY</td><td>加入</td><td>抛异常</td><td>必须被事务调用</td></tr>
+    <tr><td class="k">NEVER</td><td>抛异常</td><td>非事务执行</td><td>有事务就翻脸</td></tr>
+  </table>
+  <p><b>REQUIRES_NEW vs NESTED 的区别</b>（最常追问）：REQUIRES_NEW 是<b>两个独立事务</b>——内层提交后外层回滚，内层不回滚；NESTED 是<b>一个事务的子事务</b>——外层回滚，内层跟着回滚。NESTED 依赖数据库 Savepoint，且两者<b>占用的数据库连接数不同</b>（REQUIRES_NEW 要两条连接）。</p>
+  <div class="pit"><b>踩坑：</b>REQUIRES_NEW 高并发下是<b>连接池杀手</b>——外层事务占一条连接不放，内层又要新连接；并发一上来，连接池被"外层挂起 + 内层新开"双倍占满，直接拖垮。这是中厂最爱考的实战坑。</div>
+<pre><code>@Service
+public class OrderService {
+    @Transactional
+    public void createOrder() {
+        orderMapper.insert(order);
+        logService.record();      // 内层传播行为在这里起作用
+    }
+}
+
+@Service
+public class LogService {
+
+    // REQUIRES_NEW：挂起外层、另开新事务——日志成败与订单事务互不影响
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void record() { ... }
+
+    // NESTED：外层事务内设保存点——内层回滚只回滚到保存点，外层可继续
+    @Transactional(propagation = Propagation.NESTED)
+    public void recordNested() { ... }
+}
+// 区别：REQUIRES_NEW 两条独立连接（连接池杀手）；NESTED 一条连接靠 Savepoint</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">REQUIRED 蹭</span><span class="hook">REQUIRES_NEW 分家</span><span class="hook">NESTED 存档点</span><span class="hook">REQUIRES_NEW 杀连接池</span></div>
+</div>
+</details>
+
+<details class="q" data-id="sp13">
+<summary><span class="lv lv2">高频</span>事务里开异步线程 / 发 MQ，事务还没提交就执行了怎么办？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <p><b>问题本质</b>：<code>@Transactional</code> 方法里 <code>executor.submit(...)</code> 或发 MQ 消息——事务上下文用 <b>ThreadLocal</b> 绑定 Connection，<b>不跨线程</b>；MQ 更是立即发出。结果是：<b>事务还没 commit，异步任务/消费者已经在读"旧数据"</b>。</p>
+  <p><b>解法（按推荐度）</b>：</p>
+  <ol>
+    <li><b>TransactionSynchronizationManager.registerSynchronization</b>：注册 afterCommit 回调，事务真提交后再发 MQ / 触发异步。最正统。</li>
+    <li><b>事务提交后移出方法体</b>：外层非事务方法先调事务方法，返回后再发 MQ（方法边界控制，简单但容易被人改坏）。</li>
+    <li><b>事务消息 / 本地消息表</b>（MQ 手册方案）：不追求"提交后立刻发"，追求"最终一定发"——事务和发消息的原子性由消息表保证。</li>
+  </ol>
+  <div class="pit"><b>踩坑：</b>面试答"把发 MQ 放到事务方法最后一行"是<b>错误答案</b>——最后一行代码执行完不等于事务已提交（commit 发生在代理层、方法返回之后）。必须用 afterCommit 回调或消息表方案。</div>
+<pre><code>@Transactional
+public void createOrder(Order order) {
+    orderMapper.insert(order);
+
+    // ❌ mqSender.send(msg);   最后一行≠已提交：commit 发生在代理层、方法返回之后
+
+    // ✅ 注册事务同步：提交成功后才回调
+    TransactionSynchronizationManager.registerSynchronization(
+        new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                mqSender.send(buildMsg(order));   // 此刻数据对外可见
+            }
+        });
+}</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">ThreadLocal 不跨线程</span><span class="hook">最后一行≠已提交</span><span class="hook">afterCommit 回调</span></div>
+</div>
+</details>
+</section>
+
+<section class="module" id="boot">
+<h2>模块② Spring Boot（自动装配 · 启动 · 配置）<span class="pct">0%</span></h2>
+<div class="hint">核心就一句话：Spring Boot = Spring + 自动装配 + 内嵌容器。所有题都从这句话往外延伸。</div>
+
+<details class="q" data-id="b1">
+<summary><span class="lv lv1">必考</span>Spring Boot 解决了什么问题？核心特性是什么？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <p><b>解决的问题</b>：Spring 时代配置地狱——XML/JavaConfig 写到吐、依赖版本自己协调、部署还要外挂 Tomcat。Spring Boot 用三个特性终结：</p>
+  <ul>
+    <li><b>自动装配</b>：约定大于配置，常见组件开箱即用（引依赖即生效）。</li>
+    <li><b>starter 起步依赖</b>：一个 starter 打包一组兼容依赖，版本冲突由 Spring Boot 统一仲裁（parent 里管版本）。</li>
+    <li><b>内嵌容器</b>：内嵌 Tomcat/Jetty/Undertow，java -jar 直接跑，天然适配容器化。</li>
+  </ul>
+  <p><b>本质</b>：Spring Boot 没有发明新 IoC，它是 Spring 的<b>脚手架和最佳实践打包</b>。</p>
+  <div class="memo"><b>记忆点：</b><span class="hook">自动装配·starter·内嵌容器</span><span class="hook">约定大于配置</span></div>
+</div>
+</details>
+
+<details class="q" data-id="b2">
+<summary><span class="lv lv1">必考</span>自动装配的原理是什么？（最高频）</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <p>完整链路（顺着这条链讲，一步步推）：</p>
+  <div class="flowwrap">
+  <svg viewBox="0 0 680 500" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>Spring Boot 自动装配流程图</title>
+  <desc>从 @SpringBootApplication 到条件注解筛选出最终 Bean 的完整链路</desc>
+  <defs><marker id="fw3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+  <g><rect x="150" y="20" width="380" height="46" rx="10" fill="var(--f1)" stroke="var(--sk1)" stroke-width="0.5"/><text x="340" y="43" text-anchor="middle" font-size="13" fill="var(--t1)" dominant-baseline="central">@SpringBootApplication → @EnableAutoConfiguration</text></g>
+  <line x1="340" y1="66" x2="340" y2="84" stroke="var(--s2)" stroke-width="1.5" marker-end="url(#fw3)"/>
+  <g><rect x="150" y="84" width="380" height="46" rx="10" fill="var(--f1)" stroke="var(--sk1)" stroke-width="0.5"/><text x="340" y="107" text-anchor="middle" font-size="13" fill="var(--t1)" dominant-baseline="central">@Import(AutoConfigurationImportSelector.class)</text></g>
+  <line x1="340" y1="130" x2="340" y2="148" stroke="var(--s2)" stroke-width="1.5" marker-end="url(#fw3)"/>
+  <g><rect x="120" y="148" width="440" height="66" rx="10" fill="var(--f4)" stroke="var(--sk4)" stroke-width="0.5"/><text x="340" y="172" text-anchor="middle" font-size="13" fill="var(--t4)" dominant-baseline="central">读取候选配置清单</text><text x="340" y="190" text-anchor="middle" font-size="12" fill="var(--s4)" dominant-baseline="central">Boot 2.7 前：META-INF/spring.factories</text><text x="340" y="206" text-anchor="middle" font-size="12" fill="var(--s4)" dominant-baseline="central">Boot 2.7+ / 3.x：META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</text></g>
+  <line x1="340" y1="214" x2="340" y2="232" stroke="var(--s2)" stroke-width="1.5" marker-end="url(#fw3)"/>
+  <g><rect x="120" y="232" width="440" height="60" rx="10" fill="var(--f3)" stroke="var(--sk3)" stroke-width="0.5"/><text x="340" y="256" text-anchor="middle" font-size="13" fill="var(--t3)" dominant-baseline="central">条件注解逐个筛选（过滤）</text><text x="340" y="276" text-anchor="middle" font-size="12" fill="var(--s3)" dominant-baseline="central">@ConditionalOnClass 类在不在 / @ConditionalOnMissingBean 用户配没配 / @ConditionalOnProperty 开关</text></g>
+  <line x1="340" y1="292" x2="340" y2="310" stroke="var(--s2)" stroke-width="1.5" marker-end="url(#fw3)"/>
+  <g><rect x="150" y="310" width="380" height="46" rx="10" fill="var(--f3)" stroke="var(--sk3)" stroke-width="0.5"/><text x="340" y="333" text-anchor="middle" font-size="13" fill="var(--t3)" dominant-baseline="central">符合条件的自动配置类 → 注册 BeanDefinition</text></g>
+  <line x1="340" y1="356" x2="340" y2="374" stroke="var(--s2)" stroke-width="1.5" marker-end="url(#fw3)"/>
+  <g><rect x="150" y="374" width="380" height="56" rx="10" fill="var(--f2)" stroke="var(--sk2)" stroke-width="0.5"/><text x="340" y="398" text-anchor="middle" font-size="13" fill="var(--t2)" dominant-baseline="central">Bean 进入容器，绑定配置属性</text><text x="340" y="418" text-anchor="middle" font-size="12" fill="var(--s2)" dominant-baseline="central">@EnableConfigurationProperties + application.yml</text></g>
+  <g><rect x="60" y="446" width="560" height="44" rx="10" fill="var(--f5)" stroke="var(--sk5)" stroke-width="0.5"/><text x="340" y="468" text-anchor="middle" font-size="12.5" fill="var(--t5)" dominant-baseline="central">一句话：清单全量加载，条件注解筛选，「用户配置优先于默认配置」</text></g>
+  </svg>
+  </div>
+  <p><b>口述版本（背这段）</b>：<code>@EnableAutoConfiguration</code> 通过 <code>@Import</code> 引入 <code>AutoConfigurationImportSelector</code>，它读取 classpath 下的自动配置清单（旧版 spring.factories，2.7+ 换成 AutoConfiguration.imports 文件），拿到上百个候选配置类，再用 <b>@Conditional 系列条件注解</b>逐个筛选——类路径有 Redis 依赖、你没自己配 RedisTemplate，那默认的 RedisAutoConfiguration 才生效。最终符合条件的配置类把 Bean 注册进容器。</p>
+  <div class="followup"><b>追问：为什么我自定义了一个 RedisTemplate，默认的就"消失"了？</b>自动配置类的方法上几乎都标了 @ConditionalOnMissingBean——容器里已有用户定义的同类型 Bean，默认配置就让位。这就是"用户配置优先"的实现。</div>
+  <div class="pit"><b>踩坑：</b>只答「spring.factories 加载」不给筛选环节是半分答案。三个关键点缺一不可：清单文件、条件注解筛选、用户配置优先（@ConditionalOnMissingBean）。</div>
+<pre><code># 文件：META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports
+# （Boot 2.7 前：META-INF/spring.factories 里 EnableAutoConfiguration=全类名）
+com.demo.starter.DemoAutoConfiguration</code></pre>
+<pre><code>@AutoConfiguration
+@ConditionalOnClass(DemoService.class)              // 类路径有 DemoService 才生效
+@EnableConfigurationProperties(DemoProperties.class)
+public class DemoAutoConfiguration {
+
+    @Bean
+    @ConditionalOnMissingBean                       // 用户自己定义了就让位（"用户优先"）
+    public DemoService demoService(DemoProperties props) {
+        return new DemoService(props.getPrefix());
+    }
+}</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">Import 选择器读清单</span><span class="hook">条件注解做筛选</span><span class="hook">OnMissingBean 让位用户</span><span class="hook">2.7 后清单换文件</span></div>
+</div>
+</details>
+
+<details class="q" data-id="b3">
+<summary><span class="lv lv1">必考</span>@SpringBootApplication 由哪三个注解组成？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <ol>
+    <li><b>@SpringBootConfiguration</b>：本质是 @Configuration，声明这是配置类。</li>
+    <li><b>@ComponentScan</b>：扫描主类所在包及子包的组件——<b>所以主类必须放根包</b>，放深了别的包扫不到。</li>
+    <li><b>@EnableAutoConfiguration</b>：自动装配总开关（上一题的链路）。</li>
+  </ol>
+  <div class="followup"><b>追问：主类为什么放根包？</b>@ComponentScan 默认只扫「主类所在包及子包」。放根包保证所有组件覆盖；想破例就显式 scanBasePackages。</div>
+  <div class="memo"><b>记忆点：</b><span class="hook">配置·扫描·自动装配</span><span class="hook">主类放根包</span></div>
+</div>
+</details>
+
+<details class="q" data-id="b4">
+<summary><span class="lv lv2">高频</span>常见的条件注解有哪些？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <table class="tbl">
+    <tr><th>注解</th><th>生效条件</th><th>典型用途</th></tr>
+    <tr><td class="k">@ConditionalOnClass</td><td>类路径存在指定类</td><td>引了 redis 依赖才配 Redis</td></tr>
+    <tr><td class="k">@ConditionalOnMissingBean</td><td>容器没有该 Bean</td><td>用户配置优先（核心）</td></tr>
+    <tr><td class="k">@ConditionalOnBean</td><td>容器已有该 Bean</td><td>依赖某个前置 Bean</td></tr>
+    <tr><td class="k">@ConditionalOnProperty</td><td>配置属性满足条件</td><td>功能开关 enable.xxx=true</td></tr>
+    <tr><td class="k">@ConditionalOnWebApplication</td><td>是 Web 应用</td><td>Web 相关默认配置</td></tr>
+  </table>
+  <p>全部基于 <code>@Conditional(XxxCondition.class)</code> 扩展——自定义 starter 时也可以写自己的 Condition。</p>
+<pre><code>@Bean
+@ConditionalOnProperty(name = "demo.audit", havingValue = "true", matchIfMissing = false)
+public AuditRunner auditRunner() { return new AuditRunner(); }
+// application.yml 配 demo.audit: true 才注册；不配/配 false 都没有这个 Bean</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">OnClass 看依赖</span><span class="hook">OnMissingBean 让位</span><span class="hook">OnProperty 开关</span></div>
+</div>
+</details>
+
+<details class="q" data-id="b5">
+<summary><span class="lv lv1">必考</span>starter 是什么？怎么自定义一个 starter？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <p><b>starter = 依赖聚合 + 自动配置</b>。把"某功能的全部依赖 + 默认配置类"打包，使用方引一个坐标即得全套能力。命名约定：<b>官方 spring-boot-starter-xxx，三方 xxx-spring-boot-starter</b>。</p>
+  <p><b>自定义步骤（五步）</b>：</p>
+  <ol>
+    <li>建 autoconfigure 模块，写核心 Bean（XxxService）+ 配置属性类（@ConfigurationProperties）。</li>
+    <li>写自动配置类 XxxAutoConfiguration，方法标 <code>@Bean @ConditionalOnMissingBean</code>，类上标 @ConditionalOnClass 等。</li>
+    <li>注册清单：2.7+ 在 <code>META-INF/spring/...AutoConfiguration.imports</code> 写入配置类全名（旧版写 spring.factories）。</li>
+    <li>打两个 jar：xxx-spring-boot-starter（空壳只聚合依赖）+ xxx-spring-boot-autoconfigure（配置逻辑）。</li>
+    <li>使用方引 starter → 依赖进来 → 条件满足 → Bean 自动注册。</li>
+  </ol>
+<pre><code>// ① 配置属性类：application.yml 里 demo.prefix 可覆盖默认值
+@ConfigurationProperties("demo")
+public class DemoProperties {
+    private String prefix = "default";
+    // getter / setter
+}
+
+// ② 自动配置类：条件装配 + 用户可覆盖
+@AutoConfiguration
+@ConditionalOnClass(DemoService.class)
+@EnableConfigurationProperties(DemoProperties.class)
+public class DemoAutoConfiguration {
+    @Bean
+    @ConditionalOnMissingBean
+    public DemoService demoService(DemoProperties p) {
+        return new DemoService(p.getPrefix());
+    }
+}
+
+// ③ 注册清单：META-INF/spring/...AutoConfiguration.imports 写入本类全名
+// ④ 打两个 jar：demo-spring-boot-starter（空壳聚合依赖）+ demo-spring-boot-autoconfigure（上面逻辑）</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">依赖聚合+自动配置</span><span class="hook">五步：Bean·属性·条件·清单·双jar</span></div>
+</div>
+</details>
+
+<details class="q" data-id="b6">
+<summary><span class="lv lv2">高频</span>Spring Boot 的启动流程（run 方法里发生了什么）？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <p>按顺序答七个阶段：</p>
+  <ol>
+    <li><b>new SpringApplication</b>：推断应用类型（Servlet/Reactive）、加载 ApplicationContextInitializer 和 ApplicationListener、<b>推断主类</b>。</li>
+    <li><b>prepareEnvironment</b>：加载 application.yml/环境变量/命令行参数，封装成 Environment。</li>
+    <li><b>createApplicationContext</b>：按应用类型创建容器（Servlet 场景是 AnnotationConfigServletWebServerApplicationContext）。</li>
+    <li><b>prepareContext</b>：把主类注册为配置类（加载 BeanDefinition），执行 Initializer。</li>
+    <li><b>refreshContext</b>：调 Spring 的 refresh()——这是 IoC 容器启动的核心：<b>onRefresh() 里创建内嵌 Web 服务器（Tomcat）并启动</b>，finishBeanFactoryInitialization 里实例化全部单例 Bean。</li>
+    <li><b>afterRefresh / 回调 runners</b>：执行 CommandLineRunner / ApplicationRunner。</li>
+    <li><b>发布started/ready事件</b>，启动完成。</li>
+  </ol>
+  <p><b>最值得主动提的点</b>：内嵌 Tomcat 是在 refresh() 的 <b>onRefresh</b> 阶段创建的（ServletWebServerFactoryAutoConfiguration 提供 TomcatServletWebServerFactory）——这句话能同时串起「启动流程」和「内嵌容器」两道题。</p>
+  <div class="memo"><b>记忆点：</b><span class="hook">建环境→建容器→refresh（内嵌Tomcat在此起）→跑 Runner</span></div>
+</div>
+</details>
+
+<details class="q" data-id="b7">
+<summary><span class="lv lv2">高频</span>配置文件的加载优先级？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <p><b>优先级从高到低</b>（高的覆盖低的）：</p>
+  <ol>
+    <li><b>命令行参数</b>（--server.port=8081，最高）</li>
+    <li>JVM 系统属性（-D 参数）</li>
+    <li>操作系统环境变量</li>
+    <li><b>profile 专属配置</b>（application-prod.yml）</li>
+    <li><b>application.yml / properties</b></li>
+    <li>@PropertySource 指定的文件</li>
+  </ol>
+  <p>同是 application.yml 时：<b>config/ 目录 &gt; classpath 根目录</b>（外置覆盖内置，方便不改包只改配置）。</p>
+  <div class="pit"><b>踩坑：</b>环境变量在 yml <b>之上</b>——K8s 里用环境变量覆盖镜像内配置是常规操作，但很多人误以为 yml 优先，排查半天"为什么配置不生效"。</div>
+  <div class="memo"><b>记忆点：</b><span class="hook">命令行&gt;系统&gt;环境变量&gt;profile&gt;yml</span><span class="hook">外置覆盖内置</span></div>
+</div>
+</details>
+
+<details class="q" data-id="b8">
+<summary><span class="lv lv2">高频</span>多环境配置（profile）怎么用？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <ul>
+    <li><b>文件拆分</b>：application-dev.yml / application-test.yml / application-prod.yml，主文件 <code>spring.profiles.active=dev</code> 指定激活哪个。</li>
+    <li><b>启动时切换</b>：命令行 <code>--spring.profiles.active=prod</code> 优先级高于文件内声明。</li>
+    <li><b>分组</b>（2.4+）：spring.profiles.group.prod=db-prod,mq-prod——激活 prod 时同时激活一组。</li>
+    <li><b>Bean 级</b>：@Profile("prod") 注解控制某个 Bean 只在某环境注册。</li>
+  </ul>
+  <div class="followup"><b>追问：激活多个 profile 冲突怎么办？</b>后面声明的覆盖前面（active=dev,prod 时 prod 优先）；且 profile 专属文件整体优先于 application.yml。</div>
+<pre><code># application.yml —— 公共 + 默认环境
+spring:
+  profiles:
+    active: dev          # 本地默认 dev；生产用命令行 --spring.profiles.active=prod 覆盖
+---
+# application-prod.yml（或同文件 --- 分隔）
+spring:
+  config:
+    activate:
+      on-profile: prod
+server:
+  port: 8080</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">active 指定·命令行可覆盖·@Profile 控 Bean</span></div>
+</div>
+</details>
+
+<details class="q" data-id="b9">
+<summary><span class="lv lv3">加分</span>Actuator 是什么？生产怎么用？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <p><b>生产监控端点集合</b>：<code>/actuator/health</code>（健康检查，K8s 探针用它）、<code>/actuator/metrics</code>（JVM/QPS 指标）、<code>/actuator/env</code>（配置查看）等。</p>
+  <ul>
+    <li>默认只暴露 health；要更多需配置 <code>management.endpoints.web.exposure.include</code>。</li>
+    <li><b>health 是聚合的</b>：DB、Redis、MQ 各有 HealthIndicator，任何一个 DOWN 整体 DOWN——K8s 就绪探针配这个最合适。</li>
+    <li>结合 Prometheus + Grafana 做指标采集展示（micrometer-registry-prometheus 暴露 /prometheus 端点）。</li>
+  </ul>
+<pre><code>management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus   # 默认只暴露 health，其余要显式开
+  endpoint:
+    health:
+      show-details: always                # 看 DB/Redis 等各组件健康明细</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">health 聚合探针</span><span class="hook">默认只开 health</span><span class="hook">配 Prometheus 采集</span></div>
+</div>
+</details>
+
+<details class="q" data-id="b10">
+<summary><span class="lv lv2">高频</span>Spring Boot 2.7 / 3.x 有哪些重要变化？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <ul>
+    <li><b>3.x 要求 JDK 17+</b>，javax.* 全面换成 jakarta.*（Servlet、Validation 等）。</li>
+    <li><b>自动配置清单文件变化</b>：spring.factories 中的 EnableAutoConfiguration 迁移到 <code>META-INF/spring/org.springframework.boot.autoconfigure.AutoConfiguration.imports</code>（2.7 引入，3.0 移除旧支持）。</li>
+    <li><b>声明式 HTTP 客户端</b>：3.0 内置 @HttpExchange（类似 OpenFeign 的声明式调用）。</li>
+    <li>原生镜像 GraalVM AOT 支持成熟化。</li>
+  </ul>
+  <div class="pit"><b>踩坑：</b>升级 3.x 最大的坑不是语法是<b>依赖</b>——老的三方 starter 若不兼容 jakarta 命名空间直接挂，需要全量排查依赖版本。</div>
+  <div class="memo"><b>记忆点：</b><span class="hook">JDK17·jakarta·imports 清单</span></div>
+</div>
+</details>
+</section>
+
+<section class="module" id="mybatis">
+<h2>模块③ MyBatis（执行链路 · 代理 · 缓存）<span class="pct">0%</span></h2>
+<div class="hint">MyBatis 的三根主线：执行链路（四大对象）、Mapper 动态代理、两级缓存。</div>
+
+<details class="q" data-id="mb1">
+<summary><span class="lv lv1">必考</span>讲一下 MyBatis 的一次完整执行链路</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <p>从 SqlSession 到数据库，核心是<b>四大对象</b>的接力：</p>
+  <div class="flowwrap">
+  <svg viewBox="0 0 680 470" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+  <title>MyBatis 执行链路图</title>
+  <desc>SqlSession 到 Executor 到 StatementHandler 的执行接力</desc>
+  <defs><marker id="fw4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+  <g><rect x="200" y="20" width="280" height="48" rx="10" fill="var(--f1)" stroke="var(--sk1)" stroke-width="0.5"/><text x="340" y="44" text-anchor="middle" font-size="13" fill="var(--t1)" dominant-baseline="central">Mapper 接口（MapperProxy 动态代理）</text><text x="340" y="58" text-anchor="middle" font-size="11" fill="var(--s1)" dominant-baseline="central">接口方法 → 定位 MappedStatement</text></g>
+  <line x1="340" y1="68" x2="340" y2="86" stroke="var(--s2)" stroke-width="1.5" marker-end="url(#fw4)"/>
+  <g><rect x="200" y="86" width="280" height="48" rx="10" fill="var(--f1)" stroke="var(--sk1)" stroke-width="0.5"/><text x="340" y="110" text-anchor="middle" font-size="13" fill="var(--t1)" dominant-baseline="central">SqlSession（门面）</text><text x="340" y="124" text-anchor="middle" font-size="11" fill="var(--s1)" dominant-baseline="central">增删改查 API 的入口</text></g>
+  <line x1="340" y1="134" x2="340" y2="152" stroke="var(--s2)" stroke-width="1.5" marker-end="url(#fw4)"/>
+  <g><rect x="200" y="152" width="280" height="48" rx="10" fill="var(--f3)" stroke="var(--sk3)" stroke-width="0.5"/><text x="340" y="176" text-anchor="middle" font-size="13" fill="var(--t3)" dominant-baseline="central">Executor 执行器（调度核心）</text><text x="340" y="190" text-anchor="middle" font-size="11" fill="var(--s3)" dominant-baseline="central">管缓存（一级）、事务提交、Statement 创建</text></g>
+  <line x1="340" y1="200" x2="340" y2="218" stroke="var(--s2)" stroke-width="1.5" marker-end="url(#fw4)"/>
+  <g><rect x="140" y="218" width="400" height="48" rx="10" fill="var(--f4)" stroke="var(--sk4)" stroke-width="0.5"/><text x="340" y="242" text-anchor="middle" font-size="13" fill="var(--t4)" dominant-baseline="central">StatementHandler（真正干活）</text><text x="340" y="256" text-anchor="middle" font-size="11" fill="var(--s4)" dominant-baseline="central">Simple / PreparedStatement / Callable</text></g>
+  <line x1="240" y1="266" x2="240" y2="288" stroke="var(--s2)" stroke-width="1.5" marker-end="url(#fw4)"/>
+  <line x1="440" y1="266" x2="440" y2="288" stroke="var(--s2)" stroke-width="1.5" marker-end="url(#fw4)"/>
+  <g><rect x="110" y="288" width="260" height="48" rx="10" fill="var(--f3)" stroke="var(--sk3)" stroke-width="0.5"/><text x="240" y="312" text-anchor="middle" font-size="13" fill="var(--t3)" dominant-baseline="central">ParameterHandler</text><text x="240" y="326" text-anchor="middle" font-size="11" fill="var(--s3)" dominant-baseline="central">#{} 参数设置、TypeHandler 转换</text></g>
+  <g><rect x="310" y="288" width="260" height="48" rx="10" fill="var(--f3)" stroke="var(--sk3)" stroke-width="0.5"/><text x="440" y="312" text-anchor="middle" font-size="13" fill="var(--t3)" dominant-baseline="central">ResultSetHandler</text><text x="440" y="326" text-anchor="middle" font-size="11" fill="var(--s3)" dominant-baseline="central">结果映射、resultMap 组装</text></g>
+  <line x1="340" y1="336" x2="340" y2="354" stroke="var(--s2)" stroke-width="1.5" marker-end="url(#fw4)"/>
+  <g><rect x="200" y="354" width="280" height="48" rx="10" fill="var(--f2)" stroke="var(--sk2)" stroke-width="0.5"/><text x="340" y="378" text-anchor="middle" font-size="13" fill="var(--t2)" dominant-baseline="central">JDBC（PreparedStatement → DB）</text><text x="340" y="392" text-anchor="middle" font-size="11" fill="var(--s2)" dominant-baseline="central">连接来自 DataSource / 连接池</text></g>
+  <g><rect x="60" y="418" width="560" height="40" rx="10" fill="var(--f5)" stroke="var(--sk5)" stroke-width="0.5"/><text x="340" y="438" text-anchor="middle" font-size="12.5" fill="var(--t5)" dominant-baseline="central">插件（Interceptor）可拦截四大对象：Executor / StatementHandler / ParameterHandler / ResultSetHandler</text></g>
+  </svg>
+  </div>
+  <p><b>口述版</b>：Mapper 代理把方法调用路由到 SqlSession → SqlSession 委托给 <b>Executor</b>（先查一级缓存，没有才执行）→ Executor 创建 <b>StatementHandler</b> → 由 <b>ParameterHandler</b> 设参、执行 JDBC、<b>ResultSetHandler</b> 映射结果。整个过程每个环节都能被<b>插件</b>拦截。</p>
+  <div class="memo"><b>记忆点：</b><span class="hook">代理→Session→Executor→StatementHandler→参数/结果两助手</span></div>
+</div>
+</details>
+
+<details class="q" data-id="mb2">
+<summary><span class="lv lv1">必考</span>Mapper 只是接口，没有实现类，为什么能调通？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <p><b>JDK 动态代理 + MapperProxy</b>。启动时 MyBatis 用 MapperScan 扫描接口，为每个接口注册 MapperProxyFactory；getMapper 时生成 JDK 代理对象，方法调用统一进入 <code>MapperProxy#invoke</code>：</p>
+  <ol>
+    <li>根据「接口全限定名 + 方法名」定位到 <b>MappedStatement</b>（XML 里 id = namespace.method 的那条 SQL）。</li>
+    <li>把方法参数包装成参数 Map。</li>
+    <li>转发给 SqlSession 对应的增删改查方法。</li>
+  </ol>
+  <p><b>所以"没有实现类"的原因</b>：实现被<b>动态代理在运行时统一接管</b>了——所有接口共用一个 MapperProxy 逻辑，SQL 真身在 XML/注解里，不需要手写实现。</p>
+  <div class="followup"><b>追问：方法重载会怎样？</b>定位靠「namespace + 方法名」，不看你参数——重载会定位歧义，所以 Mapper 接口禁止方法重载。</div>
+<pre><code>// MapperProxy#invoke（简化）——所有 Mapper 方法调用都进这里
+public Object invoke(Object proxy, Method method, Object[] args) {
+    // "com.demo.mapper.UserMapper.selectById" = namespace + 方法名 → 定位 MappedStatement
+    MapperMethod mapperMethod = cachedMapperMethod(method);
+    return mapperMethod.execute(sqlSession, args);   // 转发给 SqlSession 的对应增删改查
+}</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">JDK 代理 MapperProxy</span><span class="hook">全限定名+方法名=定位 SQL</span><span class="hook">禁止重载</span></div>
+</div>
+</details>
+
+<details class="q" data-id="mb3">
+<summary><span class="lv lv1">必考</span>#{} 和 ${} 的区别？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <table class="tbl">
+    <tr><th></th><th>#{}</th><th>${}</th></tr>
+    <tr><td class="k">实现</td><td><b>预编译占位符 ?</b>，PreparedStatement 设参</td><td><b>字符串直接拼接</b>进 SQL</td></tr>
+    <tr><td class="k">安全</td><td>防 SQL 注入</td><td><b>有注入风险</b></td></tr>
+    <tr><td class="k">性能</td><td>同 SQL 可复用执行计划</td><td>每次拼接 SQL 不同，无法复用</td></tr>
+    <tr><td class="k">适用</td><td>所有传值场景（默认用它）</td><td>表名/列名/ORDER BY 字段等<b>不能参数化</b>的结构</td></tr>
+  </table>
+  <p><b>${} 唯一的合理使用</b>：动态表名、动态排序列这类"结构"场景——但值必须来自<b>白名单校验</b>，绝不能直接接用户输入。</p>
+  <div class="pit"><b>踩坑：</b>说"永远用 #{}"不严谨——ORDER BY 动态列用 #{} 会变成字符串常量 'col_name' 排序失效。正确表述：值用 #{}，结构用 ${} + 白名单。</div>
+<pre><code>&lt;!-- #{}：预编译占位符 ?，值安全、执行计划可复用 —— 传值一律用它 --&gt;
+&lt;select id="getById" resultType="User"&gt;
+    SELECT * FROM user WHERE id = #{id}
+&lt;/select&gt;
+
+&lt;!-- ${}：字符串直接拼接，有注入风险 —— 只用于表名/列名等结构，且必须白名单校验 --&gt;
+&lt;select id="listByOrder" resultType="User"&gt;
+    SELECT * FROM user ORDER BY ${orderColumn} ${orderDir}
+    &lt;!-- orderColumn 绝不能直接接用户输入 --&gt;
+&lt;/select&gt;</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook"># 预编译防注入</span><span class="hook">$ 拼接有风险</span><span class="hook">表名列名才用 $ 且白名单</span></div>
+</div>
+</details>
+
+<details class="q" data-id="mb4">
+<summary><span class="lv lv1">必考</span>一级缓存和二级缓存的区别？生产怎么用？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <table class="tbl">
+    <tr><th></th><th>一级缓存</th><th>二级缓存</th></tr>
+    <tr><td class="k">范围</td><td><b>SqlSession 内</b>（默认开启）</td><td><b>namespace 级</b>（Mapper 级）</td></tr>
+    <tr><td class="k">结构</td><td>PerpetualCache（HashMap）</td><td>默认 PerpetualCache，可接 Redis/Ehcache</td></tr>
+    <tr><td class="k">失效时机</td><td>session 内增删改、clearCache、session 关闭</td><td>namespace 内任何增删改触发<b>整体清空</b></td></tr>
+    <tr><td class="k">整合点</td><td>Executor（BaseExecutor）里</td><td>CachingExecutor 装饰器包在 Executor 外层</td></tr>
+    <tr><td class="k">生产态度</td><td>与 Spring 整合后每请求一个 session，作用≈请求内小缓存</td><td><b>基本关闭</b>（生产慎用）</td></tr>
+  </table>
+  <p><b>二级缓存为什么生产慎用（三个硬伤）</b>：</p>
+  <ol>
+    <li><b>跨实例脏读</b>：多实例部署时各节点缓存独立，A 节点改库清自己的缓存，B 节点还拿着旧值——分布式下必然脏读。</li>
+    <li><b>namespace 粒度太粗</b>：一条 SQL 更新就清空整个 namespace，命中率低；多表关联查询缓存在 A namespace，B namespace 更新表时 A 的缓存<b>感知不到</b>，直接脏读。</li>
+    <li><b>序列化开销</b>：二级缓存存的是序列化副本，对象大时得不偿失。</li>
+  </ol>
+  <p><b>正确姿势</b>：缓存需求交给 <b>Redis 等专业缓存</b>，自己控制 key/过期/一致性（见缓存一致性专题），MyBatis 二级缓存保持关闭。</p>
+<pre><code>&lt;settings&gt;
+    &lt;!-- 一级缓存默认开启（SESSION 级） --&gt;
+    &lt;setting name="localCacheScope" value="SESSION"/&gt;
+    &lt;!-- 二级缓存生产保持关闭：多实例脏读 + namespace 粒度太粗 --&gt;
+    &lt;setting name="cacheEnabled" value="false"/&gt;
+&lt;/settings&gt;</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">一级 session 默认开</span><span class="hook">二级 namespace 生产关</span><span class="hook">多实例必脏读</span></div>
+</div>
+</details>
+
+<details class="q" data-id="mb5">
+<summary><span class="lv lv2">高频</span>resultMap 和 resultType 的区别？什么时候必须用 resultMap？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <ul>
+    <li><b>resultType</b>：按<b>列名 = 属性名</b>自动映射，简单查询够用（列名转驼峰可开 mapUnderscoreToCamelCase）。</li>
+    <li><b>resultMap</b>：手动指定列↔属性映射，<b>四种场景必须用</b>：① 列名和属性名对不上且没开驼峰；② <b>association 一对一</b>；③ <b>collection 一对多</b>；④ 需要列别名复用同一映射。</li>
+  </ul>
+  <div class="followup"><b>追问：一对一用联表还是 N+1 单查？</b>联表一次查完（分页友好但 SQL 复杂）；N+1 是每行再发一条 SQL——数据量大时性能灾难，MyBatis 的 association select 写法天然是 N+1，需配合延迟加载缓解。分页场景必须联表。</div>
+<pre><code>&lt;resultMap id="OrderMap" type="Order"&gt;
+    &lt;id column="order_id" property="id"/&gt;
+    &lt;result column="user_name" property="userName"/&gt;
+    &lt;!-- 一对一：联表查下单用户 --&gt;
+    &lt;association property="user" javaType="User"&gt;
+        &lt;id column="u_id" property="id"/&gt;
+        &lt;result column="u_name" property="name"/&gt;
+    &lt;/association&gt;
+    &lt;!-- 一对多：订单明细列表 --&gt;
+    &lt;collection property="items" ofType="OrderItem"&gt;
+        &lt;result column="item_name" property="name"/&gt;
+        &lt;result column="price" property="price"/&gt;
+    &lt;/collection&gt;
+&lt;/resultMap&gt;</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">同名自动映射</span><span class="hook">关联映射必须 resultMap</span><span class="hook">N+1 是性能坑</span></div>
+</div>
+</details>
+
+<details class="q" data-id="mb6">
+<summary><span class="lv lv2">高频</span>MyBatis 的延迟加载原理是什么？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <p><b>原理</b>：查主对象时，关联属性先用<b>代理对象占位</b>（cglib 或 javassist 生成子类代理）；等真正调用关联属性的 getter 时，代理拦截，<b>此时才发 SQL 查关联数据</b>。</p>
+  <ul>
+    <li>配置：lazyLoadingEnabled=true，aggressiveLazyLoading=false（3.4.1+ 默认按需）。</li>
+    <li>作用：只查主表场景省掉关联查询的 SQL 开销。</li>
+  </ul>
+  <div class="pit"><b>踩坑：</b>延迟加载对象<b>脱离 SqlSession 后再访问会报错</b>（LazyInitializationException）——session 关了代理没法发 SQL。配合 Spring 整合时要注意返回给前端的 DTO 如果带懒代理，序列化（Jackson）可能踩空字段。</div>
+<pre><code>mybatis:
+  configuration:
+    lazy-loading-enabled: true        # 关联属性先用代理占位
+    aggressive-lazy-loading: false    # 按需触发：调 getter 才发 SQL 查关联</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">代理占位·用时才查</span><span class="hook">session 关了就炸</span></div>
+</div>
+</details>
+
+<details class="q" data-id="mb7">
+<summary><span class="lv lv2">高频</span>MyBatis 插件机制是什么？能拦截什么？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <p><b>Interceptor 接口 + 责任链 + 动态代理</b>：插件实现 Interceptor，用 @Intercepts 声明拦截哪个对象的哪个方法，MyBatis 在创建四大对象时用<b>代理层层包裹</b>（TargetProxy 链），调用时按注册顺序依次穿过插件。</p>
+  <ul>
+    <li><b>可拦截四大对象</b>：Executor、StatementHandler、ParameterHandler、ResultSetHandler。</li>
+    <li><b>经典应用</b>：PageHelper（拦截 Executor 改写分页 SQL + count）、慢 SQL 监控、SQL 打印、数据权限改写、字段加解密。</li>
+  </ul>
+  <div class="followup"><b>追问：PageHelper 的原理？</b>拦截 Executor 的 query，先执行一条 count SQL，再在原 SQL 后面拼 LIMIT 执行分页查询——靠 ThreadLocal 传递分页参数，<b>所以 PageHelper.startPage 必须紧贴查询、用完要清理</b>，否则 ThreadLocal 残留会让下一条无辜 SQL 被分页。</div>
+<pre><code>@Intercepts({
+    @Signature(type = Executor.class, method = "query",
+               args = {MappedStatement.class, Object.class,
+                       RowBounds.class, ResultHandler.class})
+})
+@Component
+public class SlowSqlPlugin implements Interceptor {
+    @Override
+    public Object intercept(Invocation invocation) throws Throwable {
+        long start = System.currentTimeMillis();
+        try {
+            return invocation.proceed();     // 放行：下一个插件 → 目标对象
+        } finally {
+            long cost = System.currentTimeMillis() - start;
+            if (cost &gt; 1000) log.warn("慢SQL: {} ms", cost);
+        }
+    }
+}</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">四大对象可拦</span><span class="hook">代理责任链</span><span class="hook">PageHelper=改写 SQL+ThreadLocal</span></div>
+</div>
+</details>
+
+<details class="q" data-id="mb8">
+<summary><span class="lv lv1">必考</span>逻辑分页和物理分页的区别？为什么用 PageHelper 而不用 RowBounds？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <table class="tbl">
+    <tr><th></th><th>逻辑分页（RowBounds）</th><th>物理分页（LIMIT / PageHelper）</th></tr>
+    <tr><td class="k">实现</td><td>查<b>全部结果到内存</b>，再游标截取</td><td>SQL 里拼 LIMIT，数据库只返回该页</td></tr>
+    <tr><td class="k">内存</td><td>大表直接 OOM</td><td>只占一页</td></tr>
+    <tr><td class="k">网络</td><td>全量传输</td><td>只传一页</td></tr>
+  </table>
+  <p><b>结论</b>：数据量小的场景 RowBounds 才可用；生产一律物理分页。PageHelper 本质是<b>把物理分页做成了插件</b>（自动拼 LIMIT + 自动 count），兼得便利与性能。深分页问题（LIMIT 1000000,10）另议——用游标/延迟关联优化，那是 SQL 优化专题的事。</p>
+<pre><code>// startPage 必须紧贴下一条查询（靠 ThreadLocal 传分页参数），中间不能插别的 SQL
+PageHelper.startPage(pageNum, pageSize);
+List&lt;Order&gt; list = orderMapper.selectList(query);   // 被插件改写成 LIMIT 物理分页
+PageInfo&lt;Order&gt; page = new PageInfo&lt;&gt;(list);        // 总数、页数都在这里
+// 若 startPage 后没执行查询，ThreadLocal 残留会污染下一条无辜 SQL</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">RowBounds 全捞内存</span><span class="hook">生产物理分页</span></div>
+</div>
+</details>
+
+<details class="q" data-id="mb9">
+<summary><span class="lv lv2">高频</span>MyBatis 和 JPA/Hibernate 怎么选？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <table class="tbl">
+    <tr><th></th><th>MyBatis</th><th>JPA/Hibernate</th></tr>
+    <tr><td class="k">SQL 控制</td><td>SQL 全手写，精细可控</td><td>自动生成，复杂查询要 HQL/原生 SQL 绕</td></tr>
+    <tr><td class="k">开发效率</td><td>简单 CRUD 也要写 XML（MP 缓解）</td><td>CRUD 飞快、跨库迁移容易</td></tr>
+    <tr><td class="k">学习成本</td><td>低（本质是 SQL 映射）</td><td>高（一级缓存、脏检查、N+1 陷阱多）</td></tr>
+    <tr><td class="k">国内主流</td><td>互联网/业务系统事实标准</td><td>外企、规范型项目多</td></tr>
+  </table>
+  <p><b>面试答法</b>：MyBatis 适合<b>SQL 优化空间大、查询复杂、表结构灵活</b>的互联网业务；JPA 适合<b>领域模型稳定、CRUD 为主</b>的项目。团队技术栈和复杂查询占比决定选型，没有绝对优劣。</p>
+  <div class="memo"><b>记忆点：</b><span class="hook">MyBatis 管 SQL</span><span class="hook">JPA 管模型</span><span class="hook">复杂查询选 MyBatis</span></div>
+</div>
+</details>
+
+<details class="q" data-id="mb10">
+<summary><span class="lv lv2">高频</span>MyBatis 的动态 SQL 有哪些标签？&lt;where&gt;&lt;if&gt; 组合有什么坑？</summary>
+<div class="bd">
+  <label class="ck"><input type="checkbox"> 考点：能脱稿讲 3 分钟</label>
+  <ul>
+    <li><b>核心标签</b>：&lt;if&gt;、&lt;where&gt;（自动去开头 AND/OR）、&lt;set&gt;（自动去尾逗号，update 用）、&lt;choose&gt;/&lt;when&gt;/&lt;otherwise&gt;（switch 语义）、&lt;foreach&gt;（in 条件/批量插入）、&lt;trim&gt;（万能前后缀裁剪）、&lt;bind&gt;。</li>
+    <li><b>&lt;foreach&gt; 的坑</b>：in 列表<b>过大</b>（上千元素）SQL 超长、执行计划劣化——分批（每批 500~1000）；批量插入同理。</li>
+    <li><b>&lt;if test&gt; 的坑</b>：test 里对 Integer 判断 <code>!= ''</code>，值为 0 时被 OGNL 当空串误判为 false——数值类型判断别拼空串比较。</li>
+    <li><b>&lt;where&gt; 救不了的</b>：条件全为空时 where 整个消失 → 全表扫，业务上要兜底（比如强制一个恒真条件或前置校验）。</li>
+  </ul>
+<pre><code>&lt;select id="query" resultType="Order"&gt;
+    SELECT * FROM t_order
+    &lt;where&gt;
+        &lt;!-- 数值类型别拼 != ''：type=0 时 OGNL 把 0 当空串判 false --&gt;
+        &lt;if test="status != null"&gt;AND status = #{status}&lt;/if&gt;
+        &lt;if test="userId != null"&gt;AND user_id = #{userId}&lt;/if&gt;
+    &lt;/where&gt;
+    &lt;if test="ids != null and ids.size() &gt; 0"&gt;
+        AND id IN
+        &lt;!-- in 列表过大要分批（每批 500~1000）：SQL 超长且执行计划劣化 --&gt;
+        &lt;foreach collection="ids" item="id" open="(" separator="," close=")"&gt;
+            #{id}
+        &lt;/foreach&gt;
+    &lt;/if&gt;
+&lt;/select&gt;
+
+&lt;!-- &lt;set&gt;：update 自动去尾逗号 --&gt;
+&lt;update id="update"&gt;
+    UPDATE t_order
+    &lt;set&gt;
+        &lt;if test="status != null"&gt;status = #{status},&lt;/if&gt;
+        &lt;if test="amount != null"&gt;amount = #{amount},&lt;/if&gt;
+    &lt;/set&gt;
+    WHERE id = #{id}
+&lt;/update&gt;</code></pre>
+  <div class="memo"><b>记忆点：</b><span class="hook">where 去头 set 去尾</span><span class="hook">foreach 分批</span><span class="hook">Integer 0 被当空串</span></div>
+</div>
+</details>
+</section>
+
+</div>
+<script>
+(function(){
+  var lvMap={'lv1':1,'lv2':2,'lv3':3};
+  var qs=Array.prototype.slice.call(document.querySelectorAll('details.q'));
+  var cks=Array.prototype.slice.call(document.querySelectorAll('.bd input[type="checkbox"]'));
+  var se=document.getElementById('q'),prog=document.getElementById('prog');
+  var curLv='all';
+
+  function store(){try{return JSON.parse(localStorage.getItem('fw-prog')||'{}')}catch(e){return{}}}
+  function save(s){try{localStorage.setItem('fw-prog',JSON.stringify(s))}catch(e){}}
+  function refresh(){
+    var s=store(),done=0;
+    cks.forEach(function(c,i){c.checked=!!s[i];if(c.checked)done++});
+    prog.innerHTML='考点进度 <b>'+done+' / '+cks.length+'</b>';
+    document.querySelectorAll('.module').forEach(function(m){
+      var local=Array.prototype.slice.call(m.querySelectorAll('.bd input[type="checkbox"]'));
+      var d=0;local.forEach(function(c){if(c.checked)d++});
+      var pct=local.length?Math.round(d/local.length*100):0;
+      var el=m.querySelector('.pct');if(el)el.textContent=pct+'%';
+    });
+  }
+  cks.forEach(function(c,i){c.addEventListener('change',function(){var s=store();s[i]=c.checked;save(s);refresh()})});
+
+  function qlv(q){var lv=q.querySelector('.lv');return lv?lvMap[lv.className.split(' ')[1]]||0:0}
+  function applyFilter(){
+    var kw=se.value.trim().toLowerCase();
+    qs.forEach(function(q){
+      var hit=curLv==='all'||qlv(q)===curLv;
+      var kh=!kw||q.textContent.toLowerCase().indexOf(kw)>=0;
+      q.classList.toggle('hide',!(hit&&kh));
+    });
+  }
+  document.querySelectorAll('.fbtn').forEach(function(b){
+    b.addEventListener('click',function(){
+      document.querySelectorAll('.fbtn').forEach(function(x){x.classList.remove('on')});
+      b.classList.add('on');curLv=b.dataset.lv;applyFilter();
+    });
+  });
+  se.addEventListener('input',applyFilter);
+
+  document.getElementById('btn-expand').addEventListener('click',function(){qs.forEach(function(q){q.open=true})});
+  document.getElementById('btn-collapse').addEventListener('click',function(){qs.forEach(function(q){q.open=false})});
+
+  var theme=document.getElementById('btn-theme');
+  function setTheme(t){document.documentElement.setAttribute('data-theme',t);theme.textContent=t==='dark'?'亮色':'暗色';try{localStorage.setItem('fw-theme',t)}catch(e){}}
+  theme.addEventListener('click',function(){setTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark')});
+  try{var t=localStorage.getItem('fw-theme');if(t)setTheme(t)}catch(e){}
+
+  document.querySelectorAll('.module>h2').forEach(function(h){
+    h.addEventListener('click',function(e){
+      if(e.target.tagName==='INPUT')return;
+      var open=h.querySelector('input[type=checkbox]')?h.querySelector('input[type=checkbox]').checked:false;
+      var body=h.parentElement;var items=body.querySelectorAll('details.q');
+      var anyOpen=Array.prototype.some.call(items,function(x){return x.open});
+      items.forEach(function(x){x.open=!anyOpen});
+    });
+  });
+
+  refresh();
+})();
+</script>
+</body>
+</html>

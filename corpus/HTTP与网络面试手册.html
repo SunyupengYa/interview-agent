@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTTP 与网络 · 面试手册</title>
+<style>
+:root{
+  --bg:#f5f6f8; --card:#ffffff; --line:#e5e7eb; --line2:#d1d5db;
+  --tx:#1f2937; --tx2:#6b7280; --tx3:#9ca3af;
+  --ac:#2563eb; --ac-bg:#eff6ff; --ac-line:#bfdbfe;
+  --must:#dc2626; --must-bg:#fef2f2; --must-line:#fecaca;
+  --high:#d97706; --high-bg:#fffbeb; --high-line:#fde68a;
+  --bonus:#059669; --bonus-bg:#ecfdf5; --bonus-line:#a7f3d0;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font:15px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
+a{color:var(--ac);text-decoration:none}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:272px;flex:0 0 272px;background:#0f172a;color:#e2e8f0;position:sticky;top:0;height:100vh;overflow-y:auto;padding:20px 0}
+.sidebar .brand{padding:0 20px 16px;border-bottom:1px solid #1e293b;font-size:16px;font-weight:600;color:#fff;line-height:1.4}
+.sidebar .brand small{display:block;font-size:12px;font-weight:400;color:#94a3b8;margin-top:4px}
+.nav-item{display:block;padding:9px 20px;color:#cbd5e1;font-size:13.5px;border-left:3px solid transparent}
+.nav-item:hover{background:#1e293b;color:#fff}
+.nav-item.active{background:#1e293b;color:#fff;border-left-color:#3b82f6}
+.nav-item .pct{float:right;font-size:12px;color:#64748b}
+.main{flex:1;min-width:0;padding:28px 36px 80px;max-width:1000px}
+.toolbar{position:sticky;top:0;background:var(--bg);padding:12px 0;z-index:10;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.toolbar input[type=search]{flex:1;min-width:200px;padding:9px 14px;border:1px solid var(--line2);border-radius:8px;font-size:14px;background:var(--card)}
+.toolbar input[type=search]:focus{outline:2px solid var(--ac-line);border-color:var(--ac)}
+.fbtn{padding:8px 14px;border:1px solid var(--line2);border-radius:8px;background:var(--card);font-size:13px;cursor:pointer;white-space:nowrap}
+.fbtn.active{background:var(--ac);color:#fff;border-color:var(--ac)}
+h1{font-size:24px;margin:8px 0 6px}
+.lead{color:var(--tx2);font-size:14px;margin-bottom:20px}
+.overview{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.ov{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+.ov .num{font-size:26px;font-weight:700;color:var(--ac)}
+.ov .lab{font-size:12px;color:var(--tx2)}
+section.module{margin:32px 0 8px}
+section.module>h2{font-size:20px;padding-bottom:8px;border-bottom:2px solid var(--line);display:flex;align-items:center;gap:10px}
+section.module>h2 .cnt{font-size:13px;color:var(--tx2);font-weight:400}
+.q{border:1px solid var(--line);border-radius:10px;background:var(--card);margin:14px 0;overflow:hidden}
+.q>summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;align-items:flex-start;gap:10px}
+.q>summary::-webkit-details-marker{display:none}
+.q>summary::before{content:"▸";color:var(--tx3);font-size:14px;margin-top:2px;flex:0 0 auto;transition:transform .15s}
+.q[open]>summary::before{transform:rotate(90deg)}
+.q .q-title{flex:1}
+.q .q-title .qn{font-weight:600}
+.lv{display:inline-block;font-size:11px;padding:1px 8px;border-radius:10px;margin-left:6px;vertical-align:1px;font-weight:500}
+.lv1{background:var(--must-bg);color:var(--must);border:1px solid var(--must-line)}
+.lv2{background:var(--high-bg);color:var(--high);border:1px solid var(--high-line)}
+.lv3{background:var(--bonus-bg);color:var(--bonus);border:1px solid var(--bonus-line)}
+.ck{margin-top:3px;font-size:13px;color:var(--tx2);display:flex;align-items:center;gap:6px}
+.ck input{width:15px;height:15px;cursor:pointer}
+.q .bd{padding:2px 16px 16px 40px}
+.q .bd h4{font-size:14px;margin:14px 0 6px;color:#111827}
+.q .bd p{margin:6px 0}
+.q .bd ul,.q .bd ol{margin:6px 0;padding-left:22px}
+.q .bd li{margin:3px 0}
+.q .bd code,.code{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px}
+pre{background:#0f172a;color:#ffffff;border-radius:8px;padding:16px 18px;overflow-x:auto;font-family:Menlo,Consolas,"Courier New",monospace;font-size:14.5px;line-height:1.75;margin:10px 0}
+pre code{background:none;border:none;padding:0;color:inherit;font-size:14.5px;line-height:1.75}
+.followup{border-left:3px solid var(--ac);background:var(--ac-bg);border-radius:0 8px 8px 0;padding:10px 14px;margin:10px 0;font-size:14px}
+.followup b{color:var(--ac)}
+.pit{border-left:3px solid var(--must);background:var(--must-bg);border-radius:0 8px 8px 0;padding:10px 14px;margin:10px 0;font-size:14px}
+.pit b{color:var(--must)}
+table.tb{width:100%;border-collapse:collapse;margin:10px 0;font-size:13.5px}
+table.tb th,table.tb td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+table.tb th{background:#f8fafc;font-weight:600}
+.hide{display:none!important}
+.glossary{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:24px}
+.glossary h2{font-size:18px;margin:0 0 4px}
+.glossary .gsub{font-size:13px;color:var(--tx2);margin-bottom:16px}
+.glossary table{width:100%;border-collapse:collapse;font-size:13.5px}
+.glossary th,.glossary td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+.glossary th{background:#f8fafc;font-weight:600;width:130px}
+.glossary td code{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px;color:var(--ac);font-weight:600}
+.topbtns{display:flex;gap:8px}
+@media print{
+  .sidebar,.toolbar{display:none}
+  .layout{display:block}
+  .main{padding:0;max-width:none}
+  .q{border-color:#ccc;break-inside:avoid}
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0b1220;--card:#111827;--line:#1f2937;--line2:#374151;--tx:#e5e7eb;--tx2:#9ca3af;--tx3:#6b7280;--ac:#60a5fa;--ac-bg:#1e3a5f;--ac-line:#2563eb;--must:#f87171;--must-bg:#3f1d1d;--must-line:#7f1d1d;--high:#fbbf24;--high-bg:#3a2c0a;--high-line:#78350f;--bonus:#34d399;--bonus-bg:#0a2e20;--bonus-line:#065f46}
+  .q .bd code,.code{background:#1e293b;border-color:#334155}
+  table.tb th{background:#1e293b}
+  .glossary th{background:#1e293b}
+  .glossary td code{background:#1e293b;border-color:#334155}
+  .q .bd h4{color:#f3f4f6}
+  pre{background:#0b1220;border:1px solid #1f2937}
+}
+/* 修复：行内 code 底纹样式(.q .bd code 优先级高于 pre code)会污染代码块，此规则强制清除 */pre code,.q .bd pre code,.bd pre code,.glossary pre code{background:none!important;border:none!important;padding:0!important;border-radius:0!important;color:inherit;font-size:14.5px;line-height:1.75}</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="brand">HTTP 与网络<small>面试手册 · 5 年 Java 后端</small></div>
+  <a class="nav-item active" href="#mod0" data-mod="mod0">总览 · 概念速查</a>
+  <a class="nav-item" href="#mod1" data-mod="mod1">① TCP 连接管理 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod2" data-mod="mod2">② HTTP 协议 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod3" data-mod="mod3">③ HTTPS 与加密 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod4" data-mod="mod4">④ 网络分层与基础设施 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod5" data-mod="mod5">⑤ 网络实战与排障 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod6" data-mod="mod6">⑥ 综合场景 <span class="pct"></span></a>
+  <div style="padding:16px 20px;font-size:12px;color:#64748b;border-top:1px solid #1e293b;margin-top:16px">
+    进度保存在本机 localStorage<br>清缓存会丢
+  </div>
+</aside>
+
+<main class="main">
+  <div class="toolbar">
+    <input type="search" id="search" placeholder="搜索题目、关键词（如：三次握手、TIME_WAIT、HTTPS、队头阻塞、粘包、CDN、304…）">
+    <div class="topbtns">
+      <button class="fbtn" data-lv="all">全部</button>
+      <button class="fbtn" data-lv="1">必考</button>
+      <button class="fbtn" data-lv="2">高频</button>
+      <button class="fbtn" data-lv="3">加分</button>
+    </div>
+    <div class="topbtns">
+      <button class="fbtn" id="btn-expand">全部展开</button>
+      <button class="fbtn" id="btn-collapse">全部折叠</button>
+    </div>
+  </div>
+
+  <h1>HTTP 与网络面试手册</h1>
+  <p class="lead">面向 <b>5 年 Java 后端</b>，覆盖 <b>TCP 连接管理 → HTTP 协议 → HTTPS 加密 → 网络基础设施 → 线上排障 → 综合场景</b>。核心是「<b>报文级细节 + 状态机推演 + 抓包排障</b>」，经得起面试官连环追问。难度：<span class="lv lv1">必考</span> <span class="lv lv2">高频</span> <span class="lv lv3">加分</span>。</p>
+
+  <div class="overview">
+    <div class="ov"><div class="num" id="ov-total">0</div><div class="lab">总题量</div></div>
+    <div class="ov"><div class="num" id="ov-done">0</div><div class="lab">已掌握</div></div>
+    <div class="ov"><div class="num" id="ov-pct">0%</div><div class="lab">整体进度</div></div>
+    <div class="ov"><div class="num" id="ov-mod">6</div><div class="lab">模块数</div></div>
+  </div>
+
+  <!-- ============ 总览 ============ -->
+  <section class="module" id="mod0">
+    <div class="glossary">
+      <h2>核心概念速查 · 一张表记牢</h2>
+      <p class="gsub">网络题最怕背结论不懂原理。先记「<b>它解决什么问题 + 关键状态</b>」，后面逐题展开。</p>
+      <table>
+        <thead><tr><th>概念</th><th>一句话定位</th><th>关键点</th></tr></thead>
+        <tbody>
+          <tr><th><code>三次握手</code></th><td>建立 TCP 连接，同步双方初始序列号</td><td>SYN → SYN+ACK → ACK；防历史连接</td></tr>
+          <tr><th><code>四次挥手</code></th><td>关闭 TCP 连接（全双工，两个方向分别关）</td><td>FIN → ACK → FIN → ACK</td></tr>
+          <tr><th><code>TIME_WAIT</code></th><td>主动关闭方的状态，持续 2MSL</td><td>保证最后的 ACK 可达 + 旧报文消亡</td></tr>
+          <tr><th><code>CLOSE_WAIT</code></th><td>被动关闭方收到 FIN 后的状态</td><td>堆积 = 代码没调 <code>close()</code>，是 bug</td></tr>
+          <tr><th><code>TCP</code></th><td>面向连接、可靠、字节流</td><td>确认重传 / 滑动窗口 / 拥塞控制</td></tr>
+          <tr><th><code>UDP</code></th><td>无连接、不可靠、报文</td><td>快、无队头阻塞（DNS/视频/QUIC）</td></tr>
+          <tr><th><code>HTTPS</code></th><td>HTTP + TLS：非对称交换密钥，对称加密数据</td><td>TLS1.2 两次 RTT，1.3 一次</td></tr>
+          <tr><th><code>304</code></th><td>协商缓存命中，浏览器用本地副本</td><td>ETag / Last-Modified 校验</td></tr>
+          <tr><th><code>队头阻塞</code></th><td>HTTP/1.1 应用层、HTTP/2 传输层各有一种</td><td>HTTP/3 用 QUIC（UDP）解决</td></tr>
+          <tr><th><code>正向代理</code></th><td>代理<b>客户端</b>，服务端不知道真实客户端</td><td>VPN、科学上网</td></tr>
+          <tr><th><code>反向代理</code></th><td>代理<b>服务端</b>，客户端不知道真实服务器</td><td>Nginx、网关、CDN 边缘节点</td></tr>
+        </tbody>
+      </table>
+      <div class="followup" style="margin-top:16px"><b>面试主线：</b>「<b>建立连接（三次握手）→ 传数据（可靠传输/粘包）→ 关连接（四次挥手/TIME_WAIT）→ 全程安全（HTTPS）→ 出问题会排查（抓包/状态分析）</b>」。这条链走完，网络基础题基本无死角。</div>
+    </div>
+  </section>
+
+  <!-- ============ ① TCP 连接管理 ============ -->
+  <section class="module" id="mod1">
+    <h2>① TCP 连接管理 <span class="cnt">三次握手 · 四次挥手 · TIME_WAIT · 可靠传输</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t1q1">三次握手的详细过程？为什么必须是三次，两次不行吗？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="t1q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>报文级流程</h4>
+        <pre><code>客户端                          服务端
+  |---- SYN, seq=x --------------&gt;|   第一次：客户端进入 SYN_SENT
+  |&lt;--- SYN+ACK, seq=y, ack=x+1 --|   第二次：服务端进入 SYN_RCVD
+  |---- ACK, seq=x+1, ack=y+1 ---&gt;|   第三次：双方进入 ESTABLISHED
+  |---- (可携带数据) --------------&gt;|</code></pre>
+        <ul>
+          <li><b>seq（序列号）</b>：本报文所发送数据的第一个字节的编号；<b>ack</b>：期望对方下一个字节的编号（= 收到的最后序号 + 1）。</li>
+          <li>前两次握手<b>不能携带数据</b>，第三次可以（第三次 ACK 已让服务端确认连接建立）。</li>
+        </ul>
+        <h4>为什么是三次（三个独立原因，面试一个都别说漏）</h4>
+        <ol>
+          <li><b>防历史连接（RFC 793 给出的根本原因）：</b>客户端发的一个旧 SYN（网络中滞留的重复包）比新 SYN 先到服务端。若「两次握手」，服务端回复 ACK 就直接建立连接、分配缓存——但这是个<b>废连接</b>，浪费资源。三次握手时，客户端收到 ACK 后发现确认号对不上当前连接，会回 <code>RST</code> 拒绝，服务端释放资源。</li>
+          <li><b>同步初始序列号（ISN）：</b>TCP 可靠传输依赖序列号。ISN 同步需要「我发你确认、你发我确认」，本质是<b>两个方向的各一次确认，共 4 步</b>，中间的 SYN 和 ACK 合并成 SYN+ACK，所以最少 3 步。</li>
+          <li><b>确认双方收发能力：</b>两次只能证明「客户端→服务端」通 +「服务端→客户端」发得出去，无法证明「服务端→客户端」<b>收得到</b>（第三次 ACK 证明之）。</li>
+        </ol>
+        <h4>追问：四次行不行？</h4>
+        <p>行，但没必要。SYN 和 ACK 可以合并（半双工协议里才需要拆开），多一次只增加延迟不增加可靠性——三次是「达到目的的最小次数」。</p>
+        <h4>追问：ISN 为什么是随机的？</h4>
+        <ul>
+          <li>固定 ISN 的话，上一个相同四元组连接的<b>旧报文</b>会落到新连接的序列号窗口里，被当成新连接的数据（安全+数据错乱）。</li>
+          <li>随机 ISN + 递增规律，也让攻击者难以伪造合法序列号（RST 攻击的前提是猜到 seq）。</li>
+        </ul>
+        <div class="followup"><b>追问：第三次握手丢了会怎样？</b>—— 客户端发完 ACK 就认为连接建立（可直接发数据）；服务端收不到，停在 SYN_RCVD，会<b>超时重传 SYN+ACK</b>（次数由 <code>tcp_synack_retries</code> 控制，默认 5 次，间隔指数退避）。若客户端在此期间发数据，数据包自带 ACK，服务端收到后照样建立连接。</div>
+        <div class="pit"><b>易错：</b>别说「三次握手是为了确认服务端能收到」就完了——面试官会立刻问「那历史 SYN 的问题呢」。根本原因是 RFC 793 明说的<b>防历史连接初始化</b>，序列号同步是第二原因，能力确认只是顺带结果。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t1q2">四次挥手的过程？为什么是四次？TIME_WAIT 为什么要等 2MSL？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="t1q2">已掌握</span></summary>
+      <div class="bd">
+        <h4>报文级流程（假设客户端主动关闭）</h4>
+        <pre><code>客户端                                服务端
+ESTABLISHED                          ESTABLISHED
+  |---- FIN, seq=u -------------------&gt;|  客户端进入 FIN_WAIT_1
+  |&lt;--- ACK, ack=u+1 ------------------|  服务端进入 CLOSE_WAIT
+  |     (此时服务端还可继续发数据)        |  客户端进入 FIN_WAIT_2
+  |&lt;--- FIN, seq=w, ack=u+1 -----------|  服务端进入 LAST_ACK
+  |---- ACK, ack=w+1 -----------------&gt;|  客户端进入 TIME_WAIT，等 2MSL
+  |                                    |  服务端收到 ACK 后 CLOSED
+(2MSL 后) 客户端 CLOSED</code></pre>
+        <h4>为什么挥手要四次（握手三次就行）</h4>
+        <ul>
+          <li>TCP 是<b>全双工</b>：两个方向的数据流要<b>分别关闭</b>。</li>
+          <li>收到 FIN 只说明「对方不再发数据」，<b>自己可能还有数据没发完</b>，所以 ACK 和自己的 FIN 不能像握手那样合并——中间隔着「发完剩余数据」的动作。</li>
+          <li>只有当被动方没有数据要发时，ACK 和 FIN 才可能合并（延迟确认机制下有时抓包看到 3 次）。</li>
+        </ul>
+        <h4>TIME_WAIT 为什么等 2MSL（两个原因）</h4>
+        <ul>
+          <li><b>MSL（Maximum Segment Lifetime）</b>：报文在网络中的最大存活时间，Linux 默认 30 秒，2MSL = 60 秒。</li>
+          <li><b>原因一：保证最后的 ACK 可达。</b>主动方发的最后一个 ACK 若丢失，被动方会<b>重传 FIN</b>。主动方只有在 TIME_WAIT 期间才能响应这个重传。等 2MSL = 「一来一回的最大时间」：ACK 最多 1MSL 到对方，对方重传 FIN 再 1MSL 回来。</li>
+          <li><b>原因二：让旧连接的报文在网络中自然消亡。</b>等待期间，这条连接的所有报文都超过 MSL 死光了，不会污染之后相同四元组的新连接。</li>
+        </ul>
+        <div class="followup"><b>追问：TIME_WAIT 过多怎么办？</b>—— ① 根因是<b>高频短连接主动断开</b>，最优解是改用<b>长连接/连接池复用</b>（HTTP keep-alive、数据库连接池、Feign 底层连接池）；② 内核参数缓解：<code>tcp_tw_reuse=1</code>（允许复用 TIME_WAIT 端口，仅客户端方向有效且依赖时间戳）、扩大 <code>tcp_max_tw_buckets</code>；③ 让服务端主动关（把 TIME_WAIT 挪到有更强连接管理能力的一方），但本质没消除。</div>
+        <div class="followup"><b>追问：大量 CLOSE_WAIT 呢？</b>—— CLOSE_WAIT 是<b>被动关闭方</b>收到 FIN 后的状态，堆积意味着<b>应用程序收到连接关闭通知后一直不调 close()</b>——典型是代码 bug：异常分支没关闭连接、连接池满导致连接泄漏、下游服务重启后本服务未处理。这不是调内核参数能解决的，必须查代码。「TIME_WAIT 多是正常现象，CLOSE_WAIT 多一定是 bug」这句话是面试分水岭。</div>
+        <div class="pit"><b>易错：</b>① 主动关闭的是谁，谁进 TIME_WAIT（不是固定客户端）；② FIN_WAIT_1 和 FIN_WAIT_2 的区别：1 是等 ACK，2 是「自己 FIN 已被确认、还在等对方 FIN」；③ TIME_WAIT 是<b>主动关闭方</b>的状态，LAST_ACK 是<b>被动关闭方</b>的最终等待状态，别混。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t1q3">TCP 和 UDP 的区别？TCP 如何保证可靠传输？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="t1q3">已掌握</span></summary>
+      <div class="bd">
+        <h4>TCP vs UDP</h4>
+        <table class="tb">
+          <thead><tr><th>维度</th><th>TCP</th><th>UDP</th></tr></thead>
+          <tbody>
+            <tr><td>连接</td><td>面向连接（三次握手）</td><td>无连接（发就走）</td></tr>
+            <tr><td>可靠性</td><td>确认+重传+有序</td><td>尽最大努力交付，可能丢/乱序</td></tr>
+            <tr><td>数据形式</td><td><b>字节流</b>（无消息边界 → 粘包）</td><td><b>报文</b>（一个包一个边界）</td></tr>
+            <tr><td>速度/开销</td><td>慢、头部 20+ 字节、有状态</td><td>快、头部 8 字节、无状态</td></tr>
+            <tr><td>拥塞控制</td><td>有（慢启动/拥塞避免/快重传/快恢复）</td><td>无（可打满带宽）</td></tr>
+            <tr><td>典型场景</td><td>HTTP、数据库连接、文件传输</td><td>DNS、视频/语音直播、游戏、QUIC 底座</td></tr>
+          </tbody>
+        </table>
+        <h4>TCP 可靠传输的四大机制</h4>
+        <ol>
+          <li><b>序列号 + 确认应答（ACK）：</b>每个字节有编号，接收方 ACK 确认「下一个期望的字节」，发送方据此知道哪些已送达；乱序可重排，重复可去重。</li>
+          <li><b>超时重传 + 快速重传：</b>发出后启动定时器，超时未确认则重传（RTO 根据 RTT 动态计算）；收到 <b>3 个重复 ACK</b> 立即重传丢失报文（不等超时，SACK 还能精确告知收到了哪些段）。</li>
+          <li><b>滑动窗口（流量控制）：</b>接收方通过 <code>rwnd</code> 告知自己剩余缓冲区大小，发送方未确认的数据不能超过窗口——防止发送过快把<b>接收方</b>打爆。</li>
+          <li><b>拥塞控制：</b>防止把<b>网络</b>打爆。四个算法：慢启动（指数增长）→ 拥塞避免（到达阈值后线性增长）→ 快重传（3 个重复 ACK 立即重传）→ 快恢复（而非重新慢启动，阈值减半后线性增长）。</li>
+        </ol>
+        <div class="followup"><b>追问：UDP 场景怎么保证可靠性？</b>—— 在<b>应用层自己做</b>：QUIC（HTTP/3 底座）就是范例——在 UDP 上实现了序号、确认、重传、拥塞控制，且避免了 TCP 的队头阻塞和僵死的内核实现，连接迁移还摆脱了四元组绑定（WiFi 切 4G 不断连）。</div>
+        <div class="pit"><b>易错：</b>「TCP 可靠」≠「应用收到的数据都正确处理」。TCP 只保证<b>传输层送达且有序</b>，应用层还要处理重复幂等、报文完整性（校验和只能查传输错误，防不了业务错误）。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t1q4">什么是粘包/拆包？怎么解决？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="t1q4">已掌握</span></summary>
+      <div class="bd">
+        <h4>根因：TCP 是字节流，没有消息边界</h4>
+        <ul>
+          <li>发送方 Nagle 算法把多个小包合并发送；接收方一次 read 可能读到多条消息（<b>粘包</b>）或半条消息（<b>拆包</b>）。</li>
+          <li>严格说这是「<b>应用层消息边界问题</b>」，不是 TCP 的 bug——TCP 的定位就是字节流，边界是应用层的事。UDP 天然按报文收发，无此问题。</li>
+        </ul>
+        <h4>三种解决方案（本质都是「约定边界」）</h4>
+        <ol>
+          <li><b>固定长度：</b>每条消息定长，不足补位。简单但浪费带宽，用得少。</li>
+          <li><b>分隔符：</b>如换行符 <code>\n</code>（Redis 协议、文本协议常用）。缺点：内容里出现分隔符需转义。</li>
+          <li><b>长度前缀（最通用）：</b>消息头带 body 长度（如 4 字节 int），先读长度再按长度读 body。HTTP 的 <code>Content-Length</code>、Dubbo/RocketMQ 协议都是这个思路。</li>
+        </ol>
+        <h4>Netty 内置解码器（Java 面试必提）</h4>
+        <pre><code>pipeline.addLast(new FixedLengthFrameDecoder(1024));      // 固定长度
+pipeline.addLast(new DelimiterBasedFrameDecoder(8192, Unpooled.wrappedBuffer("\n".getBytes())));
+pipeline.addLast(new LengthFieldBasedFrameDecoder(
+        1024*1024, 0, 4, 0, 4));   // 长度前缀：最大长度、长度字段偏移、长度字段大小、调整、剥离字节数</code></pre>
+        <div class="pit"><b>易错：</b>两个独立概念别混——「粘包」是应用层消息边界问题；「Nagle 算法 + 延迟确认」是发送策略（小包合并），<code>TCP_NODELAY</code> 关闭 Nagle 只能<b>减少</b>粘包概率，不能根治，根治靠应用层协议设计。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t1q5">半连接队列和 SYN Flood 攻击？如何防御？</span><span class="lv lv3">加分</span></span><span class="ck"><input type="checkbox" data-id="t1q5">已掌握</span></summary>
+      <div class="bd">
+        <h4>两个队列</h4>
+        <ul>
+          <li><b>半连接队列（SYN 队列）：</b>收到 SYN、回复 SYN+ACK 后，连接处于 SYN_RCVD，放在这里等第三次 ACK。大小由 <code>tcp_max_syn_backlog</code> 控制。</li>
+          <li><b>全连接队列（Accept 队列）：</b>收到第三次 ACK、连接进入 ESTABLISHED，等待应用层 <code>accept()</code> 取走。大小为 <code>min(backlog, somaxconn)</code>。Accept 队列满了，新连接会被拒绝或丢弃（<code>tcp_abort_on_overflow</code>）。</li>
+        </ul>
+        <h4>SYN Flood 攻击</h4>
+        <p>攻击者伪造源 IP 发海量 SYN、不回第三次 ACK，半连接队列被占满，正常用户无法建立连接。伪造 IP 导致服务端的 SYN+ACK 重传全部石沉大海，每条占位要持续几十秒。</p>
+        <h4>防御：SYN Cookie（Linux 默认开启 <code>tcp_syncookies=1</code>）</h4>
+        <ul>
+          <li>队列满时不分配资源，把连接信息<b>编码进 SYN+ACK 的初始序列号</b>里返回（如源 IP/端口/时间戳的 hash）。</li>
+          <li>收到第三次 ACK 时从确认号里反解校验，合法才建立连接——<b>不占队列就能完成握手</b>，攻击者的伪造包无法正确回应。</li>
+          <li>代价：丢弃了部分 TCP 选项（如大窗口、SACK），所以是兜底手段而非常态。</li>
+        </ul>
+        <div class="followup"><b>延伸：</b>其他配套手段——调大 <code>tcp_max_syn_backlog</code> + <code>somaxconn</code>、减小 <code>tcp_synack_retries</code>（缩短占位时间）、防火墙/云清洗、应用前面挂 LB。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ ② HTTP 协议 ============ -->
+  <section class="module" id="mod2">
+    <h2>② HTTP 协议 <span class="cnt">报文 · 状态码 · 版本演进 · 缓存 · Cookie/Token</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t2q1">HTTP 报文结构？GET 和 POST 的区别？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="t2q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>报文结构（请求与响应同构）</h4>
+        <pre><code>POST /api/orders HTTP/1.1          # 请求行：方法 + 路径 + 版本
+Host: api.example.com              # --- 以下为请求头（Header）
+Content-Type: application/json
+Authorization: Bearer eyJhbG...
+Content-Length: 42
+                                   # 空行（CRLF），头与体分隔
+{"userId":1,"amount":99}           # 消息体（Body）</code></pre>
+        <p>响应把请求行换成<b>状态行</b>（<code>HTTP/1.1 200 OK</code>），其余同构。Header 是 <code>key: value</code> 文本，Body 二进制/文本皆可。</p>
+        <h4>GET vs POST：本质区别 + 常见误解</h4>
+        <table class="tb">
+          <thead><tr><th>维度</th><th>GET</th><th>POST</th></tr></thead>
+          <tbody>
+            <tr><td>语义（RFC）</td><td><b>安全且幂等</b>：只获取，不改变服务端状态</td><td>不安全不幂等：提交数据/触发处理</td></tr>
+            <tr><td>参数位置</td><td>URL query string</td><td>请求体</td></tr>
+            <tr><td>长度限制</td><td>受 URL 长度限制（浏览器约 2K~8K，HTTP 协议本身不限）</td><td>体量受服务端配置限制（如 Nginx <code>client_max_body_size</code>）</td></tr>
+            <tr><td>缓存</td><td>可被浏览器/代理缓存、收藏、历史记录</td><td>默认不缓存</td></tr>
+            <tr><td>编码</td><td><code>application/x-www-form-urlencoded</code></td><td>任意（JSON、multipart 文件上传…）</td></tr>
+          </tbody>
+        </table>
+        <div class="followup"><b>误解澄清（加分点）：</b>①「GET 参数有长度限制」——<b>HTTP 协议不限制</b>，是浏览器/服务器的实现限制；②「POST 比 GET 安全」——只是参数不在 URL 里（不进日志/历史记录），<b>抓包一样是明文</b>，安全要靠 HTTPS；③「GET 产生一个 TCP 包、POST 两个」——这是某些浏览器（Firefox）的发送时序差异，不是协议规定，跨浏览器不成立。</div>
+        <div class="pit"><b>易错：</b>GET 能带 body（协议允许但语义上无意义、多数实现忽略）；DELETE/PUT 也应设计为幂等。「幂等」= 执行一次和执行多次效果一致，是接口设计和重试策略的基石。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t2q2">常见 HTTP 状态码？301/302、304、403/401 各是什么？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="t2q2">已掌握</span></summary>
+      <div class="bd">
+        <h4>五大类</h4>
+        <p><b>1xx</b> 信息（101 协议切换，WebSocket 升级用）｜<b>2xx</b> 成功｜<b>3xx</b> 重定向｜<b>4xx</b> 客户端错误｜<b>5xx</b> 服务端错误。</p>
+        <h4>高频状态码逐个说清</h4>
+        <table class="tb">
+          <thead><tr><th>状态码</th><th>含义</th><th>关键细节 / 场景</th></tr></thead>
+          <tbody>
+            <tr><td><code>200</code></td><td>成功</td><td>GET 的资源在 body；POST 的结果在 body</td></tr>
+            <tr><td><code>204</code></td><td>成功但无 body</td><td>DELETE 成功、CORS 预检 OPTIONS 响应常用</td></tr>
+            <tr><td><code>206</code></td><td>部分内容</td><td>配合 <code>Range</code> 头做断点续传/大文件分片</td></tr>
+            <tr><td><code>301</code></td><td>永久重定向</td><td>浏览器<b>会缓存</b>，下次直接跳新地址不再问服务器；换域名用</td></tr>
+            <tr><td><code>302</code></td><td>临时重定向</td><td>不缓存，每次仍请求原地址；登录后跳转、临时维护页</td></tr>
+            <tr><td><code>304</code></td><td>Not Modified</td><td><b>协商缓存命中</b>：ETag/Last-Modified 没变，用本地副本，省流量不省请求</td></tr>
+            <tr><td><code>400</code></td><td>请求格式错误</td><td>JSON 解析失败、参数缺失/类型错误</td></tr>
+            <tr><td><code>401</code></td><td>未认证</td><td>没登录/凭证无效——「你是谁都没搞清」，配 <code>WWW-Authenticate</code></td></tr>
+            <tr><td><code>403</code></td><td>已认证但无权限</td><td>「知道你是谁，但不让你干」——越权访问</td></tr>
+            <tr><td><code>404</code></td><td>资源不存在</td><td>注意和 410（永久删除）区分</td></tr>
+            <tr><td><code>429</code></td><td>请求过多</td><td>被限流，配 <code>Retry-After</code>；网关限流的标准响应</td></tr>
+            <tr><td><code>500</code></td><td>服务端内部错误</td><td>未捕获异常；生产环境别把堆栈返回给客户端</td></tr>
+            <tr><td><code>502</code></td><td>Bad Gateway</td><td>代理/网关<b>连不上</b>上游（上游挂了/端口没起）</td></tr>
+            <tr><td><code>503</code></td><td>服务暂不可用</td><td>过载/维护中，上游活着但拒绝服务，配 <code>Retry-After</code></td></tr>
+            <tr><td><code>504</code></td><td>Gateway Timeout</td><td>代理<b>连上了</b>但上游<b>超时没响应</b>——排查慢接口的信号</td></tr>
+          </tbody>
+        </table>
+        <div class="followup"><b>追问：502 和 504 的排查差异？</b>—— 502 先看上游进程是否存活、端口是否监听；504 上游活着但慢，看上游日志慢在哪（慢 SQL、外部调用超时）。「网关返回 502/504 时问题都在上游，只是故障类型不同：死 vs 慢」。</div>
+        <div class="pit"><b>易错：</b>301 永久重定向会被浏览器强缓存，跳错了很难挽回（用户端清缓存前一直跳），所以不确定要不要永久跳转时先用 302 观察，再升 301。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t2q3">HTTP 1.0 / 1.1 / 2 / 3 的演进？各解决了什么问题？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="t2q3">已掌握</span></summary>
+      <div class="bd">
+        <table class="tb">
+          <thead><tr><th>版本</th><th>关键特性</th><th>解决了什么 / 遗留什么</th></tr></thead>
+          <tbody>
+            <tr><td>1.0</td><td>每请求一个 TCP 连接</td><td>连接开销巨大</td></tr>
+            <tr><td>1.1</td><td><b>keep-alive 长连接</b>、管道化（pipeline）、Host 头、Chunked 传输、更多缓存控制</td><td>复用连接省握手；但管道化响应<b>必须按序返回</b> → 应用层<b>队头阻塞</b>，实践中浏览器弃用管道化，改开多条并发连接（每域名 6~8 条）</td></tr>
+            <tr><td>2</td><td><b>二进制分帧</b>、<b>多路复用</b>（一个连接并发多流）、HPACK 头压缩、服务器推送、流优先级</td><td>解决了 HTTP/1.1 的应用层队头阻塞；但所有流共享一条 <b>TCP</b> 连接，任意丢包引发重传时，<b>TCP 层阻塞所有流</b> → 传输层队头阻塞依旧</td></tr>
+            <tr><td>3</td><td>底座换 <b>QUIC</b>（基于 UDP）：流之间独立重传、0-RTT/1-RTT 建连、<b>连接迁移</b>（Connection ID 不绑四元组）、内置 TLS1.3</td><td>彻底解决队头阻塞；UDP 被部分网络设备限速/拦截是落地阻力</td></tr>
+          </tbody>
+        </table>
+        <h4>面试主线一句话</h4>
+        <p>「HTTP/1.1 的队头阻塞在<b>应用层</b>（响应按序），HTTP/2 用多路复用解决它，但把阻塞下沉到了 <b>TCP 传输层</b>（丢包全体等待），HTTP/3 换 QUIC 从根上解决。」——这条演进逻辑讲清了，比背特性列表高一档。</p>
+        <h4>HTTP/2 多路复用 vs HTTP/1.1 keep-alive（易被追问）</h4>
+        <ul>
+          <li>keep-alive：一条连接上<b>串行</b>地「请求→响应→请求」，上一个响应没回来不能发下一个。</li>
+          <li>多路复用：一条连接上多个流（Stream）<b>并行</b>，帧交织传输，二进制分帧让接收方能拆开重组。</li>
+        </ul>
+        <div class="pit"><b>易错：</b>HTTP/2 只强制 HTTPS 的说法不准确——规范未强制，但主流浏览器<b>只支持 TLS 上的 h2</b>，实践中等于强制。HTTP/3 的 QUIC 把 TLS1.3 <b>内置</b>进协议，不再单独走 TLS 握手。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t2q4">Cookie、Session、Token(JWT) 的区别？分布式下 Session 怎么办？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="t2q4">已掌握</span></summary>
+      <div class="bd">
+        <h4>三者关系：Cookie 是载体，Session/Token 是两种会话方案</h4>
+        <table class="tb">
+          <thead><tr><th>方案</th><th>状态存哪</th><th>工作方式</th><th>优缺点</th></tr></thead>
+          <tbody>
+            <tr><td>Cookie</td><td>客户端浏览器</td><td>服务端 <code>Set-Cookie</code> 下发，浏览器自动回带；可设 <code>HttpOnly</code>（防 XSS 读）、<code>Secure</code>（仅 HTTPS）、<code>SameSite</code>（防 CSRF）</td><td>容量 4K、明文可被改，只适合存无敏感的标识</td></tr>
+            <tr><td>Session</td><td><b>服务端</b>（内存/Redis）</td><td>Cookie 里只存 <code>JSESSIONID</code>，服务端凭 id 找状态</td><td>可控可注销；但服务端要存状态，集群下有共享问题</td></tr>
+            <tr><td>JWT</td><td><b>客户端</b>（服务端无状态）</td><td>签名后的三段式 <code>Header.Payload.Signature</code>，每请求携带，服务端验签即可信</td><td>天然分布式/跨域友好；缺点：签发后<b>无法主动失效</b>（除非黑名单，又变有状态）、Payload 仅 Base64 <b>可读不可改</b>，不能放敏感信息</td></tr>
+          </tbody>
+        </table>
+        <h4>分布式下 Session 三种方案</h4>
+        <ol>
+          <li><b>Session 复制：</b>节点间同步全部 Session（Tomcat 集群广播）。小规模可用，广播开销大，基本淘汰。</li>
+          <li><b>Session 粘滞：</b>Nginx <code>ip_hash</code> 把同一用户固定到同一节点。破坏负载均衡，节点下线会话全丢。</li>
+          <li><b>集中存储（主流）：</b>Session 存 Redis（Spring Session 一行配置），所有节点读写同一份。<b>或直接改用 JWT</b>。</li>
+        </ol>
+        <div class="followup"><b>追问：JWT 怎么注销/踢人？</b>—— 纯 JWT 无状态所以无法直接失效，工程折中：① 短有效期 accessToken + refreshToken 轮换；② Redis 维护黑名单/白名单（jti → 过期时间），退出登录时拉黑——严格说这引入了状态，但相比全量 Session 仍轻量得多；③ 关键操作二次校验。</div>
+        <div class="pit"><b>易错：</b>「JWT 防 XSS」是错的——放 localStorage 的 JWT 能被 XSS 脚本读走；放 <code>HttpOnly</code> Cookie 防 XSS 但要单独防 CSRF（SameSite + CSRF Token）。两害相权：敏感系统用 HttpOnly Cookie，并配 CSRF 防护。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t2q5">强缓存和协商缓存？304 是怎么来的？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="t2q5">已掌握</span></summary>
+      <div class="bd">
+        <h4>两级缓存决策流程</h4>
+        <pre><code>浏览器请求资源
+  ├─ 本地有缓存副本，且强缓存未过期？
+  │     ├─ 是 → 直接用副本，不发请求（200 from disk/memory cache）
+  │     └─ 否 → 发请求，带上缓存标识（If-None-Match / If-Modified-Since）
+  │              服务端比对：
+  │              ├─ 没变 → 304 Not Modified（无 body），用本地副本
+  │              └─ 变了 → 200 + 新资源 + 新 ETag</code></pre>
+        <h4>强缓存（不发请求）</h4>
+        <ul>
+          <li><code>Cache-Control: max-age=31536000</code>（秒，HTTP/1.1，优先）｜<code>Expires: 具体时间</code>（HTTP/1.0，受本地时钟影响，被淘汰）。</li>
+          <li>常用组合：<code>Cache-Control: no-cache</code>（可缓存但每次协商验证，注意<b>不是不缓存</b>）；<code>no-store</code> 才是真不缓存；<code>private/public</code> 控制代理能否缓存。</li>
+        </ul>
+        <h4>协商缓存（问服务器有没有变）</h4>
+        <table class="tb">
+          <thead><tr><th>对比项</th><th>Last-Modified / If-Modified-Since</th><th>ETag / If-None-Match（优先）</th></tr></thead>
+          <tbody>
+            <tr><td>判断依据</td><td>文件最后修改时间（秒级）</td><td>内容指纹（hash），内容变了才变</td></tr>
+            <tr><td>缺陷</td><td>1 秒内多次修改感知不到；文件内容回滚时间反而变小会误判</td><td>需服务端计算 hash，有开销；分布式下多节点需保证生成一致</td></tr>
+          </tbody>
+        </table>
+        <div class="followup"><b>工程实践（前端配合）：</b>HTML 用 <code>no-cache</code>（每次协商，保证引用最新），JS/CSS/图片带<b>内容 hash 文件名</b>（<code>app.a3f9c2.js</code>）+ 一年强缓存——内容变则 URL 变，天然解决更新。这是「指纹文件 + 强缓存」的标准方案。</div>
+        <div class="pit"><b>易错：</b>304 省的是<b>传输流量</b>，不省请求数（往返 RTT 还在）；强缓存两者都省。所以静态资源优化核心是「能用强缓存就别协商」。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ ③ HTTPS 与加密 ============ -->
+  <section class="module" id="mod3">
+    <h2>③ HTTPS 与加密 <span class="cnt">TLS 握手 · 证书链 · 中间人攻击</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t3q1">HTTPS 的握手流程？为什么既用非对称又用对称加密？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="t3q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>TLS 1.2 握手（2-RTT）</h4>
+        <pre><code>客户端                                服务端
+  |--① ClientHello ------------------&gt;|  支持的TLS版本、加密套件、客户端随机数
+  |&lt;-② ServerHello + 证书 + ServerHelloDone |  选定套件、服务端随机数、证书(含公钥)
+  |  ③ 客户端验证证书
+  |  ④ 客户端生成预主密钥(pre-master)，
+  |     用服务端公钥加密后发送          |
+  |---- ClientKeyExchange ------------&gt;|
+  |---- ChangeCipherSpec + Finished --&gt;|  双方用 随机数1+随机数2+pre-master
+  |&lt;--- ChangeCipherSpec + Finished --|   派生出对称会话密钥，之后对称加密通信</code></pre>
+        <h4>为什么混合加密（核心考点）</h4>
+        <ul>
+          <li><b>非对称（RSA/ECDHE）</b>安全但慢（比对称慢 2~3 个数量级），只用来交换密钥这一小步。</li>
+          <li><b>对称（AES）</b>快，用来加密后续全部应用数据（量大）。</li>
+          <li>会话密钥 = 两个随机数 + pre-master 经 PRF 派生，<b>每次连接都不同</b>（前向安全的基础，配合 ECDHE 更彻底：密钥交换用临时密钥对，私钥泄露也解不开历史流量）。</li>
+        </ul>
+        <h4>追问：ECDHE 和 RSA 密钥交换的区别？</h4>
+        <table class="tb">
+          <thead><tr><th>维度</th><th>RSA 交换</th><th>ECDHE 交换</th></tr></thead>
+          <tbody>
+            <tr><td>方式</td><td>客户端用服务器公钥加密 pre-master</td><td>双方交换临时椭圆曲线公钥，各自算出相同密钥</td></tr>
+            <tr><td>前向安全</td><td><b>无</b>：服务端私钥泄露，历史抓包可被解密</td><td><b>有</b>：临时密钥用完即弃，历史流量无法回溯解密</td></tr>
+            <tr><td>现状</td><td>已弃用</td><td>主流（TLS 1.3 只留 ECDHE）</td></tr>
+          </tbody>
+        </table>
+        <h4>TLS 1.3 的改进（加分）</h4>
+        <ul>
+          <li><b>1-RTT</b> 完成握手（ClientHello 就带上密钥交换材料）；会话恢复可 <b>0-RTT</b>（有重放风险，只用于幂等请求）。</li>
+          <li>砍掉不安全套件（RSA 交换、CBC 等），只留 AEAD（AES-GCM / ChaCha20-Poly1305）。</li>
+        </ul>
+        <div class="followup"><b>追问：HTTPS 就完全安全了吗？</b>—— 不。加密解决的是「传输被窃听/篡改」，防不了：① 客户端环境被植入根证书/代理（中间人，如公司内网抓包、木马）；② 服务器自身被攻破；③ 流量分析（大小、频率仍可见）。HTTPS 是必要条件非充分条件。</div>
+        <div class="pit"><b>易错：</b>「HTTPS 握手用非对称、传输用对称」的<b>原因</b>要说全——非对称只慢在计算，且能解决「不安全信道上协商出共享密钥」这个死结；对称快但没有安全的密钥分发手段。两者结合各取所长。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t3q2">数字证书是什么？如何验证？中间人攻击怎么防？</span><span class="lv lv3">加分</span></span><span class="ck"><input type="checkbox" data-id="t3q2">已掌握</span></summary>
+      <div class="bd">
+        <h4>证书解决的根本问题：公钥是谁的？</h4>
+        <p>密钥交换最大的坑：<b>你怎么知道拿到的公钥真的是目标服务器的</b>？中间人可以把自己的公钥发给你（这就是中间人攻击 MITM）。CA（证书颁发机构）作为可信第三方为公钥背书。</p>
+        <h4>证书内容与验证链</h4>
+        <ul>
+          <li>证书 = 域名 + 公钥 + 有效期 + 签发者 + <b>签名</b>（用 CA 私钥对证书内容 hash 加密）。</li>
+          <li><b>证书链验证：</b>站点证书 → 中间 CA 证书 → 根 CA。根 CA 公钥内置在操作系统/浏览器里（信任锚）。逐级「用上级公钥验下级签名」，链条任何一环失效即告警。</li>
+        </ul>
+        <h4>客户端验证四件事</h4>
+        <ol>
+          <li>域名匹配（证书的 CN/SAN 是否含当前域名）。</li>
+          <li>在有效期内、未被吊销（CRL / OCSP 在线验证）。</li>
+          <li>签名链能追溯到受信任的根 CA。</li>
+          <li>签名本身验得通（内容未被篡改）。</li>
+        </ol>
+        <h4>中间人攻击的完整链路与防护</h4>
+        <table class="tb">
+          <thead><tr><th>攻击方式</th><th>原理</th><th>防护</th></tr></thead>
+          <tbody>
+            <tr><td>伪造证书</td><td>给客户端发自己签的证书</td><td>客户端校验证书链，自签证书直接告警</td></tr>
+            <tr><td>降级攻击</td><td>干扰协商，迫使双方用弱加密套件</td><td>TLS 套件白名单、禁用旧版本；HSTS 强制 HTTPS</td></tr>
+            <tr><td>企业代理抓包</td><td>给员工电脑装自签根证书，代理重签所有证书</td><td>本质是「信任被合法植入」，防不了——所以说 HTTPS 防不了客户端被控的场景</td></tr>
+          </tbody>
+        </table>
+        <div class="followup"><b>加分项：</b>证书透明度（CT）——CA 误签/私钥被冒用签出证书时，CT 日志让浏览器能发现「未公开签发」的证书；<b>证书钉扎（Certificate Pinning）</b>——App 内置服务端证书指纹，即使系统被装了假根证书也拒绝连接（银行/支付 App 常用）。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t3q3">HTTP 和 HTTPS 的区别？HTTPS 的开销有多大？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="t3q3">已掌握</span></summary>
+      <div class="bd">
+        <table class="tb">
+          <thead><tr><th>维度</th><th>HTTP</th><th>HTTPS</th></tr></thead>
+          <tbody>
+            <tr><td>端口 / 数据</td><td>80 / 明文</td><td>443 / TLS 加密</td></tr>
+            <tr><td>安全三性</td><td>无</td><td>机密性（对称加密）+ 完整性（MAC/AEAD 防篡改）+ 身份认证（证书）</td></tr>
+            <tr><td>建连开销</td><td>TCP 1 次 RTT</td><td>TLS1.2：TCP 1-RTT + TLS 2-RTT ≈ 3-RTT；TLS1.3 ≈ 2-RTT（0-RTT 恢复更快）</td></tr>
+            <tr><td>计算开销</td><td>无</td><td>握手期非对称运算（每次连接一次），数据期对称运算可忽略（现代 CPU 有 AES-NI 硬件加速）</td></tr>
+          </tbody>
+        </table>
+        <h4>工程上如何摊薄 HTTPS 开销</h4>
+        <ul>
+          <li><b>会话复用：</b>Session ID / Session Ticket / TLS1.3 PSK，恢复连接免重新做完整密钥交换。</li>
+          <li><b>长连接 + HTTP/2：</b>一次握手，后续全部复用，握手成本被摊到无数请求。</li>
+          <li><b>TLS 卸载：</b>网关/负载均衡统一终结 TLS，后端内网走 HTTP。</li>
+          <li><b>OCSP Stapling：</b>服务端主动获取吊销状态随握手带上，客户端免 OCSP 查询 RTT。</li>
+        </ul>
+        <div class="followup"><b>结论化表达：</b>「HTTPS 的额外延迟主要是<b>建连阶段的 1~2 个 RTT</b>，长连接下摊薄到可忽略；计算开销有硬件加速，现代互联网场景 HTTPS 已是默认配置（很多浏览器对 HTTP 直接标『不安全』，HSTS 普及）。」</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ ④ 网络分层与基础设施 ============ -->
+  <section class="module" id="mod4">
+    <h2>④ 网络分层与基础设施 <span class="cnt">分层模型 · DNS · 代理/CDN · WebSocket · RESTful</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t4q1">OSI 七层和 TCP/IP 四层？各层协议和设备？</span><span class="lv lv3">加分</span></span><span class="ck"><input type="checkbox" data-id="t4q1">已掌握</span></summary>
+      <div class="bd">
+        <table class="tb">
+          <thead><tr><th>OSI</th><th>TCP/IP</th><th>职责</th><th>协议 / 设备</th></tr></thead>
+          <tbody>
+            <tr><td>7 应用 / 6 表示 / 5 会话</td><td>应用层</td><td>为应用提供服务</td><td>HTTP/HTTPS、DNS、SSH、FTP；网关</td></tr>
+            <tr><td>4 传输</td><td>传输层</td><td>进程到进程（端口寻址）、可靠/不可靠</td><td>TCP、UDP、QUIC；防火墙(L4)</td></tr>
+            <tr><td>3 网络</td><td>网络层</td><td>主机到主机（IP 寻址）、路由</td><td>IP、ICMP（ping）、ARP*；路由器</td></tr>
+            <tr><td>2 数据链路</td><td>网络接口层</td><td>相邻节点帧传输（MAC 寻址）</td><td>以太网、VLAN；交换机、网卡</td></tr>
+            <tr><td>1 物理</td><td>同上</td><td>比特流传输</td><td>网线/光纤；集线器、中继器</td></tr>
+          </tbody>
+        </table>
+        <p>*ARP 严格说在 L2/L3 之间，解析「IP → MAC」。</p>
+        <h4>数据封装与解封装</h4>
+        <p>发送端自上而下逐层<b>加头</b>（应用数据 → +TCP 头=段 → +IP 头=包 → +帧头帧尾=帧 → 比特流）；接收端逐层<b>拆头</b>向上交付。每一层只处理本层头部，这正是分层的意义：<b>各层独立演进</b>（HTTP/3 换掉传输层下面，应用层代码不用改）。</p>
+        <div class="followup"><b>追问：两台主机通信，中间经过路由器和交换机，各自用到哪层？</b>—— 交换机工作在 L2（按 MAC 转发帧），路由器工作在 L3（按 IP 路由包）。所以跨网段通信：MAC 地址每经过一个路由器就换一跳，IP 地址全程不变（NAT 除外）。</div>
+        <div class="pit"><b>易错：</b>面试说「TCP/IP 四层」还是「OSI 七层」都行，但要能对应上；别把「HTTP 在传输层」这类话说出来。记法：<b>应用层管内容、传输层管进程（端口）、网络层管主机（IP）、链路层管相邻节点（MAC）</b>。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t4q2">浏览器输入 URL 到页面展示，全过程发生了什么？（经典综合题）</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="t4q2">已掌握</span></summary>
+      <div class="bd">
+        <h4>标准答题骨架（按顺序，每一环都能被追问）</h4>
+        <ol>
+          <li><b>URL 解析：</b>判断合法性、HSTS 检查（强制 HTTPS）、查缓存（强缓存命中直接渲染）。</li>
+          <li><b>DNS 解析：</b>浏览器缓存 → 系统 hosts → 本地 DNS 服务器（递归查询）→ 根/顶级/权威域名服务器（迭代查询）→ 得到 IP；有缓存用缓存，可被 CDN 的 CNAME 接管（就近分配边缘节点）。</li>
+          <li><b>TCP 连接：</b>三次握手建立连接（HTTPS 再加 TLS 握手：证书验证 + 密钥交换）。</li>
+          <li><b>发送 HTTP 请求：</b>组装请求行/头/体发出；中间可能经 CDN 边缘、负载均衡、反向代理、网关（鉴权/限流）层层转发到应用服务器。</li>
+          <li><b>服务端处理：</b>负载均衡分发给实例 → 应用处理（可能访问缓存/DB/MQ）→ 返回响应。</li>
+          <li><b>浏览器渲染：</b>解析 HTML 构建 DOM 树 → 解析 CSS 构建 CSSOM → 合成渲染树 → 布局（Layout/Reflow）→ 绘制（Paint）→ 合成（Composite）。期间遇到 JS/CSS/图片等再发起子请求（走同样的网络流程，静态资源多命中 CDN/缓存）。</li>
+          <li><b>连接管理：</b>HTTP/1.1 keep-alive 保持连接复用，空闲超时四次挥手断开。</li>
+        </ol>
+        <div class="followup"><b>答法建议：</b>这题是「考你知识广度的钩子题」，讲完主线后<b>主动点名可展开的支线</b>：如「DNS 这步可以展开讲 CDN 调度」「TLS 这步可以展开讲 HTTPS 握手」「网关这步可以展开讲微服务链路」——把面试官引到你最熟的领域。结合项目时强调：请求先到 Nginx/网关做了鉴权限流，再转发到服务。</div>
+        <div class="pit"><b>易错：</b>别背「十几步」背到渲染就完事。5 年经验的人答这题，重点在<b>中间链路</b>（CDN/LB/网关/负载均衡）和<b>性能点</b>（缓存层级、长连接、TLS 复用），纯浏览器渲染一笔带过即可。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t4q3">DNS 解析的过程？递归查询和迭代查询的区别？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="t4q3">已掌握</span></summary>
+      <div class="bd">
+        <h4>解析链路</h4>
+        <pre><code>浏览器缓存 → 系统/hosts 缓存 → 本地 DNS(运营商/8.8.8.8)
+      └─(缓存未命中)─&gt; 根域名服务器 "." 返回 .com 服务器地址
+                     └─&gt; .com 顶级域服务器返回 example.com 权威服务器地址
+                           └─&gt; 权威服务器返回最终 IP</code></pre>
+        <ul>
+          <li><b>递归查询（客户端 → 本地 DNS）：</b>「你必须给我最终答案」，本地 DNS 代劳到底。</li>
+          <li><b>迭代查询（本地 DNS → 根/顶级/权威）：</b>「我不知道，但告诉你下一个该问谁」，逐级问。</li>
+          <li>最终结果在本地 DNS 和浏览器都有 TTL 缓存，之后直接命中。</li>
+        </ul>
+        <h4>工程相关的 DNS 知识点</h4>
+        <ul>
+          <li><b>CDN 原理：</b>域名 CNAME 到 CDN 域名，CDN 的智能调度 DNS 按「地理位置 + 运营商」返回最近边缘节点 IP——DNS 是 CDN 流量调度的入口。</li>
+          <li><b>负载均衡：</b>DNS 轮询返回多个 IP 实现最粗粒度的负载分发（无法感知单机健康，TTL 内不变化）。</li>
+          <li><b>故障切换慢：</b>DNS 有 TTL 缓存，摘掉故障节点要等 TTL 过期——所以生产上真正的健康检查靠 LB 层，DNS 只做粗调度。</li>
+        </ul>
+        <div class="pit"><b>易错：</b>「DNS 用什么协议」——<b>UDP 53</b> 为主（查询报文小、追求快，超时自己重传），TCP 53 用于区域传送（主从同步）和响应超 512 字节（DNSSEC、长记录）。这题答「DNS 就是用 TCP」就露馅了。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t4q4">正向代理和反向代理的区别？CDN 是什么原理？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="t4q4">已掌握</span></summary>
+      <div class="bd">
+        <h4>一图分清</h4>
+        <pre><code>正向代理（代理客户端）:   客户端 → [代理] ────────→ 服务端    服务端不知道真实客户端
+反向代理（代理服务端）:   客户端 ────────→ [代理] → 服务端集群  客户端不知道真实服务端</code></pre>
+        <table class="tb">
+          <thead><tr><th>维度</th><th>正向代理</th><th>反向代理</th></tr></thead>
+          <tbody>
+            <tr><td>站在谁一边</td><td>客户端</td><td>服务端</td></tr>
+            <tr><td>隐藏谁</td><td>隐藏真实客户端</td><td>隐藏真实服务端（集群）</td></tr>
+            <tr><td>典型用途</td><td>访问控制、突破网络限制、统一出口审计</td><td>负载均衡、SSL 终结、缓存加速、安全防护、灰度分流</td></tr>
+            <tr><td>代表</td><td>Squid、VPN</td><td>Nginx、HAProxy、云 LB、API 网关</td></tr>
+          </tbody>
+        </table>
+        <h4>CDN（内容分发网络）</h4>
+        <ol>
+          <li><b>调度：</b>DNS CNAME 到 CDN 调度系统，按位置/运营商返回最近边缘节点。</li>
+          <li><b>缓存：</b>边缘节点命中直接返回（L1 边缘 → L2 区域中心 → 回源）。</li>
+          <li><b>回源：</b>未命中回源站拉取并缓存；用 <code>Cache-Control</code> + URL 指纹控制策略；刷新可用 API 主动 purge。</li>
+          <li><b>收益：</b>静态资源就近访问省 RTT；动态内容可用 CDN 的链路优化（专线/长连接复用）加速（动态加速）。</li>
+        </ol>
+        <div class="followup"><b>结合项目：</b>你的部署架构里 Nginx 就是反向代理——说清它做了什么：SSL 卸载、按路径转发到网关/静态资源、限流兜底；API 网关（Spring Cloud Gateway）是更上层的「业务反向代理」，多了鉴权/灰度/协议转换。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t4q5">WebSocket 是什么？和 HTTP 长连接、SSE 的区别？</span><span class="lv lv3">加分</span></span><span class="ck"><input type="checkbox" data-id="t4q5">已掌握</span></summary>
+      <div class="bd">
+        <h4>WebSocket 本质</h4>
+        <ul>
+          <li>基于 TCP 的<b>全双工</b>协议：一次 HTTP 升级握手后，切换到 WebSocket 协议帧，双方任意时刻都能主动推送。</li>
+          <li>握手借用 HTTP：<code>Upgrade: websocket</code> + <code>Connection: Upgrade</code>，服务端回 <code>101 Switching Protocols</code>，之后不再走 HTTP 语义。</li>
+        </ul>
+        <h4>推送方案对比</h4>
+        <table class="tb">
+          <thead><tr><th>方案</th><th>方向</th><th>开销</th><th>适用</th></tr></thead>
+          <tbody>
+            <tr><td>短轮询</td><td>客户端拉</td><td>大量无效请求+握手开销</td><td>实时性要求低</td></tr>
+            <tr><td>长轮询</td><td>客户端拉（服务端挂起直到有数据）</td><td>比短轮询省；服务端持有连接占资源</td><td>兼容性兜底</td></tr>
+            <tr><td>SSE</td><td>服务端单向推（基于 HTTP，文本流）</td><td>轻量，自动重连</td><td>行情推送、AI 打字机输出等只需服务端→客户端</td></tr>
+            <tr><td>WebSocket</td><td>双向</td><td>握手后帧开销极小</td><td>IM、协作编辑、游戏、实时大屏</td></tr>
+          </tbody>
+        </table>
+        <div class="followup"><b>追问：WebSocket 连接怎么保活？</b>—— 协议级 Ping/Pong 帧探测；中间的 Nginx/LB 要配较长的 <code>proxy_read_timeout</code>（或应用层心跳），否则空闲连接会被代理掐断——这是 WebSocket 上生产最常见的坑。</div>
+        <div class="pit"><b>易错：</b>「HTTP 长连接（keep-alive）≠ WebSocket」。keep-alive 只是<b>复用 TCP 连接</b>传多个 HTTP 请求，通信模型仍是一问一答、只能客户端发起；WebSocket 才是协议级的双向通道。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t4q6">RESTful API 设计规范？常见的违反点？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="t4q6">已掌握</span></summary>
+      <div class="bd">
+        <h4>核心原则：资源 + HTTP 语义</h4>
+        <ul>
+          <li><b>URL 是名词、方法是动词：</b><code>GET /orders</code> 列表、<code>GET /orders/123</code> 详情、<code>POST /orders</code> 创建、<code>PUT /orders/123</code> 全量更新、<code>PATCH</code> 部分更新、<code>DELETE /orders/123</code> 删除。</li>
+          <li><b>用状态码表达结果</b>，而不是所有响应都 200 + body 里包 <code>code</code> 字段（严格 RESTful 立场；国内实践常统一 200 + 业务码，要能说清两种取舍）。</li>
+          <li><b>版本化：</b><code>/api/v1/...</code> 路径版本（简单直观）或 Header 版本（URL 干净）。</li>
+          <li><b>过滤/分页/排序放 query：</b><code>?page=2&amp;size=20&amp;sort=createdAt,desc&amp;status=PAID</code>。</li>
+          <li><b>嵌套表达从属：</b><code>GET /users/1/orders</code>；嵌套不建议超两层。</li>
+        </ul>
+        <h4>常见违反点（面试爱挑）</h4>
+        <ul>
+          <li>URL 里带动词：<code>POST /getUser?id=1</code> → 应为 <code>GET /users/1</code>。</li>
+          <li>所有接口都 POST，动作靠 URL 区分（RPC 风格混进 RESTful）——不是错，但别自称 RESTful。</li>
+          <li>PUT 做部分更新（PUT 语义是幂等的<b>全量替换</b>，部分更新用 PATCH）。</li>
+          <li>用状态码返回 200 却在 body 里报错，监控/网关无法按状态码统计错误率。</li>
+        </ul>
+        <div class="followup"><b>追问：PUT 和 PATCH 都是更新，幂等性区别？</b>—— PUT 全量替换天然幂等；PATCH 若是「set 字段」幂等，若是「age+1」这类相对操作就不幂等——设计上尽量让 PATCH 操作也是绝对值语义。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ ⑤ 网络实战与排障 ============ -->
+  <section class="module" id="mod5">
+    <h2>⑤ 网络实战与排障 <span class="cnt">抓包 · TIME_WAIT/CLOSE_WAIT · 超时定位</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t5q1">线上接口突然变慢，如何判断是不是网络问题？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="t5q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>排查顺序：先分段，再深入</h4>
+        <pre><code># 1. 连通性与延迟（ICMP 层）
+ping &lt;host&gt;              # 丢包率、RTT 是否异常
+mtr &lt;host&gt;               # 逐跳延迟/丢包，定位是哪一段网络差
+
+# 2. 端口与建连（传输层）
+telnet &lt;host&gt; 8080       # 端口通不通、建连耗时
+curl -o /dev/null -s -w 'DNS:%{time_namelookup} 建连:%{time_connect} TLS:%{time_appconnect} 首字节:%{time_starttransfer} 总:%{time_total}\n' https://api.example.com/health
+# ↑ 分段时间定位慢点：DNS 慢→解析问题；connect 慢→网络/握手问题；
+#   starttransfer 慢→服务端处理慢；total 远大于 starttransfer→传输下载慢
+
+# 3. 链路追踪（应用层）
+# 看 SkyWalking/日志：服务端处理耗时 vs 客户端总耗时，差值≈网络+传输开销</code></pre>
+        <h4>关键判断逻辑</h4>
+        <ul>
+          <li><b>客户端总耗时 ≈ 服务端处理耗时</b> → 不是网络，查服务端（慢 SQL、锁、GC）。</li>
+          <li><b>总耗时远大于服务端处理耗时</b> → 差在哪一段：<code>time_connect</code> 大=网络/握手问题；<code>time_starttransfer - time_appconnect</code> 大=服务端排队没算进处理耗时（线程池排队、队列堆积）。</li>
+          <li><b>偶发超时、重试后恢复</b> → 抓包看是不是丢包重传（重传会让 RTT 翻倍）。</li>
+        </ul>
+        <h4>tcpdump 抓包定位（加分）</h4>
+        <pre><code>tcpdump -i eth0 host 10.0.0.5 and port 8080 -w dump.pcap
+# 拿到 pcap 用 Wireshark 分析：
+#   看重传(TCP Retransmission)、零窗口(ZeroWindow)、RST
+#   时间轴对比：请求发出→响应回来，中间谁在等</code></pre>
+        <div class="followup"><b>加分结论：</b>「网络问题」在微服务里最常见的其实不是物理网络，而是：<b>连接池耗尽等建连</b>、<b>DNS 解析抖动</b>、<b>k8s 探针/负载均衡健康检查抖动</b>、<b>MTU 不一致导致大包被丢</b>（表现为小请求正常大请求卡死）。先分段量化，再对号入座。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t5q2">服务器出现大量 TIME_WAIT / CLOSE_WAIT，分别说明什么？怎么处理？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="t5q2">已掌握</span></summary>
+      <div class="bd">
+        <h4>先定位：谁主动关的</h4>
+        <pre><code>ss -s                          # 总览各状态连接数
+ss -tan | awk '{print $1}' | sort | uniq -c | sort -rn   # 按状态统计
+ss -tanp state time-wait       # 看 TIME_WAIT 明细
+netstat -natp | grep CLOSE_WAIT | awk '{print $5}' | sort | uniq -c  # CLOSE_WAIT 对端分布</code></pre>
+        <table class="tb">
+          <thead><tr><th>状态</th><th>含义</th><th>根因</th><th>处理</th></tr></thead>
+          <tbody>
+            <tr><td><b>TIME_WAIT 多</b></td><td>本机<b>主动</b>关闭连接，等 2MSL（60s）</td><td>高频<b>短连接</b>：每次请求新建连接、用完就关（HTTP 未开 keep-alive、未用连接池、脚本反复 curl）</td><td>① 改长连接/连接池（治本）；② <code>tcp_tw_reuse=1</code> + 时间戳（客户端复用出站 TIME_WAIT）；③ 让对端主动关（转移但未消除）</td></tr>
+            <tr><td><b>CLOSE_WAIT 多</b></td><td>本机<b>被动</b>关闭：收到对方 FIN，回 ACK 后<b>自己一直不调 close()</b></td><td><b>代码 bug</b>：连接泄漏——异常分支没 close、线程阻塞在业务没走到 close、连接池满且无回收、下游重启本服务未感知</td><td>① 查代码：所有资源走 try-with-resources/finally；② 连接池配空闲检测+最大存活时间；③ arthas/jstack 看持有连接的线程在干嘛</td></tr>
+          </tbody>
+        </table>
+        <div class="followup"><b>一句话总结（面试金句）：</b>「TIME_WAIT 多是<b>架构问题</b>（短连接太多），CLOSE_WAIT 多是<b>代码问题</b>（连接没关）。前者调优能缓解，后者调参数没用，必须改代码。」</div>
+        <div class="pit"><b>易错：</b>TIME_WAIT 是<b>主动关闭方</b>的状态——客户端大量出现说明是客户端在频繁断开（比如没复用连接），不是服务端的问题；别一上来就调服务端内核参数。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t5q3">TCP keepalive 和 HTTP keep-alive 有什么区别？</span><span class="lv lv3">加分</span></span><span class="ck"><input type="checkbox" data-id="t5q3">已掌握</span></summary>
+      <div class="bd">
+        <table class="tb">
+          <thead><tr><th>维度</th><th>TCP keepalive（保活探测）</th><th>HTTP keep-alive（连接复用）</th></tr></thead>
+          <tbody>
+            <tr><td>层的归属</td><td>传输层机制</td><td>应用层语义（HTTP/1.1 的头）</td></tr>
+            <tr><td>目的</td><td>检测<b>死连接</b>（对端宕机/网络断），探测后回收</td><td>复用 TCP 连接传<b>多个请求</b>，省握手开销</td></tr>
+            <tr><td>默认行为</td><td>Linux 默认关闭；开启后默认 7200s 空闲才探测，探测间隔 75s×9 次——<b>对业务太迟钝</b></td><td>HTTP/1.1 默认开启（<code>Connection: keep-alive</code>）</td></tr>
+            <tr><td>参数</td><td><code>tcp_keepalive_time/intvl/probes</code></td><td>Nginx <code>keepalive_timeout</code>；服务端空闲超时后主动四次挥手</td></tr>
+          </tbody>
+        </table>
+        <ul>
+          <li><b>关键区别：</b>TCP keepalive 发的是<b>空探测包</b>（无数据），只为判断对端死活；HTTP keep-alive 关心的是「这条连接<b>还能不能继续传 HTTP 请求</b>」。</li>
+          <li>应用层一般<b>不用系统默认的 TCP keepalive</b>（太慢），而是自己实现心跳（Netty IdleStateHandler、Redis/DB 驱动的心跳、注册中心心跳），频率可控且能联动业务逻辑（踢下线、重连）。</li>
+        </ul>
+        <div class="pit"><b>易错：</b>名字几乎一样但完全是两码事。面试官问「为什么有了 TCP keepalive 应用还要自己心跳」——因为默认参数太迟钝（2 小时），且探测结果应用层拿不到主动权（不知道连接是死了还是对端只是闲着）。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t5q4">Feign/RPC 调用偶发超时，从网络视角怎么排查？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="t5q4">已掌握</span></summary>
+      <div class="bd">
+        <h4>超时时间线拆解（一次调用 = 多段耗时）</h4>
+        <pre><code>调用方                                    提供方
+| DNS解析 | 建连(TCP+TLS) | 排队(连接池) | 网络RTT | 服务端处理 | 响应传输 |
+└────────────── 客户端看到的总耗时 ──────────────────────────────┘</code></pre>
+        <h4>逐段排查清单</h4>
+        <ol>
+          <li><b>DNS 段：</b>解析是否抖动（K8s 里 CoreDNS 超时、ndots:5 引起的多余查询）。改为缓存、调小 TTL 或用连接内 DNS。</li>
+          <li><b>建连段：</b>是否每次都新建连接（连接池没生效）？连接池 <code>maxTotal/maxPerRoute</code> 是否太小，高峰在<b>池里排队</b>——这是「偶发超时」最常见根因。</li>
+          <li><b>网络段：</b>RTT 是否变大（跨机房？丢包重传？mtr 看链路）。</li>
+          <li><b>服务端段：</b>处理耗时是否抖动（GC 停顿、慢 SQL、线程池满排队）。SkyWalking 对比「客户端耗时」和「服务端 Span 耗时」，差值即网络+排队。</li>
+          <li><b>配置合理性：</b>超时时间 &lt; 下游 P99？重试是否放大故障（超时 1s + 重试 3 次 = 最坏占用连接 3s+）？读超时/连接超时要分开配（连接超时短如 1s，读超时按 P99 设置）。</li>
+        </ol>
+        <div class="followup"><b>面试加分：</b>讲一个真实案例模板：「大促时 Feign 偶发超时 → 链路追踪发现客户端耗时与服务端 Span 差值大 → 排查是连接池 maxPerRoute 默认 5，单路由并发一高峰就在池里排队 → 调大连接池 + 开启 keep-alive 复用 → P99 从 800ms 降到 80ms。」数字可以换成你自己的，但「分段定位 → 找到池/连接层根因」的框架要讲出来。</div>
+        <div class="pit"><b>易错：</b>别只调大超时时间了事——超时调大只是「忍耐上限提高」，排队根因还在，且会拖垮上游线程池引发雪崩。先定位耗时段，再对症下药。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ ⑥ 综合场景 ============ -->
+  <section class="module" id="mod6">
+    <h2>⑥ 综合场景 <span class="cnt">NIO/Reactor · 大文件传输 · 推送方案</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t6q1">BIO/NIO/AIO 的区别？Reactor 模型是什么？Netty 和 epoll 的关系？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="t6q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>三种 IO 模型</h4>
+        <table class="tb">
+          <thead><tr><th>模型</th><th>方式</th><th>问题/优势</th></tr></thead>
+          <tbody>
+            <tr><td>BIO</td><td>一连接一线程，<code>accept/read</code> 阻塞等待</td><td>线程随连接数线性增长，1 万连接 = 1 万线程，上下文切换和内存都爆（C10K 问题）</td></tr>
+            <tr><td>NIO</td><td><code>Channel + Buffer + Selector</code>，一个线程用 Selector 轮询管理成千上万连接，就绪才处理</td><td>同步非阻塞：线程不阻塞在单个连接上，靠操作系统多路复用（Linux 上就是 <code>epoll</code>）</td></tr>
+            <tr><td>AIO</td><td>内核完成 IO 后<b>回调通知</b></td><td>Linux 下 AIO 实现不成熟（epoll 本身是同步的），Java AIO 实际用得少；Windows IOCP 才是真异步</td></tr>
+          </tbody>
+        </table>
+        <h4>Reactor 模型（NIO 的工程化）</h4>
+        <ul>
+          <li><b>单 Reactor 单线程</b>：一个线程负责所有连接的 accept + 读写 + 业务（Redis 6.0 前的网络处理）。简单，但业务慢会卡全部。</li>
+          <li><b>单 Reactor 多线程</b>：Reactor 只管 IO 事件，业务扔线程池。</li>
+          <li><b>主从 Reactor 多线程（Netty 默认）</b>：Boss 组只管 accept 新连接，注册到 Worker 组；Worker 组各自的事件循环管已注册连接的读写。连接（accept）与 IO 分离，负载均匀。</li>
+        </ul>
+        <h4>epoll 为什么快（vs select/poll）</h4>
+        <ul>
+          <li><b>select/poll：</b>每次调用把全部 fd 集合从用户态<b>拷贝</b>到内核态，内核<b>线性扫描</b>所有 fd——O(n)，连接多了白白消耗。</li>
+          <li><b>epoll：</b><code>epoll_create</code> 在内核建红黑树管 fd（一次注册，反复使用）；<code>epoll_wait</code> 只返回<b>就绪</b>的 fd（就绪链表，事件驱动回调动入）；百万连接也只处理活跃的——O(活跃数)。这就是「事件就绪通知」代替「遍历轮询」。</li>
+        </ul>
+        <div class="followup"><b>串联表达：</b>「Java NIO 是对操作系统多路复用（Linux epoll）的封装；Netty 又是对 Java NIO 的工程化封装（主从 Reactor + 线程模型 + 零拷贝 + 优雅的 API）」。追问「Netty 零拷贝」时另指堆外内存/CompositeByteBuf/文件传输 <code>sendfile</code>，与 OS 层零拷贝（mmap、sendfile）区分层次。</div>
+        <div class="pit"><b>易错：</b>NIO 的「非阻塞」指 <b>IO 事件获取</b>不阻塞（Selector 醒着等就绪事件），<b>数据读写阶段仍是同步的</b>（read 会真正搬数据）——「NIO=非阻塞 IO」精确说是「同步非阻塞」；真异步是 AIO。这个区分是高频追问点。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t6q2">大文件上传下载怎么设计？断点续传的原理？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="t6q2">已掌握</span></summary>
+      <div class="bd">
+        <h4>下载端：HTTP Range 请求</h4>
+        <pre><code># 客户端请求文件的某个字节区间
+GET /file/big.mp4 HTTP/1.1
+Range: bytes=10485760-20971519      # 第 10MB ~ 20MB
+
+# 服务端响应
+HTTP/1.1 206 Partial Content
+Content-Range: bytes 10485760-20971519/104857600
+Content-Length: 10485760</code></pre>
+        <ul>
+          <li>支持并发分片下载（多线程各下一段）与<b>断点续传</b>（记录已下字节，恢复时从断点 Range 续传）。</li>
+          <li>服务端校验 <code>If-Range</code>/ETag，保证文件未变才续传，否则回 200 全量重下。</li>
+        </ul>
+        <h4>上传端：分片上传（对象存储标准方案）</h4>
+        <ol>
+          <li>客户端请求初始化，拿到 uploadId；文件按 5MB 分片逐个上传（可并行）。</li>
+          <li>每片上传记录序号，服务端/存储端（OSS/S3 的 multipart）保存分片。</li>
+          <li>全部完成后发合并请求，服务端合并分片；用整文件 <b>MD5/SHA 校验完整性</b>。</li>
+          <li>断点续传 = 查询已成功分片列表，只补传缺失分片。</li>
+        </ol>
+        <h4>服务端转发大文件的坑</h4>
+        <ul>
+          <li>别用 <code>MultipartFile</code> 全量读进内存/临时目录再转发——网关/应用要<b>流式透传</b>（Nginx 直接 proxy_pass，Java 用流拷贝）。</li>
+          <li>Nginx 上传限制 <code>client_max_body_size</code>、请求超时、临时目录磁盘要同步改。</li>
+        </ul>
+        <div class="followup"><b>追问：秒传怎么实现？</b>—— 客户端先算文件 hash（MD5+SHA1，大文件只算头部采样+长度或分块 hash）上传比对，服务端已有相同 hash 文件则直接建立引用，不传数据。代价：hash 碰撞理论风险 + 隐私考量（hash 即指纹）。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t6q3">实时推送怎么选型：短轮询、长轮询、SSE、WebSocket？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="t6q3">已掌握</span></summary>
+      <div class="bd">
+        <table class="tb">
+          <thead><tr><th>方案</th><th>原理</th><th>延迟</th><th>服务端开销</th><th>适用场景</th></tr></thead>
+          <tbody>
+            <tr><td>短轮询</td><td>客户端定时发请求</td><td>= 轮询间隔</td><td>大量空请求 + 反复建连（未复用时）</td><td>状态刷新页、实时性无所谓</td></tr>
+            <tr><td>长轮询</td><td>请求挂起，有数据/超时才返回，客户端立即再发</td><td>接近实时</td><td>挂着大量连接占线程/内存（BIO 下线程被占死，NIO 才扛得住）</td><td>兼容性好的伪实时（老式 Web QQ）</td></tr>
+            <tr><td>SSE</td><td>HTTP 响应为长文本流 <code>text/event-stream</code>，服务端持续写</td><td>实时</td><td>低（复用 HTTP，连接轻）</td><td>单向推送：行情、通知、AI 流式输出</td></tr>
+            <tr><td>WebSocket</td><td>升级为全双工独立协议</td><td>实时</td><td>低（帧开销小），但需连接管理/心跳/集群广播方案</td><td>IM、协作、双向交互</td></tr>
+          </tbody>
+        </table>
+        <h4>WebSocket 集群化的坑（加分，5 年经验必问）</h4>
+        <ul>
+          <li>连接在各自实例上，用户 A 连在节点 1、要给连在节点 3 的用户 B 推消息 → 需要<b>跨节点广播</b>：Redis Pub/Sub 或 MQ 做节点间消息总线，各节点只推给自己的在线连接。</li>
+          <li>会话寻址：维护「userId → 节点实例」的路由表（Redis），定向推送不广播全量。</li>
+          <li>Nginx 反代要配 <code>Upgrade</code> 头透传 + 长超时；粘滞会话（ip_hash）可省但更好的是消息总线。</li>
+        </ul>
+        <div class="followup"><b>选型结论：</b>单向推送优先 <b>SSE</b>（简单、纯 HTTP、自动重连）；双向交互才上 <b>WebSocket</b>；只有在老旧环境/追求极简时用长轮询兜底。别上来就说 WebSocket——说清代价（连接管理、心跳、集群广播）才是 5 年经验。</div>
+      </div>
+    </details>
+  </section>
+</main>
+</div>
+
+<script>
+(function(){
+  var STORE='http-net-progress-v1';
+  var qs=document.querySelectorAll('details.q');
+  var mods=document.querySelectorAll('section.module');
+  function load(){try{return JSON.parse(localStorage.getItem(STORE)||'{}');}catch(e){return {};}}
+  var prog=load();
+
+  function qid(q){return q.querySelector('.qn').getAttribute('data-id')||q.querySelector('.q-title').textContent.trim().slice(0,30);}
+  function qlv(q){var s=q.querySelector('.lv');return s?s.className.match(/lv(\d)/)[1]:'1';}
+
+  function save(){localStorage.setItem(STORE,JSON.stringify(prog));}
+
+  function refresh(){
+    var total=0,done=0;
+    mods.forEach(function(m){
+      if(m.id==='mod0')return;
+      var cks=m.querySelectorAll('.ck input');
+      var md=0,mc=0;
+      cks.forEach(function(cb){
+        var id=cb.getAttribute('data-id');
+        var on=!!prog[id];
+        cb.checked=on;
+        mc++; if(on)md++;
+      });
+      total+=mc; done+=md;
+      var pct=mc?Math.round(md/mc*100):0;
+      var nav=document.querySelector('.nav-item[data-mod="'+m.id+'"] .pct');
+      if(nav)nav.textContent=pct+'%';
+    });
+    document.getElementById('ov-total').textContent=total;
+    document.getElementById('ov-done').textContent=done;
+    document.getElementById('ov-pct').textContent=(total?Math.round(done/total*100):0)+'%';
+  }
+
+  qs.forEach(function(q){
+    var cb=q.querySelector('.ck input');
+    cb.addEventListener('change',function(){
+      var id=cb.getAttribute('data-id');
+      if(cb.checked)prog[id]=1; else delete prog[id];
+      save(); refresh();
+    });
+  });
+
+  var se=document.getElementById('search');
+  se.addEventListener('input',function(){
+    var kw=se.value.trim().toLowerCase();
+    qs.forEach(function(q){
+      var txt=q.textContent.toLowerCase();
+      var hit=!kw||txt.indexOf(kw)>=0;
+      q.classList.toggle('hide',!hit);
+    });
+  });
+
+  var btns=document.querySelectorAll('.fbtn[data-lv]');
+  var curLv='all';
+  btns.forEach(function(b){
+    b.addEventListener('click',function(){
+      curLv=b.getAttribute('data-lv');
+      btns.forEach(function(x){x.classList.toggle('active',x===b);});
+      applyFilter();
+    });
+  });
+  function applyFilter(){
+    var kw=se.value.trim().toLowerCase();
+    qs.forEach(function(q){
+      var hit=curLv==='all'||qlv(q)===curLv;
+      var kh=!kw||q.textContent.toLowerCase().indexOf(kw)>=0;
+      q.classList.toggle('hide',!(hit&&kh));
+    });
+  }
+
+  document.getElementById('btn-expand').addEventListener('click',function(){
+    qs.forEach(function(q){q.open=true;});
+  });
+  document.getElementById('btn-collapse').addEventListener('click',function(){
+    qs.forEach(function(q){q.open=false;});
+  });
+
+  refresh();
+})();
+</script>
+</body>
+</html>

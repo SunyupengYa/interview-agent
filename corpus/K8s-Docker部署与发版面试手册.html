@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>K8s / Docker 部署与发版 · 面试手册</title>
+<style>
+:root{
+  --bg:#f5f6f8; --card:#ffffff; --line:#e5e7eb; --line2:#d1d5db;
+  --tx:#1f2937; --tx2:#6b7280; --tx3:#9ca3af;
+  --ac:#2563eb; --ac-bg:#eff6ff; --ac-line:#bfdbfe;
+  --must:#dc2626; --must-bg:#fef2f2; --must-line:#fecaca;
+  --high:#d97706; --high-bg:#fffbeb; --high-line:#fde68a;
+  --bonus:#059669; --bonus-bg:#ecfdf5; --bonus-line:#a7f3d0;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font:15px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
+a{color:var(--ac);text-decoration:none}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:272px;flex:0 0 272px;background:#0f172a;color:#e2e8f0;position:sticky;top:0;height:100vh;overflow-y:auto;padding:20px 0}
+.sidebar .brand{padding:0 20px 16px;border-bottom:1px solid #1e293b;font-size:16px;font-weight:600;color:#fff;line-height:1.4}
+.sidebar .brand small{display:block;font-size:12px;font-weight:400;color:#94a3b8;margin-top:4px}
+.nav-item{display:block;padding:9px 20px;color:#cbd5e1;font-size:13.5px;border-left:3px solid transparent}
+.nav-item:hover{background:#1e293b;color:#fff}
+.nav-item.active{background:#1e293b;color:#fff;border-left-color:#3b82f6}
+.nav-item .pct{float:right;font-size:12px;color:#64748b}
+.main{flex:1;min-width:0;padding:28px 36px 80px;max-width:1000px}
+.toolbar{position:sticky;top:0;background:var(--bg);padding:12px 0;z-index:10;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.toolbar input[type=search]{flex:1;min-width:200px;padding:9px 14px;border:1px solid var(--line2);border-radius:8px;font-size:14px;background:var(--card)}
+.toolbar input[type=search]:focus{outline:2px solid var(--ac-line);border-color:var(--ac)}
+.fbtn{padding:8px 14px;border:1px solid var(--line2);border-radius:8px;background:var(--card);font-size:13px;cursor:pointer;white-space:nowrap}
+.fbtn.active{background:var(--ac);color:#fff;border-color:var(--ac)}
+h1{font-size:24px;margin:8px 0 6px}
+.lead{color:var(--tx2);font-size:14px;margin-bottom:20px}
+.overview{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.ov{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+.ov .num{font-size:26px;font-weight:700;color:var(--ac)}
+.ov .lab{font-size:12px;color:var(--tx2)}
+section.module{margin:32px 0 8px}
+section.module>h2{font-size:20px;padding-bottom:8px;border-bottom:2px solid var(--line);display:flex;align-items:center;gap:10px}
+section.module>h2 .cnt{font-size:13px;color:var(--tx2);font-weight:400}
+.q{border:1px solid var(--line);border-radius:10px;background:var(--card);margin:14px 0;overflow:hidden}
+.q>summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;align-items:flex-start;gap:10px}
+.q>summary::-webkit-details-marker{display:none}
+.q>summary::before{content:"▸";color:var(--tx3);font-size:14px;margin-top:2px;flex:0 0 auto;transition:transform .15s}
+.q[open]>summary::before{transform:rotate(90deg)}
+.q .q-title{flex:1}
+.q .q-title .qn{font-weight:600}
+.lv{display:inline-block;font-size:11px;padding:1px 8px;border-radius:10px;margin-left:6px;vertical-align:1px;font-weight:500}
+.lv1{background:var(--must-bg);color:var(--must);border:1px solid var(--must-line)}
+.lv2{background:var(--high-bg);color:var(--high);border:1px solid var(--high-line)}
+.lv3{background:var(--bonus-bg);color:var(--bonus);border:1px solid var(--bonus-line)}
+.ck{margin-top:3px;font-size:13px;color:var(--tx2);display:flex;align-items:center;gap:6px}
+.ck input{width:15px;height:15px;cursor:pointer}
+.q .bd{padding:2px 16px 16px 40px}
+.q .bd h4{font-size:14px;margin:14px 0 6px;color:#111827}
+.q .bd p{margin:6px 0}
+.q .bd ul,.q .bd ol{margin:6px 0;padding-left:22px}
+.q .bd li{margin:3px 0}
+.q .bd code,.code{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px}
+pre{background:#0f172a;color:#ffffff;border-radius:8px;padding:16px 18px;overflow-x:auto;font-family:Menlo,Consolas,"Courier New",monospace;font-size:14.5px;line-height:1.75;margin:10px 0}
+pre code{background:none;border:none;padding:0;color:inherit;font-size:14.5px;line-height:1.75}
+.followup{border-left:3px solid var(--ac);background:var(--ac-bg);border-radius:0 8px 8px 0;padding:10px 14px;margin:10px 0;font-size:14px}
+.followup b{color:var(--ac)}
+.pit{border-left:3px solid var(--must);background:var(--must-bg);border-radius:0 8px 8px 0;padding:10px 14px;margin:10px 0;font-size:14px}
+.pit b{color:var(--must)}
+table.tb{width:100%;border-collapse:collapse;margin:10px 0;font-size:13.5px}
+table.tb th,table.tb td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+table.tb th{background:#f8fafc;font-weight:600}
+.hide{display:none!important}
+.glossary{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:24px}
+.glossary h2{font-size:18px;margin:0 0 4px}
+.glossary .gsub{font-size:13px;color:var(--tx2);margin-bottom:16px}
+.glossary table{width:100%;border-collapse:collapse;font-size:13.5px}
+.glossary th,.glossary td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+.glossary th{background:#f8fafc;font-weight:600;width:130px}
+.glossary td code{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px;color:var(--ac);font-weight:600}
+.topbtns{display:flex;gap:8px}
+@media print{
+  .sidebar,.toolbar{display:none}
+  .layout{display:block}
+  .main{padding:0;max-width:none}
+  .q{border-color:#ccc;break-inside:avoid}
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0b1220;--card:#111827;--line:#1f2937;--line2:#374151;--tx:#e5e7eb;--tx2:#9ca3af;--tx3:#6b7280;--ac:#60a5fa;--ac-bg:#1e3a5f;--ac-line:#2563eb;--must:#f87171;--must-bg:#3f1d1d;--must-line:#7f1d1d;--high:#fbbf24;--high-bg:#3a2c0a;--high-line:#78350f;--bonus:#34d399;--bonus-bg:#0a2e20;--bonus-line:#065f46}
+  .q .bd code,.code{background:#1e293b;border-color:#334155}
+  table.tb th{background:#1e293b}
+  .glossary th{background:#1e293b}
+  .glossary td code{background:#1e293b;border-color:#334155}
+  .q .bd h4{color:#f3f4f6}
+  pre{background:#0b1220;border:1px solid #1f2937}
+}
+/* 修复：行内 code 底纹样式(.q .bd code 优先级高于 pre code)会污染代码块，此规则强制清除 */pre code,.q .bd pre code,.bd pre code,.glossary pre code{background:none!important;border:none!important;padding:0!important;border-radius:0!important;color:inherit;font-size:14.5px;line-height:1.75}</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="brand">K8s / Docker 部署与发版<small>面试手册 · 5 年 Java 后端</small></div>
+  <a class="nav-item active" href="#mod0" data-mod="mod0">总览 · 概念速查</a>
+  <a class="nav-item" href="#mod1" data-mod="mod1">① Docker 核心 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod2" data-mod="mod2">② 镜像与优化 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod3" data-mod="mod3">③ K8s 核心概念 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod4" data-mod="mod4">④ K8s 调度与网络 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod5" data-mod="mod5">⑤ CICD 流水线 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod6" data-mod="mod6">⑥ 发版策略 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod7" data-mod="mod7">⑦ 配置与排障 <span class="pct"></span></a>
+  <div style="padding:16px 20px;font-size:12px;color:#64748b;border-top:1px solid #1e293b;margin-top:16px">
+    进度保存在本机 localStorage<br>清缓存会丢
+  </div>
+</aside>
+
+<main class="main">
+  <div class="toolbar">
+    <input type="search" id="search" placeholder="搜索题目、关键词（如：Docker、Pod、Service、Ingress、Deployment、灰度、回滚、CICD…）">
+    <div class="topbtns">
+      <button class="fbtn" data-lv="all">全部</button>
+      <button class="fbtn" data-lv="1">必考</button>
+      <button class="fbtn" data-lv="2">高频</button>
+      <button class="fbtn" data-lv="3">加分</button>
+    </div>
+    <div class="topbtns">
+      <button class="fbtn" id="btn-expand">全部展开</button>
+      <button class="fbtn" id="btn-collapse">全部折叠</button>
+    </div>
+  </div>
+
+  <h1>K8s / Docker 部署与发版面试手册</h1>
+  <p class="lead">面向 <b>5 年 Java 后端</b>，覆盖 <b>Docker 原理 → 镜像优化 → K8s 核心概念 → 调度网络 → CICD → 发版策略 → 配置排障</b>。核心是「<b>会用 + 懂原理 + 能排障 + 会发版</b>」。难度：<span class="lv lv1">必考</span> <span class="lv lv2">高频</span> <span class="lv lv3">加分</span>。</p>
+
+  <div class="overview">
+    <div class="ov"><div class="num" id="ov-total">0</div><div class="lab">总题量</div></div>
+    <div class="ov"><div class="num" id="ov-done">0</div><div class="lab">已掌握</div></div>
+    <div class="ov"><div class="num" id="ov-pct">0%</div><div class="lab">整体进度</div></div>
+    <div class="ov"><div class="num" id="ov-mod">7</div><div class="lab">模块数</div></div>
+  </div>
+
+  <!-- ============ 总览 ============ -->
+  <section class="module" id="mod0">
+    <div class="glossary">
+      <h2>核心概念速查 · 一张表记牢</h2>
+      <p class="gsub">K8s 概念多，先记「<b>它是干嘛的 + 管什么</b>」，面试不要求你背 API，但概念层级要清楚。</p>
+      <table>
+        <thead><tr><th>概念</th><th>一句话定位</th><th>类比</th></tr></thead>
+        <tbody>
+          <tr><th>Docker 镜像 Image</th><td>打包好的可运行环境（只读模板）</td><td>「安装包」</td></tr>
+          <tr><th>Docker 容器 Container</th><td>镜像的运行实例</td><td>「装好的程序」</td></tr>
+          <tr><th><code>Pod</code></th><td>K8s 最小调度单元，一个或多个容器</td><td>「一个进程组」</td></tr>
+          <tr><th><code>Deployment</code></th><td>管理 Pod 副本、滚动更新、回滚</td><td>「发布管理器」</td></tr>
+          <tr><th><code>Service</code></th><td>为 Pod 提供稳定访问入口（负载均衡）</td><td>「内网 LB」</td></tr>
+          <tr><th><code>Ingress</code></th><td>对外暴露 HTTP 路由（域名→服务）</td><td>「Nginx 路由」</td></tr>
+          <tr><th><code>ConfigMap/Secret</code></th><td>配置和密钥的管理</td><td>「配置文件」</td></tr>
+          <tr><th><code>Namespace</code></th><td>资源隔离的逻辑分组</td><td>「文件夹」</td></tr>
+        </tbody>
+      </table>
+      <div class="followup" style="margin-top:16px"><b>面试主线：</b>「<b>怎么把应用装进容器（Docker）→ 怎么在集群里跑起来（K8s）→ 怎么自动发版（CICD）→ 怎么安全上线（灰度/回滚）</b>」。这条链走完，就是完整的「部署 + 发版」能力。</div>
+    </div>
+  </section>
+
+  <!-- ============ ① Docker 核心 ============ -->
+  <section class="module" id="mod1">
+    <h2>① Docker 核心 <span class="cnt">原理 · 容器 vs 虚拟机</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d1q1">Docker 是什么？容器和虚拟机的区别？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="d1q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>一句话</h4>
+        <p>Docker 是<b>容器化平台</b>，把应用 + 依赖打包成一个「可移植的镜像」，在任何装了 Docker 的机器上都能一致运行。</p>
+        <h4>容器 vs 虚拟机</h4>
+        <table class="tb">
+          <thead><tr><th>维度</th><th>容器</th><th>虚拟机</th></tr></thead>
+          <tbody>
+            <tr><td>隔离层级</td><td>进程级（共享宿主机内核）</td><td>硬件级（每个 VM 有独立 OS）</td></tr>
+            <tr><td>启动速度</td><td>秒级</td><td>分钟级</td></tr>
+            <tr><td>资源占用</td><td>小（MB 级）</td><td>大（GB 级）</td></tr>
+            <tr><td>隔离性</td><td>较弱（共享内核）</td><td>强（完全隔离）</td></tr>
+            <tr><td>性能</td><td>接近原生</td><td>有虚拟化损耗</td></tr>
+          </tbody>
+        </table>
+        <h4>核心原理（三个关键技术）</h4>
+        <ul>
+          <li><b>Namespace（命名空间）：</b>隔离进程、网络、文件系统等，让容器「看不见」其他容器。</li>
+          <li><b>Cgroup（控制组）：</b>限制 CPU、内存等资源使用。</li>
+          <li><b>UnionFS（联合文件系统）：</b>镜像分层叠加，实现镜像复用和快速构建。</li>
+        </ul>
+        <div class="followup"><b>追问：</b>「容器不是虚拟机」——容器共享宿主机内核，所以 Linux 容器不能跑 Windows 应用。这是理解容器本质的关键。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d1q2">Docker 镜像的分层结构？为什么分层能加速构建？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="d1q2">已掌握</span></summary>
+      <div class="bd">
+        <h4>分层原理</h4>
+        <p>Dockerfile 的每条指令（FROM、RUN、COPY 等）生成一个<b>只读层</b>，层与层叠加成完整镜像。最终在只读层之上加一个<b>可写容器层</b>。</p>
+        <h4>为什么加速构建</h4>
+        <ul>
+          <li><b>层缓存：</b>某层没变化，直接复用缓存，不用重新执行。</li>
+          <li><b>层共享：</b>多个镜像可以共享相同的基础层（如都基于 ubuntu），节省存储和传输。</li>
+        </ul>
+        <h4>优化技巧</h4>
+        <ul>
+          <li><b>顺序：</b>变化少的层放前面（如依赖安装），变化多的放后面（如代码 COPY），充分利用缓存。</li>
+          <li><b>合并 RUN：</b>多条 RUN 合并成一条，减少层数。</li>
+        </ul>
+        <div class="pit"><b>坑：</b>「<b>先 COPY 代码再 RUN npm install</b>」会导致代码一变，依赖层缓存全失效。正确做法是「<b>先 COPY package.json 再 install，最后 COPY 代码</b>」，把依赖安装层缓存住。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="d1q3">Docker 常用命令？如何进入容器、看日志、复制文件？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="d1q3">已掌握</span></summary>
+      <div class="bd">
+        <h4>镜像与运行</h4>
+        <pre><code>docker build -t my-app:v1.0 .          # 构建镜像（-t 打标签）
+docker images                            # 查看本地镜像
+docker rmi &lt;image&gt;                        # 删除镜像
+docker tag &lt;src&gt; &lt;dst&gt;                    # 重新打标签
+
+docker run -d -p 8080:8080 -v /data:/data --name app my-app:v1.0
+# -d 后台运行；-p 宿主机:容器端口映射；-v 挂载卷；--name 命名</code></pre>
+        <h4>容器生命周期</h4>
+        <pre><code>docker ps            # 运行中的容器
+docker ps -a         # 所有容器（含已停止）
+docker start/stop/restart &lt;id&gt;
+docker rm &lt;id&gt;        # 删除容器
+docker inspect &lt;id&gt;   # 查看容器详细配置</code></pre>
+        <h4>进入容器（排障核心）</h4>
+        <pre><code>docker exec -it &lt;id&gt; /bin/bash    # 交互式进入，退出用 exit（不影响容器）
+docker exec -it &lt;id&gt; sh           # 精简镜像无 bash 时用 sh
+docker exec &lt;id&gt; &lt;命令&gt;            # 非交互执行单条命令（如 ls、ps、top）</code></pre>
+        <p><b>注意：</b><code>docker attach</code> 是连到容器主进程的 stdin/stdout，退出会导致容器停止；排障一律用 <code>exec</code> 而非 <code>attach</code>。</p>
+        <h4>看日志</h4>
+        <pre><code>docker logs &lt;id&gt;            # 查看全部日志
+docker logs -f &lt;id&gt;         # 实时跟踪（tail -f 效果）
+docker logs --tail 100 &lt;id&gt; # 只看最后 100 行
+docker logs --since 30m &lt;id&gt;  # 最近 30 分钟
+docker logs -t &lt;id&gt;         # 带时间戳</code></pre>
+        <h4>复制文件</h4>
+        <pre><code>docker cp &lt;id&gt;:/path/file ./local      # 容器 → 宿主机（导出日志/配置）
+docker cp ./local &lt;id&gt;:/path/file      # 宿主机 → 容器（注入配置）</code></pre>
+        <div class="followup"><b>追问：</b>生产环境容器多了，怎么统一看日志？—— 靠 <code>docker logs</code> 一个个看不现实，要用集中式日志（EFK / Loki + Grafana），容器日志经 <code>json-file</code> 驱动或 stdout 采集到外部。</div>
+        <div class="pit"><b>坑：</b>容器是<b>无状态的</b>，容器删除后内部数据丢失。要持久化的数据（数据库、日志、上传文件）必须用 <code>-v</code> 挂载到宿主机卷，否则容器一重建数据就没了。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ ② 镜像与优化 ============ -->
+  <section class="module" id="mod2">
+    <h2>② 镜像与优化 <span class="cnt">Dockerfile · 瘦身 · 多阶段</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="i1q1">一个 Java 应用的 Dockerfile 怎么写？有哪些优化点？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="i1q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>基础版 Dockerfile</h4>
+        <pre><code>FROM openjdk:17-jdk-slim
+COPY target/app.jar /app/app.jar
+WORKDIR /app
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]</code></pre>
+        <h4>优化点（面试加分项）</h4>
+        <ol>
+          <li><b>多阶段构建：</b>构建阶段用大镜像（含 Maven），运行阶段用小镜像（只含 JRE），减小体积。</li>
+          <li><b>用 JRE 而非 JDK：</b>运行只需要 JRE，用 <code>eclipse-temurin:17-jre</code> 更小。</li>
+          <li><b>基础镜像选 slim/alpine：</b>减小体积，但 alpine 用 musl libc，某些依赖可能不兼容，要测试。</li>
+          <li><b>健康检查：</b><code>HEALTHCHECK</code> 配合 K8s 探针。</li>
+        </ol>
+        <h4>多阶段构建示例</h4>
+        <pre><code># 阶段1：构建
+FROM maven:3.9-eclipse-temurin-17 AS build
+WORKDIR /src
+COPY pom.xml .
+RUN mvn dependency:go-offline
+COPY src ./src
+RUN mvn package -DskipTests
+
+# 阶段2：运行（小镜像）
+FROM eclipse-temurin:17-jre
+COPY --from=build /src/target/app.jar /app/app.jar
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]</code></pre>
+        <div class="followup"><b>核心：</b>「<b>构建用大镜像，运行用小镜像</b>」的多阶段构建是标配。能说出「镜像体积从几百 MB 优化到几十 MB」就是加分。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="i1q2">Java 应用在容器里内存怎么配置？为什么会有 OOM 问题？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="i1q2">已掌握</span></summary>
+      <div class="bd">
+        <h4>容器里的内存坑（经典问题）</h4>
+        <p>Java 8 早期版本（&lt; 8u131）读的是<b>宿主机内存</b>而非容器内存限制，导致 JVM 堆设太大，容器 OOM 被杀。</p>
+        <h4>解决方案</h4>
+        <ul>
+          <li><b>用容器感知的 JVM：</b>Java 10+ 默认感知容器限制，Java 8u131+ 加 <code>-XX:+UseContainerSupport</code>。</li>
+          <li><b>显式设堆：</b><code>-Xmx</code> 设为容器内存的 50~70%，留出堆外内存（元空间、线程栈、直接内存）。</li>
+          <li><b>K8s 资源限制：</b>设置 <code>resources.limits.memory</code>，别让容器超限。</li>
+        </ul>
+        <h4>内存分配原则</h4>
+        <p>JVM 内存 = 堆 + 元空间 + 线程栈 + 直接内存 + 代码缓存。堆只是其中一部分，<b>别把容器内存全分给堆</b>，要留余量给堆外。</p>
+        <div class="pit"><b>核心：</b>「<b>容器内存 ≠ JVM 堆</b>」。容器限制 2G，堆设 2G 必然 OOM。堆设 1.2~1.4G，剩下的给堆外。这是容器化 Java 最常见的坑。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="i1q3">镜像怎么瘦身？有哪些手段？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="i1q3">已掌握</span></summary>
+      <div class="bd">
+        <h4>瘦身手段</h4>
+        <table class="tb">
+          <thead><tr><th>手段</th><th>效果</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td>多阶段构建</td><td>去掉构建工具</td><td>最终镜像不含 Maven/Gradle</td></tr>
+            <tr><td>选最小基础镜像</td><td>alpine / distroless</td><td>从几百 MB 降到几十 MB</td></tr>
+            <tr><td>用 JRE 不用 JDK</td><td>去掉编译工具</td><td>jre 比 jdk 小很多</td></tr>
+            <tr><td>合并 RUN 层</td><td>减少层数</td><td>清理临时文件</td></tr>
+            <tr><td>.dockerignore</td><td>排除无关文件</td><td>别把 target 外的文件打进去</td></tr>
+          </tbody>
+        </table>
+        <h4>distroless 镜像</h4>
+        <p>Google 的 <code>distroless</code> 镜像只含运行时，连 shell 都没有，体积极小、攻击面小，但没法 <code>exec</code> 进去排查，适合生产无状态服务。</p>
+        <div class="followup"><b>核心：</b>镜像瘦身不只是「省空间」，更是「<b>减小攻击面 + 加速部署</b>」。生产镜像追求「够用最小」，去掉 shell、编译工具、无关文件。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ ③ K8s 核心概念 ============ -->
+  <section class="module" id="mod3">
+    <h2>③ K8s 核心概念 <span class="cnt">Pod · Deployment · Service · Ingress</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="k1q1">Pod、Deployment、Service、Ingress 分别是什么？什么关系？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="k1q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>四者关系（核心）</h4>
+        <p><b>Deployment 管理 Pod，Service 给 Pod 提供稳定入口，Ingress 把外部流量路由到 Service。</b></p>
+        <table class="tb">
+          <thead><tr><th>对象</th><th>作用</th><th>关键点</th></tr></thead>
+          <tbody>
+            <tr><td><b>Pod</b></td><td>最小调度单元，跑容器</td><td>一个 Pod 可含多个共享网络的容器</td></tr>
+            <tr><td><b>Deployment</b></td><td>管理 Pod 副本数、滚动更新、回滚</td><td>声明式，定义「期望状态」</td></tr>
+            <tr><td><b>Service</b></td><td>给一组 Pod 提供稳定的 VIP + 负载均衡</td><td>Pod 重启 IP 会变，Service 不变</td></tr>
+            <tr><td><b>Ingress</b></td><td>七层路由（域名/路径 → Service）</td><td>类似 Nginx，对外暴露 HTTP</td></tr>
+          </tbody>
+        </table>
+        <h4>为什么需要 Service</h4>
+        <p>Pod 是<b>易失的</b>（重启、扩容、故障都会重建，IP 会变）。Service 通过 <code>Label Selector</code> 关联一组 Pod，提供<b>稳定的虚拟 IP</b>，客户端只访问 Service，不关心具体 Pod。</p>
+        <div class="followup"><b>核心：</b>「<b>Deployment 管数量、Service 管访问、Ingress 管路由</b>」。这是 K8s 最核心的抽象分层，面试必问。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="k1q2">Deployment 的滚动更新是怎么工作的？怎么回滚？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="k1q2">已掌握</span></summary>
+      <div class="bd">
+        <h4>滚动更新原理</h4>
+        <ol>
+          <li>更新 Deployment 的镜像版本。</li>
+          <li>创建一个<b>新的 ReplicaSet</b>，逐步增加新 Pod。</li>
+          <li>同步减少<b>旧 ReplicaSet</b> 的 Pod。</li>
+          <li>新旧交替，直到全部替换完成，全程不停机。</li>
+        </ol>
+        <h4>关键参数</h4>
+        <ul>
+          <li><code>maxSurge</code>：更新时最多额外新建几个 Pod（峰值超出期望数的量）。</li>
+          <li><code>maxUnavailable</code>：更新时最多几个 Pod 不可用。</li>
+        </ul>
+        <h4>回滚</h4>
+        <pre><code>kubectl rollout undo deployment/my-app          # 回滚到上一版本
+kubectl rollout undo deployment/my-app --to-revision=2   # 回滚到指定版本
+kubectl rollout history deployment/my-app       # 查看历史版本</code></pre>
+        <div class="followup"><b>核心：</b>Deployment 的滚动更新 + 回滚，是「<b>零停机发版</b>」的基础。配合「<b>就绪探针</b>」（新 Pod 就绪才接入流量），实现无感发布。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="k1q3">ConfigMap 和 Secret 有什么区别？配置怎么管理？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="k1q3">已掌握</span></summary>
+      <div class="bd">
+        <table class="tb">
+          <thead><tr><th>维度</th><th>ConfigMap</th><th>Secret</th></tr></thead>
+          <tbody>
+            <tr><td>用途</td><td>非敏感配置（端口、环境、开关）</td><td>敏感数据（密码、token、证书）</td></tr>
+            <tr><td>存储</td><td>明文</td><td>Base64 编码（非加密，需配加密）</td></tr>
+            <tr><td>使用方式</td><td>环境变量 / 挂载文件</td><td>环境变量 / 挂载文件</td></tr>
+          </tbody>
+        </table>
+        <h4>使用方式</h4>
+        <pre><code># ConfigMap 作为环境变量
+env:
+- name: SPRING_PROFILES_ACTIVE
+  valueFrom:
+    configMapKeyRef:
+      name: app-config
+      key: profile
+
+# Secret 挂载为文件
+volumes:
+- name: cert
+  secret:
+    secretName: tls-cert</code></pre>
+        <div class="pit"><b>坑：</b>①Secret 只是 <code>Base64 编码</code>，不是加密，任何能看到的人都能解码，生产要配 <code>etcd 加密</code> 或外部密钥管理（KMS/Vault）。②ConfigMap 更新后，Pod 不会自动感知，需重启 Pod 或用 <code>Reloader</code> 热加载。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ ④ K8s 调度与网络 ============ -->
+  <section class="module" id="mod4">
+    <h2>④ K8s 调度与网络 <span class="cnt">调度 · 探针 · 服务发现</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="s1q1">K8s 的三种探针（liveness/readiness/startup）分别是什么？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="s1q1">已掌握</span></summary>
+      <div class="bd">
+        <table class="tb">
+          <thead><tr><th>探针</th><th>作用</th><th>失败后果</th></tr></thead>
+          <tbody>
+            <tr><td><b>livenessProbe</b>（存活）</td><td>判断容器是否「活着」</td><td>重启容器（治死循环/死锁）</td></tr>
+            <tr><td><b>readinessProbe</b>（就绪）</td><td>判断容器是否「能接流量」</td><td>从 Service 摘除，不再路由</td></tr>
+            <tr><td><b>startupProbe</b>（启动）</td><td>判断容器是否「启动完成」</td><td>启动慢的应用，保护不被误杀</td></tr>
+          </tbody>
+        </table>
+        <h4>关键区分</h4>
+        <ul>
+          <li><b>liveness 管「重启」</b>：应用死循环、卡死，重启救活。</li>
+          <li><b>readiness 管「流量」</b>：应用启动中、依赖没连上、内存高，摘流量，但<b>不重启</b>。</li>
+          <li><b>startup 管「启动期」</b>：启动慢的应用（如 Spring Boot 启动 60s），防止 liveness 在启动期就误杀。</li>
+        </ul>
+        <div class="pit"><b>坑：</b>liveness 和 readiness 要<b>区别对待</b>。readiness 探测失败只是摘流量，容器还活着；liveness 失败会重启。别把「依赖服务挂了」配成 liveness，否则会无限重启。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="s1q2">Pod 调度到哪个节点是怎么决定的？资源怎么限制？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="s1q2">已掌握</span></summary>
+      <div class="bd">
+        <h4>调度流程</h4>
+        <ol>
+          <li><b>过滤（Predicates）：</b>排除不满足条件的节点（资源不够、有污点、节点标签不匹配）。</li>
+          <li><b>打分（Priorities）：</b>对剩余节点打分（资源均衡、亲和性），选最高分。</li>
+        </ol>
+        <h4>资源限制</h4>
+        <pre><code>resources:
+  requests:        # 调度时保证的最小资源
+    cpu: "500m"
+    memory: "512Mi"
+  limits:          # 运行时的最大上限
+    cpu: "1"
+    memory: "1Gi"</code></pre>
+        <ul>
+          <li><b>requests：</b>调度依据，保证 Pod 至少拿到这么多资源。</li>
+          <li><b>limits：</b>资源上限，超出 CPU 会被限流（throttle），内存超出会 OOM 被杀。</li>
+        </ul>
+        <h4>高级调度</h4>
+        <ul>
+          <li><b>nodeSelector / 亲和性（affinity）：</b>指定 Pod 跑在特定节点（如 GPU 节点）。</li>
+          <li><b>污点（taint）+ 容忍（toleration）：</b>标记特殊节点，只有容忍的 Pod 才能调度上去。</li>
+        </ul>
+        <div class="followup"><b>核心：</b>「<b>requests 决定调度，limits 决定上限</b>」。合理设置能避免「资源竞争」和「OOM 被杀」。这是 K8s 资源管理的核心。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="s1q3">K8s 里服务间怎么互相发现和调用？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="s1q3">已掌握</span></summary>
+      <div class="bd">
+        <h4>两种服务发现方式</h4>
+        <table class="tb">
+          <thead><tr><th>方式</th><th>原理</th><th>适用</th></tr></thead>
+          <tbody>
+            <tr><td><b>K8s 原生（DNS）</b></td><td>Service 名解析为 ClusterIP（<code>my-svc.default.svc.cluster.local</code>）</td><td>K8s 内部服务互调</td></tr>
+            <tr><td><b>注册中心（Nacos/Eureka）</b></td><td>应用自己注册到 Nacos，客户端拉取实例列表</td><td>Spring Cloud 微服务</td></tr>
+          </tbody>
+        </table>
+        <h4>Spring Cloud + K8s 的冲突与解决</h4>
+        <p>Spring Cloud 有 Nacos 做服务发现，K8s 也有 Service 做服务发现，两者会<b>重复</b>。常见做法：</p>
+        <ul>
+          <li><b>保留 Nacos：</b>微服务治理（熔断、限流、配置）依赖 Nacos，K8s 只做部署。</li>
+          <li><b>或用 K8s 原生：</b>Spring Cloud Kubernetes 项目，用 K8s Service 替代 Nacos 做服务发现。</li>
+        </ul>
+        <div class="followup"><b>核心：</b>「<b>Nacos 管服务治理，K8s 管部署</b>」是常见分工。面试要能说清「为什么有了 K8s 还要 Nacos」——因为 K8s Service 只解决「发现」，不解决「熔断/限流/灰度/配置」这些治理能力。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ ⑤ CICD 流水线 ============ -->
+  <section class="module" id="mod5">
+    <h2>⑤ CICD 流水线 <span class="cnt">Jenkins · GitLab CI · 自动化</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="c1q1">CICD 是什么？一条完整的发布流水线包含哪些步骤？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="c1q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>CI / CD 概念</h4>
+        <ul>
+          <li><b>CI（持续集成）：</b>代码提交后自动构建、测试，尽早发现问题。</li>
+          <li><b>CD（持续交付/部署）：</b>自动化把构建产物发布到环境，减少人工。</li>
+        </ul>
+        <h4>完整流水线步骤</h4>
+        <ol>
+          <li><b>代码提交：</b>push 到 Git，触发流水线（webhook）。</li>
+          <li><b>构建：</b>拉代码 → 编译 → 打包（Maven/Gradle）。</li>
+          <li><b>测试：</b>单元测试 → 静态扫描（SonarQube）→ 可选集成测试。</li>
+          <li><b>打包镜像：</b>Docker build → 推送到镜像仓库（Harbor/阿里云 ACR）。</li>
+          <li><b>部署：</b>更新 K8s Deployment 镜像版本（kubectl / Argo CD）。</li>
+          <li><b>验证：</b>健康检查、冒烟测试。</li>
+          <li><b>通知：</b>成功/失败通知（钉钉/邮件）。</li>
+        </ol>
+        <div class="followup"><b>核心：</b>「<b>提交即触发，自动构建 → 测试 → 打包 → 部署 → 验证</b>」，目标是「<b>人工只做审批和确认，重复劳动全自动化</b>」。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="c1q2">Jenkins 和 GitLab CI 怎么选？常用的 CICD 工具有哪些？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="c1q2">已掌握</span></summary>
+      <div class="bd">
+        <table class="tb">
+          <thead><tr><th>工具</th><th>类型</th><th>特点</th></tr></thead>
+          <tbody>
+            <tr><td><b>Jenkins</b></td><td>CI 服务器</td><td>最流行、插件丰富、灵活，需自维护</td></tr>
+            <tr><td><b>GitLab CI</b></td><td>集成在 GitLab</td><td>和代码托管一体，配置用 yaml，省心</td></tr>
+            <tr><td><b>GitHub Actions</b></td><td>集成在 GitHub</td><td>GitHub 生态，配置 yaml</td></tr>
+            <tr><td><b>Argo CD</b></td><td>GitOps 部署</td><td>声明式部署，自动同步 K8s 配置</td></tr>
+          </tbody>
+        </table>
+        <h4>选型建议</h4>
+        <ul>
+          <li>代码在 GitLab → 用 <b>GitLab CI</b>（省得维护 Jenkins）。</li>
+          <li>复杂流水线、多工具集成 → <b>Jenkins</b>（插件生态强）。</li>
+          <li>K8s 部署 → 结合 <b>Argo CD</b> 做 GitOps（声明式，配置即代码）。</li>
+        </ul>
+        <div class="followup"><b>核心：</b>面试要能说出「<b>用过 Jenkins/GitLab CI，理解流水线阶段</b>」，并能讲清「<b>构建 → 测试 → 镜像 → 部署</b>」每个阶段做了什么。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="c1q3">什么是 GitOps？和传统 CI/CD 有什么区别？</span><span class="lv lv3">加分</span></span><span class="ck"><input type="checkbox" data-id="c1q3">已掌握</span></summary>
+      <div class="bd">
+        <h4>GitOps 概念</h4>
+        <p>把「<b>部署配置（yaml）也存到 Git 仓库</b>」，以 Git 作为「单一事实来源」。改部署 = 改 Git 配置，Argo CD 等工具自动同步到集群。</p>
+        <h4>传统 CI/CD vs GitOps</h4>
+        <table class="tb">
+          <thead><tr><th>维度</th><th>传统 CI/CD（Push）</th><th>GitOps（Pull）</th></tr></thead>
+          <tbody>
+            <tr><td>部署方式</td><td>CI 主动推（kubectl apply）</td><td>Agent 主动拉（对比 Git 和集群状态）</td></tr>
+            <tr><td>事实来源</td><td>CI 配置</td><td>Git 仓库</td></tr>
+            <tr><td>回滚</td><td>重新部署</td><td>Git revert，天然可追溯</td></tr>
+            <tr><td>审计</td><td>较弱</td><td>强（Git 提交记录）</td></tr>
+          </tbody>
+        </table>
+        <h4>GitOps 优势</h4>
+        <ul>
+          <li><b>可审计：</b>所有变更都有 Git 提交记录。</li>
+          <li><b>可回滚：</b>git revert 即可回滚。</li>
+          <li><b>声明式：</b>集群状态始终和 Git 配置一致。</li>
+        </ul>
+        <div class="followup"><b>加分：</b>能说出「<b>Argo CD / Flux + GitOps</b>」，体现对现代部署实践的了解，是 K8s 方向面试的加分项。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ ⑥ 发版策略 ============ -->
+  <section class="module" id="mod6">
+    <h2>⑥ 发版策略 <span class="cnt">灰度 · 蓝绿 · 金丝雀 · 回滚</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="r1q1">滚动、蓝绿、灰度（金丝雀）三种发版策略怎么选？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="r1q1">已掌握</span></summary>
+      <div class="bd">
+        <table class="tb">
+          <thead><tr><th>策略</th><th>原理</th><th>优点</th><th>缺点</th></tr></thead>
+          <tbody>
+            <tr><td><b>滚动发布</b></td><td>逐个替换 Pod，新旧并存过渡</td><td>零停机、简单</td><td>回滚慢，过渡期新旧混合</td></tr>
+            <tr><td><b>蓝绿部署</b></td><td>两套完整环境，流量一键切换</td><td>秒级回滚、隔离彻底</td><td>资源翻倍</td></tr>
+            <tr><td><b>灰度（金丝雀）</b></td><td>先放量给少量用户，验证后全量</td><td>风险可控、逐步验证</td><td>实现复杂，需流量控制</td></tr>
+          </tbody>
+        </table>
+        <h4>选型建议</h4>
+        <ul>
+          <li><b>日常发布：</b>滚动发布（K8s Deployment 默认）。</li>
+          <li><b>需秒级回滚、重大变更：</b>蓝绿部署。</li>
+          <li><b>高风险、要逐步验证：</b>灰度（金丝雀），配合 <code>Istio</code> / 网关按比例分流。</li>
+        </ul>
+        <div class="followup"><b>核心：</b>「<b>滚动省资源、蓝绿快回滚、灰度控风险</b>」。面试要能结合业务说选型，而不是背定义。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="r1q2">灰度发布怎么实现？流量怎么按比例/按用户切？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="r1q2">已掌握</span></summary>
+      <div class="bd">
+        <h4>灰度发布的三种实现</h4>
+        <table class="tb">
+          <thead><tr><th>方式</th><th>原理</th><th>粒度</th></tr></thead>
+          <tbody>
+            <tr><td><b>网关层灰度</b></td><td>网关按 Header/用户 ID 路由到灰度版本</td><td>按用户</td></tr>
+            <tr><td><b>Service Mesh（Istio）</b></td><td>按权重分流（如 10% 新版本）</td><td>按比例</td></tr>
+            <tr><td><b>K8s Ingress</b></td><td>Ingress 配 Canary 规则分流</td><td>按 Header/权重</td></tr>
+          </tbody>
+        </table>
+        <h4>典型灰度流程</h4>
+        <ol>
+          <li>部署新版本（灰度 Deployment，少量副本）。</li>
+          <li>按用户 ID 哈希 / Header 切 5~10% 流量到灰度版本。</li>
+          <li>观察指标（错误率、RT、业务指标），对比基线。</li>
+          <li>没问题逐步放量（10% → 30% → 100%）。</li>
+          <li>出问题立即切回旧版本。</li>
+        </ol>
+        <div class="pit"><b>坑：</b>灰度要保证「<b>同一用户始终路由到同一版本</b>」（会话粘滞），否则用户刷新页面可能跳到不同版本，体验割裂。用用户 ID 哈希实现。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="r1q3">发版失败怎么回滚？数据库变更能回滚吗？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="r1q3">已掌握</span></summary>
+      <div class="bd">
+        <h4>应用回滚</h4>
+        <ul>
+          <li><b>K8s：</b><code>kubectl rollout undo</code> 回滚到上一版本。</li>
+          <li><b>镜像：</b>回滚 = 重新指定旧版本镜像 tag。</li>
+          <li><b>GitOps：</b><code>git revert</code> 提交，Argo CD 自动同步。</li>
+        </ul>
+        <h4>数据库变更回滚（核心难点）</h4>
+        <p>「<b>代码能回滚，数据回不了</b>」。数据库变更要「<b>向后兼容</b>」，用「<b>先扩展、后收缩</b>」策略：</p>
+        <ol>
+          <li><b>扩展阶段：</b>只加字段/表，不删不改，旧版本代码还能跑。</li>
+          <li><b>稳定阶段：</b>新旧代码共存，观察没问题。</li>
+          <li><b>收缩阶段：</b>确认新版本稳定后，再删旧字段/表。</li>
+        </ol>
+        <div class="pit"><b>核心：</b>「<b>数据库变更要能兼容新旧两个版本</b>」。直接改字段类型/删字段，会导致回滚后旧代码报错。这是发版最容易出事故的地方。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="r1q4">怎么保证发版「用户无感」？优雅上下线怎么做？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="r1q4">已掌握</span></summary>
+      <div class="bd">
+        <h4>优雅下线（K8s）</h4>
+        <ol>
+          <li>收到终止信号（SIGTERM）。</li>
+          <li>从 Service <b>摘除</b>（readiness 探针失败，不再接新流量）。</li>
+          <li><b>等待在途请求处理完</b>（<code>terminationGracePeriodSeconds</code>，如 30s）。</li>
+          <li>释放资源后真正退出。</li>
+        </ol>
+        <h4>Spring Boot 侧配置</h4>
+        <pre><code>server:
+  shutdown: graceful          # 优雅停机
+spring:
+  lifecycle:
+    timeout-per-shutdown-phase: 30s   # 最多等 30s</code></pre>
+        <h4>配合 preStop 钩子</h4>
+        <pre><code>lifecycle:
+  preStop:
+    exec:
+      command: ["/bin/sh", "-c", "sleep 10"]  # 摘流量后等 10s 再退出</code></pre>
+        <div class="followup"><b>核心：</b>优雅下线 = 「<b>摘流量 → 等在途请求 → 退出</b>」三步。配合滚动发布 + 就绪探针，实现「用户无感发版」。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ ⑦ 配置与排障 ============ -->
+  <section class="module" id="mod7">
+    <h2>⑦ 配置与排障 <span class="cnt">多环境 · 排障命令 · 常见问题</span></h2>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t1q1">多环境（dev/test/prod）怎么用 K8s 管理？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="t1q1">已掌握</span></summary>
+      <div class="bd">
+        <h4>多环境管理方案</h4>
+        <table class="tb">
+          <thead><tr><th>方式</th><th>原理</th><th>适用</th></tr></thead>
+          <tbody>
+            <tr><td><b>Namespace 隔离</b></td><td>一个集群分多个 namespace（dev/test/prod）</td><td>小团队，资源有限</td></tr>
+            <tr><td><b>多集群隔离</b></td><td>每个环境独立集群</td><td>生产要强隔离，安全要求高</td></tr>
+          </tbody>
+        </table>
+        <h4>环境差异管理</h4>
+        <ul>
+          <li><b>ConfigMap/Secret 按环境分：</b><code>app-config-dev</code>、<code>app-config-prod</code>。</li>
+          <li><b>Helm 或 Kustomize：</b>用模板管理不同环境的差异配置。</li>
+        </ul>
+        <div class="pit"><b>坑：</b>「<b>生产环境必须和测试隔离</b>」。用同一个 namespace 管 dev/prod，稍有不慎就会把测试配置/操作误用到生产。生产环境建议独立集群或至少强隔离的 namespace + 权限控制（RBAC）。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t1q2">Pod 起不来 / 反复重启怎么排查？常用排障命令？</span><span class="lv lv1">必考</span></span><span class="ck"><input type="checkbox" data-id="t1q2">已掌握</span></summary>
+      <div class="bd">
+        <h4>排障思路（从上到下）</h4>
+        <ol>
+          <li><b>看状态：</b><code>kubectl get pods</code>（Pending / CrashLoopBackOff / ImagePullBackOff）。</li>
+          <li><b>看事件：</b><code>kubectl describe pod &lt;name&gt;</code>（Events 里看拉镜像失败、调度失败、探针失败）。</li>
+          <li><b>看日志：</b><code>kubectl logs &lt;pod&gt;</code>（应用报错）。</li>
+          <li><b>进入容器：</b><code>kubectl exec -it &lt;pod&gt; -- /bin/bash</code> 排查环境。</li>
+        </ol>
+        <h4>常见问题对照</h4>
+        <table class="tb">
+          <thead><tr><th>状态</th><th>原因</th><th>排查</th></tr></thead>
+          <tbody>
+            <tr><td><code>Pending</code></td><td>资源不足 / 无法调度</td><td>describe 看调度失败原因</td></tr>
+            <tr><td><code>ImagePullBackOff</code></td><td>镜像拉不下来</td><td>检查镜像名/tag/仓库权限</td></tr>
+            <tr><td><code>CrashLoopBackOff</code></td><td>容器启动后崩溃</td><td>logs 看启动报错</td></tr>
+            <tr><td><code>OOMKilled</code></td><td>内存超限</td><td>看 limits 设置，调大或查内存泄漏</td></tr>
+          </tbody>
+        </table>
+        <div class="followup"><b>核心：</b>排障顺序「<b>get → describe → logs → exec</b>」，从状态到事件到日志到容器内部，逐层深入。这是 K8s 排障的标准路径。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t1q3">容器里应用日志怎么收集？日志丢失怎么办？</span><span class="lv lv2">高频</span></span><span class="ck"><input type="checkbox" data-id="t1q3">已掌握</span></summary>
+      <div class="bd">
+        <h4>日志收集方案</h4>
+        <ul>
+          <li><b>标准输出 + 采集器：</b>应用日志打到 stdout，<code>Filebeat/Fluentd</code> 采集到 ES。</li>
+          <li><b>Sidecar 容器：</b>一个日志采集 sidecar 和应用同 Pod，采集文件日志。</li>
+        </ul>
+        <h4>容器日志的坑</h4>
+        <ul>
+          <li><b>容器重建日志丢失：</b>容器删除后，stdout 日志和容器内文件都没了 → 日志必须<b>实时采集到外部</b>（ES/Loki），不能只存容器内。</li>
+          <li><b>日志过大：</b>控制日志级别 + 采样，避免日志量压垮存储。</li>
+        </ul>
+        <div class="pit"><b>核心：</b>「<b>容器是易失的，日志不能只存在容器里</b>」。最佳实践是「应用输出 stdout → 采集器实时采集 → 集中存储（ES/Loki）→ 可视化（Kibana/Grafana）」。丢失日志 = 无法排查问题。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><span class="q-title"><span class="qn" data-id="t1q4">Helm 是什么？为什么要用 Helm 管理应用？</span><span class="lv lv3">加分</span></span><span class="ck"><input type="checkbox" data-id="t1q4">已掌握</span></summary>
+      <div class="bd">
+        <h4>Helm 概念</h4>
+        <p>Helm 是 K8s 的<b>包管理器</b>，像「apt/yum」之于 Linux。用 <b>Chart</b>（模板 + 值）定义一套应用的所有资源。</p>
+        <h4>解决的问题</h4>
+        <ul>
+          <li><b>管理复杂应用：</b>一个应用有 Deployment、Service、ConfigMap、Ingress 等一堆资源，Helm 打包成一个 Chart 统一管理。</li>
+          <li><b>参数化部署：</b>用 <code>values.yaml</code> 区分环境，同一 Chart 部署到不同环境。</li>
+          <li><b>版本管理 + 回滚：</b><code>helm rollback</code> 一键回滚。</li>
+        </ul>
+        <pre><code>helm install my-app ./chart -f values-prod.yaml   # 安装
+helm upgrade my-app ./chart -f values-prod.yaml    # 升级
+helm rollback my-app 1                              # 回滚</code></pre>
+        <div class="followup"><b>加分：</b>「<b>用 Helm 管理应用，Kustomize 做环境差异化</b>」是现代 K8s 部署的标配认知。面试能说出 Helm 的「模板化 + 版本管理 + 回滚」价值即可。</div>
+      </div>
+    </details>
+  </section>
+</main>
+</div>
+
+<script>
+(function(){
+  var STORE='k8s-deploy-progress-v1';
+  var qs=document.querySelectorAll('details.q');
+  var mods=document.querySelectorAll('section.module');
+  function load(){try{return JSON.parse(localStorage.getItem(STORE)||'{}');}catch(e){return {};}}
+  var prog=load();
+
+  function qid(q){return q.querySelector('.qn').getAttribute('data-id')||q.querySelector('.q-title').textContent.trim().slice(0,30);}
+  function qlv(q){var s=q.querySelector('.lv');return s?s.className.match(/lv(\d)/)[1]:'1';}
+
+  function save(){localStorage.setItem(STORE,JSON.stringify(prog));}
+
+  function refresh(){
+    var total=0,done=0;
+    mods.forEach(function(m){
+      if(m.id==='mod0')return;
+      var cks=m.querySelectorAll('.ck input');
+      var md=0,mc=0;
+      cks.forEach(function(cb){
+        var id=cb.getAttribute('data-id');
+        var on=!!prog[id];
+        cb.checked=on;
+        mc++; if(on)md++;
+      });
+      total+=mc; done+=md;
+      var pct=mc?Math.round(md/mc*100):0;
+      var nav=document.querySelector('.nav-item[data-mod="'+m.id+'"] .pct');
+      if(nav)nav.textContent=pct+'%';
+    });
+    document.getElementById('ov-total').textContent=total;
+    document.getElementById('ov-done').textContent=done;
+    document.getElementById('ov-pct').textContent=(total?Math.round(done/total*100):0)+'%';
+  }
+
+  qs.forEach(function(q){
+    var cb=q.querySelector('.ck input');
+    cb.addEventListener('change',function(){
+      var id=cb.getAttribute('data-id');
+      if(cb.checked)prog[id]=1; else delete prog[id];
+      save(); refresh();
+    });
+  });
+
+  var se=document.getElementById('search');
+  se.addEventListener('input',function(){
+    var kw=se.value.trim().toLowerCase();
+    qs.forEach(function(q){
+      var txt=q.textContent.toLowerCase();
+      var hit=!kw||txt.indexOf(kw)>=0;
+      q.classList.toggle('hide',!hit);
+    });
+  });
+
+  var btns=document.querySelectorAll('.fbtn[data-lv]');
+  var curLv='all';
+  btns.forEach(function(b){
+    b.addEventListener('click',function(){
+      curLv=b.getAttribute('data-lv');
+      btns.forEach(function(x){x.classList.toggle('active',x===b);});
+      applyFilter();
+    });
+  });
+  function applyFilter(){
+    var kw=se.value.trim().toLowerCase();
+    qs.forEach(function(q){
+      var hit=curLv==='all'||qlv(q)===curLv;
+      var kh=!kw||q.textContent.toLowerCase().indexOf(kw)>=0;
+      q.classList.toggle('hide',!(hit&&kh));
+    });
+  }
+
+  document.getElementById('btn-expand').addEventListener('click',function(){
+    qs.forEach(function(q){q.open=true;});
+  });
+  document.getElementById('btn-collapse').addEventListener('click',function(){
+    qs.forEach(function(q){q.open=false;});
+  });
+
+  refresh();
+})();
+</script>
+</body>
+</html>

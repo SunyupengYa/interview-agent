@@ -1,0 +1,29 @@
+server:
+  port: 8080
+
+deepseek:
+  # 通过环境变量 DEEPSEEK_API_KEY 注入，不要写死在代码里
+  api-key: ${DEEPSEEK_API_KEY:demo-key-not-set}
+  base-url: https://api.deepseek.com/v1
+  chat-model: ${DEEPSEEK_MODEL:deepseek-flash}
+  temperature: 0.7
+
+# 知识库语料目录（HTML 面试手册），启动时扫描入库
+corpus:
+  dir: ${CORPUS_DIR:./corpus}
+
+kb:
+  store-path: ${KB_STORE_PATH:./data/embeddings.store}
+
+# 向量库后端：memory（开发）| milvus（生产主流）
+vector-store:
+  type: ${VECTOR_STORE_TYPE:memory}
+  milvus:
+    host: ${MILVUS_HOST:localhost}
+    port: ${MILVUS_PORT:19530}
+    collection: interview_kb
+
+logging:
+  level:
+    dev.langchain4j: INFO
+    org.bsc.langgraph4j: INFO

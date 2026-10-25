@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RocketMQ 知识手册</title>
+<style>
+:root{
+  --bg:#f5f6f8; --card:#ffffff; --line:#e5e7eb; --line2:#d1d5db;
+  --tx:#1f2937; --tx2:#6b7280; --tx3:#9ca3af;
+  --ac:#2563eb; --ac-bg:#eff6ff; --ac-line:#bfdbfe;
+  --must:#dc2626; --must-bg:#fef2f2; --must-line:#fecaca;
+  --high:#d97706; --high-bg:#fffbeb; --high-line:#fde68a;
+  --bonus:#059669; --bonus-bg:#ecfdf5; --bonus-line:#a7f3d0;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font:15px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif}
+a{color:var(--ac);text-decoration:none}
+.layout{display:flex;min-height:100vh}
+.sidebar{width:270px;flex:0 0 270px;background:#0f172a;color:#e2e8f0;position:sticky;top:0;height:100vh;overflow-y:auto;padding:20px 0}
+.sidebar .brand{padding:0 20px 16px;border-bottom:1px solid #1e293b;font-size:17px;font-weight:600;color:#fff}
+.sidebar .brand small{display:block;font-size:12px;font-weight:400;color:#94a3b8;margin-top:4px}
+.nav-item{display:block;padding:9px 20px;color:#cbd5e1;font-size:14px;border-left:3px solid transparent}
+.nav-item:hover{background:#1e293b;color:#fff}
+.nav-item.active{background:#1e293b;color:#fff;border-left-color:#3b82f6}
+.nav-item .pct{float:right;font-size:12px;color:#64748b}
+.main{flex:1;min-width:0;padding:28px 36px 80px;max-width:980px}
+.toolbar{position:sticky;top:0;background:var(--bg);padding:12px 0;z-index:10;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.toolbar input[type=search]{flex:1;min-width:200px;padding:9px 14px;border:1px solid var(--line2);border-radius:8px;font-size:14px;background:var(--card)}
+.toolbar input[type=search]:focus{outline:2px solid var(--ac-line);border-color:var(--ac)}
+.fbtn{padding:8px 14px;border:1px solid var(--line2);border-radius:8px;background:var(--card);font-size:13px;cursor:pointer;white-space:nowrap}
+.fbtn.active{background:var(--ac);color:#fff;border-color:var(--ac)}
+h1{font-size:24px;margin:8px 0 6px}
+.lead{color:var(--tx2);font-size:14px;margin-bottom:20px}
+.overview{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.ov{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px}
+.ov .num{font-size:26px;font-weight:700;color:var(--ac)}
+.ov .lab{font-size:12px;color:var(--tx2)}
+section.module{margin:32px 0 8px}
+section.module>h2{font-size:20px;padding-bottom:8px;border-bottom:2px solid var(--line);display:flex;align-items:center;gap:10px}
+section.module>h2 .cnt{font-size:13px;color:var(--tx2);font-weight:400}
+.q{border:1px solid var(--line);border-radius:10px;background:var(--card);margin:14px 0;overflow:hidden}
+.q>summary{list-style:none;cursor:pointer;padding:14px 16px;display:flex;align-items:flex-start;gap:10px}
+.q>summary::-webkit-details-marker{display:none}
+.q>summary::before{content:"▸";color:var(--tx3);font-size:14px;margin-top:2px;flex:0 0 auto;transition:transform .15s}
+.q[open]>summary::before{transform:rotate(90deg)}
+.q .q-title{flex:1}
+.q .q-title .qn{font-weight:600}
+.lv{display:inline-block;font-size:11px;padding:1px 8px;border-radius:10px;margin-left:6px;vertical-align:1px;font-weight:500}
+.lv1{background:var(--must-bg);color:var(--must);border:1px solid var(--must-line)}
+.lv2{background:var(--high-bg);color:var(--high);border:1px solid var(--high-line)}
+.lv3{background:var(--bonus-bg);color:var(--bonus);border:1px solid var(--bonus-line)}
+.ck{margin-top:3px;font-size:13px;color:var(--tx2);display:flex;align-items:center;gap:6px}
+.ck input{width:15px;height:15px;cursor:pointer}
+.q .bd{padding:2px 16px 16px 40px}
+.q .bd h4{font-size:14px;margin:14px 0 6px;color:#111827}
+.q .bd p{margin:6px 0}
+.q .bd ul,.q .bd ol{margin:6px 0;padding-left:22px}
+.q .bd li{margin:3px 0}
+.q .bd code,.code{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px}
+pre{background:#0f172a;color:#ffffff;border-radius:8px;padding:16px 18px;overflow-x:auto;font-family:Menlo,Consolas,"Courier New",monospace;font-size:14.5px;line-height:1.75;margin:10px 0}
+pre code{background:none;border:none;padding:0;color:inherit}
+.followup{border-left:3px solid var(--ac);background:var(--ac-bg);border-radius:0 8px 8px 0;padding:10px 14px;margin:10px 0;font-size:14px}
+.followup b{color:var(--ac)}
+.pit{border-left:3px solid var(--must);background:var(--must-bg);border-radius:0 8px 8px 0;padding:10px 14px;margin:10px 0;font-size:14px}
+.pit b{color:var(--must)}
+table.tb{width:100%;border-collapse:collapse;margin:10px 0;font-size:14px}
+table.tb th,table.tb td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+table.tb th{background:#f8fafc;font-weight:600}
+.hide{display:none!important}
+.flowwrap{background:#fbfcfe;border:1px solid var(--line);border-radius:10px;padding:14px;margin:12px 0}
+.flowwrap .cap{font-size:13px;color:var(--tx2);margin-bottom:10px;font-weight:500}
+.flowwrap svg{width:100%;height:auto;display:block}
+.glossary{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;margin-bottom:24px}
+.glossary h2{font-size:18px;margin:0 0 4px}
+.glossary .gsub{font-size:13px;color:var(--tx2);margin-bottom:16px}
+.glossary table{width:100%;border-collapse:collapse;font-size:14px}
+.glossary th,.glossary td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+.glossary th{background:#f8fafc;font-weight:600;width:130px}
+.glossary td code{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px;color:var(--ac);font-weight:600}
+@media (prefers-color-scheme:dark){
+  .flowwrap{background:#0d1626}
+  .flowwrap svg text{fill:#e2e8f0}
+  .flowwrap svg [fill="#26215C"]{fill:#e2e8f0}
+}
+.topbtns{display:flex;gap:8px}
+@media print{
+  .sidebar,.toolbar{display:none}
+  .layout{display:block}
+  .main{padding:0;max-width:none}
+  .q{border-color:#ccc;break-inside:avoid}
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0b1220;--card:#111827;--line:#1f2937;--line2:#374151;--tx:#e5e7eb;--tx2:#9ca3af;--tx3:#6b7280;--ac:#60a5fa;--ac-bg:#1e3a5f;--ac-line:#2563eb;--must:#f87171;--must-bg:#3f1d1d;--must-line:#7f1d1d;--high:#fbbf24;--high-bg:#3a2c0a;--high-line:#78350f;--bonus:#34d399;--bonus-bg:#0a2e20;--bonus-line:#065f46}
+  .q .bd code,.code{background:#1e293b;border-color:#334155}
+  table.tb th{background:#1e293b}
+  .glossary th{background:#1e293b}
+  .glossary td code{background:#1e293b;border-color:#334155}
+  .q .bd h4{color:#f3f4f6}
+  pre{background:#020617}
+}
+/* 修复：行内 code 底纹样式(.q .bd code 优先级高于 pre code)会污染代码块，此规则强制清除 */pre code,.q .bd pre code,.bd pre code,.glossary pre code{background:none!important;border:none!important;padding:0!important;border-radius:0!important;color:inherit;font-size:14.5px;line-height:1.75}</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="brand">RocketMQ 知识手册<small>RocketMQ · 原理与实战 · 中厂高级开发</small></div>
+  <a class="nav-item active" href="#mod0" data-mod="mod0">总览 · 名词速查</a>
+  <a class="nav-item" href="#mod1" data-mod="mod1">① 核心架构 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod2" data-mod="mod2">② 存储模型 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod3" data-mod="mod3">③ 可靠性与高可用 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod4" data-mod="mod4">④ 特性与场景 <span class="pct"></span></a>
+  <a class="nav-item" href="#mod5" data-mod="mod5">⑤ 三大 MQ 对比总结</a>
+  <div style="padding:16px 20px;font-size:12px;color:#64748b;border-top:1px solid #1e293b;margin-top:16px">
+    进度保存在本机 localStorage<br>清缓存会丢
+  </div>
+</aside>
+
+<main class="main">
+  <div class="toolbar">
+    <input type="search" id="search" placeholder="搜索题目、关键词（如：事务消息、CommitLog、DLedger、GroupId…）">
+    <div class="topbtns">
+      <button class="fbtn" data-lv="all">全部</button>
+      <button class="fbtn" data-lv="1">必考</button>
+      <button class="fbtn" data-lv="2">高频</button>
+      <button class="fbtn" data-lv="3">加分</button>
+    </div>
+    <div class="topbtns">
+      <button class="fbtn" id="btn-expand">全部展开</button>
+      <button class="fbtn" id="btn-collapse">全部折叠</button>
+    </div>
+  </div>
+
+  <h1>RocketMQ 知识手册</h1>
+  <p class="lead">只讲 <b>RocketMQ</b>：从架构到存储、从可靠性到特性，最后用一张表总结三大 MQ 的区别。主线：一条消息从生产到消费，经历了什么、丢在哪、怎么不丢、怎么不乱序。</p>
+
+  <div class="overview">
+    <div class="ov"><div class="num" id="ov-total">0</div><div class="lab">总题量</div></div>
+    <div class="ov"><div class="num" id="ov-done">0</div><div class="lab">已掌握</div></div>
+    <div class="ov"><div class="num" id="ov-pct">0%</div><div class="lab">整体进度</div></div>
+    <div class="ov"><div class="num" id="ov-mod">4</div><div class="lab">模块数</div></div>
+  </div>
+
+  <!-- ============ 总览：名词速查 ============ -->
+  <section class="module" id="mod0">
+    <div class="glossary">
+      <h2>核心名词速查表</h2>
+      <p class="gsub">先把 RocketMQ 的术语记牢，后面所有题目都在反复用这些词。面试时张冠李戴是硬伤。</p>
+      <table>
+        <thead><tr><th>名词</th><th>是什么</th><th>一句话记忆</th></tr></thead>
+        <tbody>
+          <tr><td><code>Producer</code></td><td>生产者，发消息的一方。分普通发送、顺序发送、事务发送。</td><td>「造消息的人」</td></tr>
+          <tr><td><code>Consumer</code></td><td>消费者，拉取并处理消息的一方。分 Push 模式（长轮询）和 Pull 模式。</td><td>「用消息的人」</td></tr>
+          <tr><td><code>Broker</code></td><td>消息存储与转发的中枢，RocketMQ 的核心。接收、持久化、投递消息。</td><td>「消息的仓库 + 邮局」</td></tr>
+          <tr><td><code>NameServer</code></td><td>路由元数据中心（无状态、对等）。存「Broker 地址 + Topic 的队列分布」。</td><td>「轻量版注册中心，不存消息」</td></tr>
+          <tr><td><code>Topic</code></td><td>消息的逻辑分类，类似「文件夹」。一个 Topic 下多个队列。</td><td>「消息的分类标签」</td></tr>
+          <tr><td><code>MessageQueue</code></td><td>Topic 的物理存储单元，RocketMQ 里叫「队列」而非「分区」。队列内有序。</td><td>「Topic 拆成的小队列，顺序+并行的最小单位」</td></tr>
+          <tr><td><code>Tag</code></td><td>消息的子标签，用于在同一个 Topic 下做二次分类和过滤。</td><td>「Topic 的二级分类」</td></tr>
+          <tr><td><code>GroupId</code></td><td>生产者/消费者分组的唯一标识。同一 GroupId 的生产者属同一集群；同一 GroupId 的消费者属同一消费组。</td><td>「谁是一伙的，靠它区分」</td></tr>
+          <tr><td><code>CommitLog</code></td><td>Broker 上所有消息的顺序追加写文件（全量）。所有 Topic 的消息都写这一个文件。</td><td>「所有消息的大账本，只追加不修改」</td></tr>
+          <tr><td><code>ConsumeQueue</code></td><td>每个队列的轻量索引文件，只存「offset + size + tag hash」，不存消息体。</td><td>「查消息的目录，指路不存货」</td></tr>
+          <tr><td><code>Offset</code></td><td>消息在 CommitLog 里的物理位置 / 队列里的消费位点。消费进度靠它记录。</td><td>「书签，断点续传靠它」</td></tr>
+          <tr><td><code>Message Key</code></td><td>消息的业务标识，用于定位/查询某条具体消息。</td><td>「消息的身份证」</td></tr>
+          <tr><td><code>半消息（Half Message）</code></td><td>事务消息第一阶段发到 Broker 但「暂不投递」的消息，对消费者不可见。</td><td>「先存着，等确认再放行」</td></tr>
+          <tr><td><code>死信队列（DLQ）</code></td><td>重试次数耗尽仍失败的消息的最终归宿，隔离「毒消息」。</td><td>「处理不了的消息的垃圾桶」</td></tr>
+          <tr><td><code>消费组（Consumer Group）</code></td><td>共享同一 GroupId 的消费者集合。组内负载均衡，组间广播。</td><td>「组内抢着分，组间各自全收」</td></tr>
+          <tr><td><code>DLedger</code></td><td>RocketMQ 基于 Raft 的存储实现，用于主从自动选主。</td><td>「让 RocketMQ 能自动换主的关键」</td></tr>
+          <tr><td><code>主从复制</code></td><td>Master 写、Slave 同步备份。分同步复制（SYNC）和异步复制（ASYNC）。</td><td>「主写从备，可靠性与延迟的取舍」</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 模块1：核心架构 ============ -->
+  <section class="module" id="mod1">
+    <h2>① 核心架构 <span class="cnt">角色 / NameServer / 收发链路 / 为什么快</span></h2>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m1q1">Q1 RocketMQ 有哪些核心角色？各自职责？</span><span class="lv lv1">必考</span></div><label class="ck"><input type="checkbox" data-id="m1q1">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <p>四个核心角色 + 一个关键区分：</p>
+        <ul>
+          <li><b>Producer</b>：发消息，先查 NameServer 拿路由，再发到 Broker。</li>
+          <li><b>NameServer</b>：轻量路由中心，存「Broker 地址 + Topic 队列分布」，不存消息、不参与转发。</li>
+          <li><b>Broker</b>：消息存储和转发中枢，RocketMQ 的核心，承担真正的消息落盘。</li>
+          <li><b>Consumer</b>：按消费组拉取并处理消息。</li>
+        </ul>
+        <p>关键区分：<b>NameServer 只做路由，不碰消息</b>。这是它和 ZooKeeper（Kafka 的元数据中心）最大的差异——NameServer 无状态、对等、去中心化，够用即可。</p>
+        <div class="followup"><b>追问：为什么 RocketMQ 用 NameServer 而不用 ZooKeeper？</b>NameServer 无状态、对等、部署简单，不需要 ZK 那么重的强一致协调。它只存路由信息，Broker 定时心跳上报即可。</div>
+        <div class="pit"><b>踩坑：</b>把 NameServer 说成「消息中转站」或「注册中心存消息」都是错的。它只存路由元数据，消息只在 Broker 上。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m1q2">Q2 一条消息从生产到消费，经历了哪些环节？</span><span class="lv lv1">必考</span></div><label class="ck"><input type="checkbox" data-id="m1q2">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <ol>
+          <li><b>生产者发消息</b> → 先向 NameServer 查 Topic 的路由（哪个 Broker、哪个队列）。</li>
+          <li><b>Broker 接收</b> → 写入 <b>CommitLog</b>（所有消息顺序追加），再异步构建 <b>ConsumeQueue</b> 索引。</li>
+          <li><b>持久化</b> → 刷盘（同步/异步）+ 主从同步（同步/异步复制）。</li>
+          <li><b>消费者拉取</b> → 根据 ConsumeQueue 索引定位 CommitLog 里的消息，返回。</li>
+          <li><b>消费 + ACK</b> → 处理完返回成功，Broker 更新消费位点（offset）。</li>
+        </ol>
+        <div class="flowwrap"><div class="cap">RocketMQ 消息收发主链路流程图</div><svg viewBox="0 0 680 430" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>RocketMQ 消息收发主链路</title>
+<defs><marker id="mqf1" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<g class="c-blue"><rect x="40" y="48" width="120" height="52" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/><text x="100" y="68" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#0C447C">生产者</text><text x="100" y="85" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#185FA5">Producer</text></g>
+<g class="c-gray"><rect x="40" y="130" width="120" height="52" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/><text x="100" y="150" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#444441">NameServer</text><text x="100" y="167" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#5F5E5A">路由元数据</text></g>
+<g class="c-purple"><rect x="280" y="48" width="150" height="52" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/><text x="355" y="68" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#3C3489">Broker</text><text x="355" y="85" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#534AB7">存储与转发</text></g>
+<g class="c-teal"><rect x="520" y="48" width="120" height="52" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/><text x="580" y="68" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#085041">消费者</text><text x="580" y="85" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#0F6E56">Consumer</text></g>
+<path d="M160 74 L280 74" fill="none" stroke="#888780" stroke-width="1.5" marker-end="url(#mqf1)"/><text x="220" y="66" text-anchor="middle" font-size="11" fill="#888780">② 投递消息</text>
+<path d="M100 104 L100 130" fill="none" stroke="#888780" stroke-width="1.5" marker-end="url(#mqf1)"/><text x="150" y="120" text-anchor="start" font-size="11" fill="#888780">① 查路由</text>
+<path d="M160 156 L280 80" fill="none" stroke="#888780" stroke-width="1.5" marker-end="url(#mqf1)" stroke-dasharray="4 3"/>
+<path d="M430 74 L520 74" fill="none" stroke="#888780" stroke-width="1.5" marker-end="url(#mqf1)"/><text x="475" y="66" text-anchor="middle" font-size="11" fill="#888780">⑤ 拉取消费</text>
+<g class="c-purple"><rect x="280" y="200" width="360" height="150" rx="12" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/><text x="300" y="224" font-size="13" font-weight="500" fill="#3C3489">Broker 内部存储结构</text><rect x="300" y="238" width="150" height="92" rx="8" fill="#FFFFFF" stroke="#534AB7" stroke-width="0.5"/><text x="375" y="262" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#3C3489">CommitLog</text><text x="375" y="282" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#534AB7">所有消息顺序追加</text><text x="375" y="300" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#534AB7">③ 写全量消息</text><rect x="470" y="238" width="150" height="92" rx="8" fill="#FFFFFF" stroke="#534AB7" stroke-width="0.5"/><text x="545" y="262" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#3C3489">ConsumeQueue</text><text x="545" y="282" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#534AB7">轻量索引</text><text x="545" y="300" text-anchor="middle" dominant-baseline="central" font-size="11" fill="#534AB7">④ 构建索引 offset</text></g>
+<path d="M355 200 L355 238" fill="none" stroke="#888780" stroke-width="1.5" marker-end="url(#mqf1)"/>
+<text x="40" y="270" font-size="13" font-weight="500" fill="#444441">两条核心写入</text>
+<text x="40" y="290" font-size="12" fill="#5F5E5A">CommitLog 全量顺序写（快）</text>
+<text x="40" y="308" font-size="12" fill="#5F5E5A">ConsumeQueue 只存 offset+size+tag</text>
+<text x="40" y="350" font-size="12" fill="#888780">⑤ 消费时按索引定位 CommitLog，不必扫全量</text>
+<text x="40" y="372" font-size="12" fill="#888780">⑥ 处理完 ACK，Broker 更新消费位点（offset）</text>
+<g class="c-amber"><rect x="280" y="380" width="360" height="40" rx="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/><text x="300" y="400" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#633806">刷盘（同步/异步）+ 主从同步，决定可靠性</text></g>
+</svg></div>
+        <div class="followup"><b>追问：CommitLog 和 ConsumeQueue 为什么分两个文件？</b>CommitLog 全量顺序写（快），ConsumeQueue 是轻量索引（只存 offset+size+tag hash），消费时按索引定位，不用扫全量。</div>
+        <div class="pit"><b>踩坑：</b>这条链路答不全，是「可靠性」「存储」模块所有题的硬伤——先能完整串下来，再谈不丢。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m1q3">Q3 RocketMQ 为什么快？吞吐为什么高？</span><span class="lv lv1">必考</span></div><label class="ck"><input type="checkbox" data-id="m1q3">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <p>四个核心原因，缺一不可：</p>
+        <ul>
+          <li><b>顺序写磁盘</b>：CommitLog 是 append-only 追加写，顺序写比随机写快一个数量级，接近内存写。</li>
+          <li><b>零拷贝（zero-copy）</b>：消费时用 <code>mmap</code>（或 <code>sendfile</code>）把磁盘数据直接映射到网卡，减少用户态拷贝。</li>
+          <li><b>页缓存（PageCache）</b>：消息先写操作系统页缓存，读大多命中内存。</li>
+          <li><b>异步刷盘 + 批量</b>：默认异步刷盘，攒一批落盘；发送端批量 + 压缩降低网络开销。</li>
+        </ul>
+        <div class="flowwrap"><div class="cap">RocketMQ 高吞吐四大原因图</div><svg viewBox="0 0 680 320" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>RocketMQ 高吞吐四大原因</title>
+<defs><marker id="mqf8" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<g class="c-blue"><rect x="40" y="52" width="145" height="80" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/><text x="112" y="74" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#0C447C">① 顺序写磁盘</text><text x="112" y="96" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#185FA5">CommitLog 追加写</text><text x="112" y="114" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#185FA5">比随机写快一个数量级</text></g>
+<g class="c-teal"><rect x="200" y="52" width="145" height="80" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/><text x="272" y="74" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#085041">② 零拷贝</text><text x="272" y="96" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#0F6E56">mmap 映射内存</text><text x="272" y="114" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#0F6E56">减少拷贝次数</text></g>
+<g class="c-purple"><rect x="360" y="52" width="145" height="80" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/><text x="432" y="74" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#3C3489">③ 页缓存</text><text x="432" y="96" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#534AB7">先写 PageCache</text><text x="432" y="114" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#534AB7">读大多命中内存</text></g>
+<g class="c-amber"><rect x="520" y="52" width="120" height="80" rx="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/><text x="580" y="74" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#633806">④ 异步刷盘</text><text x="580" y="96" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#854F0B">攒一批落盘</text><text x="580" y="114" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#854F0B">批量+压缩</text></g>
+<g class="c-red"><rect x="40" y="180" width="600" height="100" rx="10" fill="#FCEBEB" stroke="#A32D2D" stroke-width="0.5"/><text x="58" y="204" font-size="13" font-weight="500" fill="#791F1F">顺序写 vs 随机写（为什么快一个数量级）</text><text x="58" y="226" font-size="12" fill="#A32D2D">机械盘随机写要频繁寻道（磁头来回跳），顺序写磁头一路走不回头</text><text x="58" y="246" font-size="12" fill="#A32D2D">SSD 虽无寻道，但顺序写能更好利用写放大与缓存，依然更快</text><text x="58" y="266" font-size="12" fill="#A32D2D">关键：别答「因为用了内存」——RocketMQ 持久化靠磁盘，快靠顺序写+零拷贝</text></g>
+</svg></div>
+        <div class="followup"><b>追问：RocketMQ 的「单机吞吐」大概什么量级？</b>十万级 TPS 的量级（具体看消息大小和机器配置），比 MySQL 高几个数量级，这正是它适合做削峰/异步的原因。</div>
+        <div class="pit"><b>踩坑：</b>别答「因为用了内存」。RocketMQ 持久化靠磁盘，快靠的是顺序写 + 零拷贝，不是内存数据库。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m1q4">Q4 Topic、MessageQueue、Tag 三者什么关系？</span><span class="lv lv1">必考</span></div><label class="ck"><input type="checkbox" data-id="m1q4">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <p>三层关系：<b>Topic（大类）→ MessageQueue（物理队列）→ Tag（子分类）</b>。</p>
+        <ul>
+          <li><b>Topic</b>：消息的逻辑分类，如「订单 Topic」「支付 Topic」。一个 Topic 对应多个 MessageQueue。</li>
+          <li><b>MessageQueue</b>：物理存储单元，消息真正落在队列里，<b>队列内有序</b>，跨队列无序。</li>
+          <li><b>Tag</b>：同一个 Topic 下的二级分类，用于过滤，如「订单 Topic」下分「创建」「支付」「取消」三个 Tag。</li>
+        </ul>
+        <p>为什么分这三层：<b>Topic 太粗、队列负责并行和顺序、Tag 负责细粒度过滤</b>——三者各司其职。</p>
+        <div class="followup"><b>追问：为什么要用 Tag 而不是建很多 Topic？</b>Topic 多了会增加 NameServer 路由压力和运维成本。Tag 在同一个 Topic 内做过滤，更轻量。但 Tag 也不能滥用——Tag 太多会退化成「分类混乱」，一般建议一个 Topic 下 Tag 不超过十几个。</div>
+        <div class="pit"><b>踩坑：</b>把 MessageQueue 叫「分区（Partition）」——那是 Kafka 的叫法。RocketMQ 叫「队列」，虽然机制类似，但面试里说混概念会显得没真正用过 RocketMQ。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m1q5">Q5 GroupId 是什么？生产者和消费者的 GroupId 有什么区别？</span><span class="lv lv1">必考</span></div><label class="ck"><input type="checkbox" data-id="m1q5">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <p>GroupId 是「同一类角色」的分组标识，但<b>生产者和消费者的语义完全不同</b>：</p>
+        <ul>
+          <li><b>生产者 GroupId</b>：标识「一组做同一件事的生产者」，主要用于<b>事务消息回查</b>时定位是哪个生产者发的半消息。普通消息下作用不大。</li>
+          <li><b>消费者 GroupId</b>：就是「消费组」的概念，<b>决定消费模型</b>——组内负载均衡（一条消息只被组内一人消费），组间广播（各自消费全量）。</li>
+        </ul>
+        <table class="tb">
+          <thead><tr><th>维度</th><th>生产者 GroupId</th><th>消费者 GroupId</th></tr></thead>
+          <tbody>
+            <tr><td>作用</td><td>标识同类生产者，事务回查定位</td><td>定义消费组，决定负载均衡/广播</td></tr>
+            <tr><td>关键规则</td><td>同一 GroupId 的生产者功能应一致</td><td>同一 GroupId 的消费者共享消费进度</td></tr>
+          </tbody>
+        </table>
+        <div class="followup"><b>追问：两个消费者用了同一个 GroupId 会怎样？</b>它们会成为一个消费组，Topic 的消息在它们之间负载均衡分摊，一条消息只被其中一个消费。如果本意是「两个系统都要收到」，那必须用不同的 GroupId。</div>
+        <div class="pit"><b>踩坑：</b>「想广播却误用了同一个 GroupId」是经典事故——结果消息被分摊，第二个系统收不到。广播要不同 GroupId。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m1q6">Q6 消费组（Consumer Group）的点对点 vs 广播怎么区分？</span><span class="lv lv1">必考</span></div><label class="ck"><input type="checkbox" data-id="m1q6">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <p>两条规则记住：</p>
+        <ul>
+          <li><b>组内（同一个 GroupId）</b>：一条消息只能被组内<b>一个</b>消费者消费（负载均衡/点对点）。</li>
+          <li><b>组间（不同 GroupId）</b>：不同消费组各自独立消费全量消息（广播/发布订阅）。</li>
+        </ul>
+        <p>所以「点对点 vs 广播」的区别不是消息类型，而是<b>是不是同一个 GroupId</b>：同组 = 点对点，不同组 = 广播。</p>
+        <div class="followup"><b>追问：怎么实现广播？</b>给每个想要独立消费的下游单独建一个 GroupId（各自一个消费组），各组互不影响。</div>
+        <div class="pit"><b>踩坑：</b>消费组内「一条消息只被一人消费」是<b>正常消费时</b>的语义，但消费者失败重试时同一条消息会再次投递，业务侧仍要做幂等。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m1q7">Q7 Push 模式和 Pull 模式的区别？RocketMQ 的「长轮询」是什么？</span><span class="lv lv2">高频</span></div><label class="ck"><input type="checkbox" data-id="m1q7">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <p>本质区别：<b>谁控制消费节奏</b>。</p>
+        <table class="tb">
+          <thead><tr><th></th><th>Push</th><th>Pull</th></tr></thead>
+          <tbody>
+            <tr><td>节奏</td><td>Broker 主动推</td><td>消费者自己拉</td></tr>
+            <tr><td>优点</td><td>实时性高</td><td>按能力消费，不压垮消费者</td></tr>
+            <tr><td>缺点</td><td>Broker 不知道消费能力，易压垮消费者</td><td>有拉取间隔延迟</td></tr>
+          </tbody>
+        </table>
+        <p>RocketMQ 的「Push 模式」<b>底层其实还是 Pull</b>，只是封装了<b>长轮询</b>：消费者拉取时若没消息，Broker 会挂起请求（默认 15s）而不是立刻返回空，有消息立即唤醒——兼顾 pull 的自主性和 push 的实时性。</p>
+        <div class="followup"><b>追问：长轮询和真正的 Push 差在哪？</b>长轮询仍是消费者主动发起请求，只是 Broker 延迟响应；真正的 Push 是 Broker 单向推送，消费者被动接收。</div>
+        <div class="pit"><b>踩坑：</b>别简单说「pull 有延迟所以不如 push」。长轮询已经把 pull 的延迟问题基本消掉了，RocketMQ 默认就是长轮询。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m1q8">Q8 消息过滤怎么做？Tag 过滤 vs SQL92 过滤？</span><span class="lv lv2">高频</span></div><label class="ck"><input type="checkbox" data-id="m1q8">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <ul>
+          <li><b>Tag 过滤</b>：消息打一个 Tag，消费者按 Tag 订阅。Tag 存在 ConsumeQueue 索引里，<b>直接匹配，快</b>。</li>
+          <li><b>SQL92 过滤</b>：按消息属性（如 <code>price &gt; 100</code>）过滤，要读消息体属性，<b>开销大</b>。</li>
+        </ul>
+        <p>原则：<b>能用 Tag 就用 Tag</b>，SQL92 只有确实需要按属性过滤时才用。</p>
+        <div class="followup"><b>追问：Tag 过滤为什么比 SQL92 快？</b>Tag 存在 ConsumeQueue 索引里，直接匹配不读消息体；SQL92 要读消息属性，多了 IO。</div>
+        <div class="pit"><b>踩坑：</b>忽略「过滤放哪端」的性能差异。Broker 端过滤（Tag）省网络和消费端开销，消费端过滤浪费资源。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ 模块2：存储模型 ============ -->
+  <section class="module" id="mod2">
+    <h2>② 存储模型 <span class="cnt">CommitLog / ConsumeQueue / 刷盘 / 过期清理</span></h2>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m2q1">Q1 CommitLog 和 ConsumeQueue 是什么？为什么这么设计？</span><span class="lv lv1">必考</span></div><label class="ck"><input type="checkbox" data-id="m2q1">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <ul>
+          <li><b>CommitLog</b>：<b>所有 Topic 的消息共用一个文件</b>，顺序追加写。全量消息都在这。</li>
+          <li><b>ConsumeQueue</b>：每个队列一个轻量索引文件，只存「offset + size + tag hash」，<b>不存消息体</b>。</li>
+        </ul>
+        <p>为什么这么设计：<b>写入时只要顺序写一个 CommitLog，快；读取时按 ConsumeQueue 定位，不用扫全量。</b>这是「写优化」和「读优化」的解耦。</p>
+        <div class="followup"><b>追问：所有 Topic 共用一个 CommitLog 有什么好处？</b>顺序写最大化利用磁盘，避免「每个 Topic 一个文件」导致的随机写。代价是消费时要靠 ConsumeQueue 索引定位。</div>
+        <div class="pit"><b>踩坑：</b>把 CommitLog 说成「每个 Topic 一个」，或把 ConsumeQueue 说成「存了消息内容」——都是错的。ConsumeQueue 只存索引。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m2q2">Q2 同步刷盘和异步刷盘的区别？</span><span class="lv lv1">必考</span></div><label class="ck"><input type="checkbox" data-id="m2q2">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <table class="tb">
+          <thead><tr><th>维度</th><th>同步刷盘</th><th>异步刷盘</th></tr></thead>
+          <tbody>
+            <tr><td>行为</td><td>每条消息 fsync 落盘才返回成功</td><td>写页缓存即返回，后台批量落盘</td></tr>
+            <tr><td>可靠性</td><td>高，断电不丢</td><td>低，宕机可能丢「还没落盘」的</td></tr>
+            <tr><td>吞吐</td><td>低（磁盘 IO 是瓶颈）</td><td>高</td></tr>
+            <tr><td>适用</td><td>金融、支付等要求不丢</td><td>日志、埋点等可容忍少量丢失</td></tr>
+          </tbody>
+        </table>
+        <p>默认异步刷盘。要「不丢」就同步刷盘，代价是吞吐下降一个量级——「可靠性换性能」。</p>
+        <p><b>内存层次理解</b>：消息落盘要经过「用户内存 → 页缓存（PageCache）→ 磁盘」三层。刷盘就是把「页缓存」刷到「磁盘」。同步 = 每次都刷，异步 = 攒一批再刷。</p>
+        <div class="followup"><b>追问：异步刷盘丢了哪些消息？</b>丢的是「已返回成功、但还在页缓存里没 fsync」的那批。宕机断电页缓存清空，这批就没了。</div>
+        <div class="pit"><b>踩坑：</b>「同步刷盘」和「同步复制」是两个层面的东西——刷盘管「内存到磁盘」，复制管「主到从」，别混。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m2q3">Q3 消息过期/清理机制是什么？</span><span class="lv lv3">加分</span></div><label class="ck"><input type="checkbox" data-id="m2q3">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <ul>
+          <li>RocketMQ 消息默认保留 <b>72 小时</b>（<code>fileReservedTime</code> 可配置）。</li>
+          <li>过期后 CommitLog 文件被<b>整体删除</b>（按文件粒度，不是按条）。</li>
+          <li>也可以按「磁盘水位」清理：磁盘占用到一定比例，优先删最旧的文件。</li>
+        </ul>
+        <p>关键：RocketMQ 是「日志型」存储，消息保留一段时间供重放，而不是「消费即删」。</p>
+        <div class="followup"><b>追问：为什么按文件删除而不是按条？</b>CommitLog 是顺序追加的文件，整文件删除最简单高效；按条删除需要重写文件，代价大。</div>
+        <div class="pit"><b>踩坑：</b>把「保留策略」和「消费进度」混为一谈。保留策略决定消息存多久，和是否被消费无关——已消费的消息也还在 CommitLog 里，直到过期删除。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ 模块3：可靠性与高可用 ============ -->
+  <section class="module" id="mod3">
+    <h2>③ 可靠性与高可用 <span class="cnt">不丢 / 不重 / 有序 / 事务 / 主从 / 脑裂</span></h2>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m3q1">Q1 消息在哪些环节可能丢失？怎么保证不丢？</span><span class="lv lv1">必考</span></div><label class="ck"><input type="checkbox" data-id="m3q1">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <p>三个环节各丢各的，逐一堵：</p>
+        <ul>
+          <li><b>生产端丢</b>：发消息用<b>同步发送</b>，收到 Broker 的确认才返回成功；失败要重试。</li>
+          <li><b>Broker 端丢</b>：异步刷盘可能宕机丢数据 → <b>同步刷盘</b>；主从异步复制丢数据 → <b>同步复制</b>。</li>
+          <li><b>消费端丢</b>：自动提交 offset，消息还没处理完就提交了 → <b>手动提交</b>，处理完再提交。</li>
+        </ul>
+        <div class="flowwrap"><div class="cap">消息丢失的三个环节图</div><svg viewBox="0 0 680 340" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>消息丢失三个环节</title>
+<defs><marker id="mqf9" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<g class="c-blue"><rect x="40" y="52" width="180" height="110" rx="10" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/><text x="58" y="74" font-size="13" font-weight="500" fill="#0C447C">① 生产端丢</text><text x="58" y="94" font-size="12" fill="#185FA5">发消息没收到确认就丢</text><text x="58" y="114" font-size="12" fill="#185FA5">对策：同步发送 + 失败重试</text><text x="58" y="134" font-size="12" fill="#185FA5">RocketMQ 同步发送返回 SendResult</text></g>
+<g class="c-purple"><rect x="250" y="52" width="180" height="110" rx="10" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/><text x="268" y="74" font-size="13" font-weight="500" fill="#3C3489">② Broker 端丢</text><text x="268" y="94" font-size="12" fill="#534AB7">异步刷盘宕机丢数据</text><text x="268" y="114" font-size="12" fill="#534AB7">主从异步复制丢数据</text><text x="268" y="134" font-size="12" fill="#534AB7">对策：同步刷盘 + 同步复制</text></g>
+<g class="c-teal"><rect x="460" y="52" width="180" height="110" rx="10" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/><text x="478" y="74" font-size="13" font-weight="500" fill="#085041">③ 消费端丢</text><text x="478" y="94" font-size="12" fill="#0F6E56">自动提交 offset，没处理完就提交</text><text x="478" y="114" font-size="12" fill="#0F6E56">对策：手动提交</text><text x="478" y="134" font-size="12" fill="#0F6E56">处理成功后再提交</text></g>
+<path d="M220 107 L250 107" fill="none" stroke="#888780" stroke-width="1.5" marker-end="url(#mqf9)"/>
+<path d="M430 107 L460 107" fill="none" stroke="#888780" stroke-width="1.5" marker-end="url(#mqf9)"/>
+<g class="c-amber"><rect x="40" y="200" width="600" height="110" rx="10" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/><text x="58" y="224" font-size="13" font-weight="500" fill="#633806">做到「完全不丢」的代价</text><text x="58" y="246" font-size="12" fill="#854F0B">同步刷盘 + 同步复制 + 手动提交，每一步都增加延迟</text><text x="58" y="266" font-size="12" fill="#854F0B">可靠性是用性能换来的，没有既快又绝对不丢</text><text x="58" y="286" font-size="12" fill="#854F0B">区分：「消息不丢」靠 ACK+刷盘+提交；「事务消息」靠两阶段，是两码事</text></g>
+</svg></div>
+        <div class="followup"><b>追问：做到「完全不丢」的代价？</b>性能下降。同步刷盘、同步复制、手动提交都会增加延迟。可靠性用性能换，没有既快又绝对不丢。</div>
+        <div class="pit"><b>踩坑：</b>三个环节答不全，或者只答「用事务」——「消息不丢」和「事务消息」是两回事，前者靠 ACK+刷盘+提交，后者靠两阶段。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m3q2">Q2 消息为什么可能重复？怎么保证不重复消费？</span><span class="lv lv1">必考</span></div><label class="ck"><input type="checkbox" data-id="m3q2">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <p>重复的根源：<b>「至少一次投递」语义下，ACK 丢失或超时会导致同一条消息被再次投递。</b>消费者处理完了、但 ACK 没发出去（网络抖动），Broker 以为没消费，又投递一次。</p>
+        <h4>解决：消费端做幂等</h4>
+        <ul>
+          <li><b>业务唯一键去重</b>：消息带业务唯一 ID，消费前查是否处理过（DB 唯一索引 / Redis setnx）。</li>
+          <li><b>幂等表</b>：建一张「消息 ID → 状态」表，先插入，唯一索引冲突说明处理过。</li>
+          <li><b>状态机</b>：把处理逻辑设计成幂等的（如「置为已支付」而不是「金额 +10」）。</li>
+        </ul>
+        <div class="followup"><b>追问：为什么 MQ 不做成「恰好一次」？</b>「恰好一次」要么靠事务（性能差），要么靠幂等（业务自己保证）。业界主流是「至少一次 + 业务幂等」，成本最低。</div>
+        <div class="pit"><b>踩坑：</b>别指望 MQ 本身解决重复。MQ 只能保证「不丢」（至少一次），「不重」必须业务侧幂等。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m3q3">Q3 怎么保证消息顺序？</span><span class="lv lv1">必考</span></div><label class="ck"><input type="checkbox" data-id="m3q3">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <p>核心原则：<b>要保证顺序的消息，必须进同一个 MessageQueue，且同一时刻只能被一个消费者单线程消费。</b></p>
+        <ul>
+          <li><b>全局有序</b>：Topic 只设 1 个队列。牺牲并行度，吞吐极低，几乎不用。</li>
+          <li><b>局部有序</b>（推荐）：用 <code>MessageQueueSelector</code> 按业务 key（如订单 ID）哈希路由到同一队列，保证「同一个订单的消息」有序，不同订单之间无所谓。</li>
+          <li><b>消费端</b>：单线程消费该队列，处理完再拉下一条，避免并发打乱。</li>
+        </ul>
+        <div class="flowwrap"><div class="cap">RocketMQ 顺序消息机制图</div><svg viewBox="0 0 680 320" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>顺序消息机制</title>
+<defs><marker id="mqf4" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<g class="c-purple"><rect x="40" y="52" width="180" height="60" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/><text x="130" y="74" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#3C3489">同一业务 key</text><text x="130" y="92" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#534AB7">（如订单 ID）</text></g>
+<g class="c-purple"><rect x="250" y="52" width="180" height="60" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/><text x="340" y="74" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#3C3489">哈希路由</text><text x="340" y="92" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#534AB7">到同一队列</text></g>
+<g class="c-purple"><rect x="460" y="52" width="180" height="60" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/><text x="550" y="74" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#3C3489">队列内有序</text><text x="550" y="92" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#534AB7">先入先出</text></g>
+<path d="M220 82 L250 82" fill="none" stroke="#888780" stroke-width="1.5" marker-end="url(#mqf4)"/>
+<path d="M430 82 L460 82" fill="none" stroke="#888780" stroke-width="1.5" marker-end="url(#mqf4)"/>
+<g class="c-teal"><rect x="40" y="160" width="600" height="60" rx="10" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/><text x="58" y="182" font-size="13" font-weight="500" fill="#085041">消费端：单线程顺序消费</text><text x="58" y="202" font-size="12" fill="#0F6E56">一个队列同一时刻只能被一个消费者单线程消费，处理完再拉下一条，避免并发打乱顺序</text></g>
+<g class="c-green"><rect x="40" y="248" width="600" height="56" rx="10" fill="#EAF3DE" stroke="#3B6D11" stroke-width="0.5"/><text x="58" y="270" font-size="12" fill="#27500A">关键区分：全局有序 = 单队列（牺牲并行度）；局部有序 = 按 key 路由（推荐，同一订单内有序即可）</text><text x="58" y="290" font-size="12" fill="#27500A">顺序消费模式下，某条失败会一直重试阻塞后续 → 牺牲可用性保顺序</text></g>
+</svg></div>
+        <div class="followup"><b>追问：消费者重试会不会乱序？</b>会。失败重试时后续消息可能先被处理。解决：用「顺序消费模式」，失败的消息会一直重试直到成功，阻塞后续消息——牺牲可用性保顺序。</div>
+        <div class="pit"><b>踩坑：</b>「队列内有序」被误答成「Topic 内有序」。Topic 多队列时跨队列是无序的，顺序只保证在单队列内。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m3q4">Q4 事务消息是什么？解决什么问题？原理？</span><span class="lv lv1">必考</span></div><label class="ck"><input type="checkbox" data-id="m3q4">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <p>事务消息解决「<b>本地事务和发消息的原子性</b>」问题——要么「DB 提交 + 消息发出」都成功，要么都不成。典型：下单扣库存成功后，一定要发出「下单成功」消息。</p>
+        <h4>RocketMQ 事务消息（两阶段 + 回查）</h4>
+        <ol>
+          <li>发「半消息」（half message），Broker 先存但不投递给消费者。</li>
+          <li>执行本地事务（扣库存）。</li>
+          <li>本地事务成功 → 提交半消息；失败 → 回滚。</li>
+          <li>若生产者宕机，Broker 定时<b>回查</b>本地事务状态，决定提交还是回滚。</li>
+        </ol>
+        <div class="flowwrap"><div class="cap">RocketMQ 事务消息流程图（两阶段 + 回查）</div><svg viewBox="0 0 680 400" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>RocketMQ 事务消息流程</title>
+<defs><marker id="mqf2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<g class="c-blue"><rect x="40" y="48" width="130" height="52" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/><text x="105" y="68" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#0C447C">生产者</text><text x="105" y="85" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#185FA5">本地事务</text></g>
+<g class="c-purple"><rect x="420" y="48" width="130" height="52" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/><text x="485" y="68" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#3C3489">Broker</text><text x="485" y="85" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#534AB7">半消息暂存</text></g>
+<g class="c-amber"><rect x="40" y="150" width="180" height="44" rx="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/><text x="130" y="172" text-anchor="middle" dominant-baseline="central" font-size="13" fill="#633806">① 发半消息（暂不投递）</text></g>
+<g class="c-amber"><rect x="40" y="210" width="180" height="44" rx="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/><text x="130" y="232" text-anchor="middle" dominant-baseline="central" font-size="13" fill="#633806">② 执行本地事务</text></g>
+<g class="c-teal"><rect x="40" y="270" width="180" height="44" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/><text x="130" y="292" text-anchor="middle" dominant-baseline="central" font-size="13" fill="#085041">③ 成功→提交 / 失败→回滚</text></g>
+<path d="M170 74 L170 150" fill="none" stroke="#888780" stroke-width="1.5" marker-end="url(#mqf2)"/>
+<path d="M170 194 L170 210" fill="none" stroke="#888780" stroke-width="1.5" marker-end="url(#mqf2)"/>
+<path d="M170 254 L170 270" fill="none" stroke="#888780" stroke-width="1.5" marker-end="url(#mqf2)"/>
+<path d="M220 172 L420 74" fill="none" stroke="#888780" stroke-width="1.5" marker-end="url(#mqf2)"/>
+<path d="M220 292 L420 90" fill="none" stroke="#888780" stroke-width="1.5" marker-end="url(#mqf2)"/>
+<g class="c-red"><rect x="300" y="130" width="340" height="96" rx="10" fill="#FCEBEB" stroke="#A32D2D" stroke-width="0.5"/><text x="320" y="152" font-size="13" font-weight="500" fill="#791F1F">④ 回查机制（关键）</text><text x="320" y="174" font-size="12" fill="#A32D2D">生产者执行完本地事务后、提交前宕机</text><text x="320" y="194" font-size="12" fill="#A32D2D">→ Broker 定时回查本地事务状态</text><text x="320" y="212" font-size="12" fill="#A32D2D">→ 决定提交（投递）还是回滚（丢弃）</text></g>
+<path d="M420 74 L300 130" fill="none" stroke="#A32D2D" stroke-width="1.5" marker-end="url(#mqf2)" stroke-dasharray="4 3"/>
+<g class="c-green"><rect x="300" y="270" width="340" height="44" rx="8" fill="#EAF3DE" stroke="#3B6D11" stroke-width="0.5"/><text x="470" y="292" text-anchor="middle" dominant-baseline="central" font-size="13" fill="#27500A">⑤ 提交后半消息投递给消费者</text></g>
+<text x="40" y="350" font-size="12" fill="#888780">半消息对消费者不可见，提交后才真正投递</text>
+<text x="40" y="370" font-size="12" fill="#888780">回查是事务消息可靠性的关键，防止状态悬空</text>
+</svg></div>
+        <div class="followup"><b>追问：为什么需要「回查」？</b>防止生产者执行完本地事务后、提交消息前宕机，导致状态未知。回查是事务消息可靠性的关键。</div>
+        <div class="pit"><b>踩坑：</b>事务消息不能保证「消费端一定成功」。它只管「本地事务 + 发消息」的原子，消费端失败仍要靠重试 + 幂等。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m3q5">Q5 ACK 机制：自动提交和手动提交的区别？</span><span class="lv lv1">必考</span></div><label class="ck"><input type="checkbox" data-id="m3q5">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <p>ACK 是消费者告诉 Broker「我处理完了，可以把这条消息标记为已消费」。</p>
+        <table class="tb">
+          <thead><tr><th>方式</th><th>行为</th><th>风险</th></tr></thead>
+          <tbody>
+            <tr><td><b>自动提交</b></td><td>拉取后立即提交 offset</td><td>处理失败消息已丢（丢消息）</td></tr>
+            <tr><td><b>手动提交</b></td><td>处理成功后再提交</td><td>提交前宕机会重复消费（要幂等）</td></tr>
+          </tbody>
+        </table>
+        <p>结论：<b>可靠性要求高的场景必须手动提交</b>，同时配合幂等解决「提交前宕机」导致的重复。</p>
+        <div class="followup"><b>追问：提交太频繁有什么问题？</b>性能开销大。可以「处理一批、提交一次」，但要在「批量提交的吞吐」和「重复消费窗口」之间权衡。</div>
+        <div class="pit"><b>踩坑：</b>自动提交 + 没做幂等 = 既可能丢又可能重，是生产事故高发写法。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m3q6">Q6 主从复制有哪两种模式？</span><span class="lv lv1">必考</span></div><label class="ck"><input type="checkbox" data-id="m3q6">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <ul>
+          <li><b>同步复制（SYNC）</b>：主写成功 + 从也写成功才返回。可靠，延迟高。</li>
+          <li><b>异步复制（ASYNC）</b>：主写成功即返回，后台同步给从。快，但主挂可能丢消息。</li>
+        </ul>
+        <p>早期 RocketMQ 主从是「主写从读」，主挂后从不能自动接管写（需人工切换），后来 DLedger（Raft 实现）补齐了自动选主。</p>
+        <div class="flowwrap"><div class="cap">RocketMQ 高可用：主从同步 + DLedger 选主流程图</div><svg viewBox="0 0 680 380" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>RocketMQ 高可用与 DLedger 选主</title>
+<defs><marker id="mqf3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<g class="c-purple"><rect x="40" y="52" width="140" height="52" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/><text x="110" y="72" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#3C3489">主节点 Master</text><text x="110" y="89" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#534AB7">接收读写</text></g>
+<g class="c-gray"><rect x="280" y="52" width="140" height="52" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/><text x="350" y="72" text-anchor="middle" dominant-baseline="central" font-size="13" font-weight="500" fill="#444441">从节点 Slave</text><text x="350" y="89" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#5F5E5A">同步备份</text></g>
+<path d="M180 78 L280 78" fill="none" stroke="#888780" stroke-width="1.5" marker-end="url(#mqf3)"/><text x="230" y="70" text-anchor="middle" font-size="11" fill="#888780">主从同步</text>
+<g class="c-amber"><rect x="40" y="140" width="180" height="44" rx="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/><text x="130" y="162" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#633806">同步复制：主+从都写成功才返回</text></g>
+<g class="c-amber"><rect x="240" y="140" width="180" height="44" rx="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/><text x="330" y="162" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#633806">异步复制：主写成功即返回</text></g>
+<g class="c-blue"><rect x="40" y="230" width="600" height="120" rx="12" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/><text x="60" y="254" font-size="13" font-weight="500" fill="#0C447C">DLedger（基于 Raft）自动选主</text>
+<g class="c-teal"><rect x="60" y="270" width="170" height="60" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/><text x="145" y="292" text-anchor="middle" dominant-baseline="central" font-size="13" fill="#085041">Master 宕机</text><text x="145" y="310" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#0F6E56">心跳超时感知</text></g>
+<g class="c-purple"><rect x="250" y="270" width="170" height="60" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/><text x="335" y="292" text-anchor="middle" dominant-baseline="central" font-size="13" fill="#3C3489">Raft 选举</text><text x="335" y="310" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#534AB7">多数派投票</text></g>
+<g class="c-green"><rect x="440" y="270" width="180" height="60" rx="8" fill="#EAF3DE" stroke="#3B6D11" stroke-width="0.5"/><text x="530" y="292" text-anchor="middle" dominant-baseline="central" font-size="13" fill="#27500A">新 Master 上位</text><text x="530" y="310" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#3B6D11">自动接管读写</text></g>
+<path d="M230 300 L250 300" fill="none" stroke="#888780" stroke-width="1.5" marker-end="url(#mqf3)"/>
+<path d="M420 300 L440 300" fill="none" stroke="#888780" stroke-width="1.5" marker-end="url(#mqf3)"/>
+</g>
+<text x="40" y="372" font-size="12" fill="#888780">早期 RocketMQ 主从不能自动切换（需人工），DLedger 补齐了自动选主能力</text>
+</svg></div>
+        <div class="followup"><b>追问：RocketMQ 从节点能读吗？</b>早期主从架构下，从节点默认不提供读（读主），消费靠主；DLedger 架构下也是主负责读写。</div>
+        <div class="pit"><b>踩坑：</b>混淆「同步复制」和「同步刷盘」。复制是「主到从」，刷盘是「内存到磁盘」，是两个独立维度，可交叉组合。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m3q7">Q7 什么是脑裂？RocketMQ 怎么避免？</span><span class="lv lv1">必考</span></div><label class="ck"><input type="checkbox" data-id="m3q7">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <p>脑裂 = <b>集群分裂成两个互不通信的部分，各自选出了自己的主（Master），同时对外服务</b>，导致数据分叉、无法合并。</p>
+        <h4>RocketMQ 怎么避免</h4>
+        <ul>
+          <li><b>DLedger（Raft）</b>：靠「多数派投票」选主，只有获得「过半节点」投票才能当主。</li>
+          <li>分裂后两边不可能同时过半，必有一边选不出主（放弃写），从根源上杜绝双主。</li>
+        </ul>
+        <div class="followup"><b>追问：为什么「过半」能防脑裂？</b>N 个节点，任何分裂的两部分最多只有一边 ≥ N/2+1，所以最多一边能选出主，另一边自动降级。</div>
+        <div class="pit"><b>踩坑：</b>别答「网络断了就是脑裂」。脑裂的关键是「两边都认为自己是主、各自接受写」，单纯的网络抖动但没产生双主不算脑裂。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m3q8">Q8 消息堆积（积压）了怎么办？</span><span class="lv lv1">必考</span></div><label class="ck"><input type="checkbox" data-id="m3q8">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <ol>
+          <li><b>先看消费能力</b>：是不是消费者太少或单消费者太慢（逻辑阻塞、慢 SQL）。</li>
+          <li><b>加消费者</b>：扩消费组内消费者数，但<b>不能超过队列数</b>——超过的部分空转。</li>
+          <li><b>队列不够</b>：扩队列（RocketMQ 队列数要提前规划，线上改成本高）。</li>
+          <li><b>紧急消峰</b>：临时起一批「只消费不处理」的消费者把消息转存，先腾空队列。</li>
+          <li><b>根因</b>：长期看，是下游处理能力不足还是消息设计不合理。</li>
+        </ol>
+        <div class="flowwrap"><div class="cap">消息堆积排查流程图</div><svg viewBox="0 0 680 360" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>消息堆积排查流程</title>
+<defs><marker id="mqf11" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<g class="c-blue"><rect x="40" y="50" width="200" height="48" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/><text x="140" y="74" text-anchor="middle" dominant-baseline="central" font-size="13" fill="#0C447C">① 看消费能力</text></g>
+<g class="c-purple"><rect x="40" y="118" width="200" height="48" rx="8" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/><text x="140" y="142" text-anchor="middle" dominant-baseline="central" font-size="13" fill="#3C3489">② 加消费者（≤队列数）</text></g>
+<g class="c-teal"><rect x="40" y="186" width="200" height="48" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/><text x="140" y="210" text-anchor="middle" dominant-baseline="central" font-size="13" fill="#085041">③ 队列不够就扩队列</text></g>
+<g class="c-amber"><rect x="40" y="254" width="200" height="48" rx="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/><text x="140" y="278" text-anchor="middle" dominant-baseline="central" font-size="13" fill="#633806">④ 紧急消峰（转存腾空）</text></g>
+<path d="M140 98 L140 118" fill="none" stroke="#888780" stroke-width="1.5" marker-end="url(#mqf11)"/>
+<path d="M140 166 L140 186" fill="none" stroke="#888780" stroke-width="1.5" marker-end="url(#mqf11)"/>
+<path d="M140 234 L140 254" fill="none" stroke="#888780" stroke-width="1.5" marker-end="url(#mqf11)"/>
+<g class="c-red"><rect x="300" y="50" width="340" height="150" rx="10" fill="#FCEBEB" stroke="#A32D2D" stroke-width="0.5"/><text x="320" y="74" font-size="13" font-weight="500" fill="#791F1F">关键判断：为什么「消费者数 ≤ 队列数」</text><text x="320" y="98" font-size="12" fill="#A32D2D">一个队列同一时刻只能被组内一个消费者消费</text><text x="320" y="120" font-size="12" fill="#A32D2D">消费者多于队列 → 多出的拿不到任何消息，空转</text><text x="320" y="146" font-size="12" fill="#A32D2D">所以盲目加机器没用，先看是「队列限制」还是「单消费者慢」</text><text x="320" y="170" font-size="12" fill="#A32D2D">常见根因：消费逻辑阻塞、慢 SQL、下游挂了</text></g>
+<path d="M240 74 L300 74" fill="none" stroke="#888780" stroke-width="1.5" marker-end="url(#mqf11)" stroke-dasharray="4 3"/>
+<g class="c-green"><rect x="300" y="230" width="340" height="72" rx="10" fill="#EAF3DE" stroke="#3B6D11" stroke-width="0.5"/><text x="318" y="254" font-size="13" font-weight="500" fill="#27500A">长期看根因</text><text x="318" y="276" font-size="12" fill="#3B6D11">是下游处理能力不足，还是消息设计/队列规划不合理</text><text x="318" y="294" font-size="12" fill="#3B6D11">堆积不是加机器能根治的，要定位瓶颈环节</text></g>
+</svg></div>
+        <div class="followup"><b>追问：为什么「消费者数不能超过队列数」？</b>一个队列同一时刻只能被组内一个消费者消费。消费者多于队列，多出来的拿不到任何消息。</div>
+        <div class="pit"><b>踩坑：</b>一上来就「加机器」。先搞清楚是「队列数限制了并行度」还是「单消费者逻辑慢」，加错方向白花钱。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m3q9">Q9 消费位点（offset）怎么管理？断点续传怎么实现？</span><span class="lv lv2">高频</span></div><label class="ck"><input type="checkbox" data-id="m3q9">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <p>RocketMQ 的 offset 存 <b>Broker 端</b>，消费成功后上报，Broker 记录每个消费组的消费进度。</p>
+        <ul>
+          <li><b>意义</b>：断点续传。消费者重启后从上次 offset 继续，不重不漏（配合幂等）。</li>
+          <li><b>粒度</b>：按「消费组 + 队列」记录，不同消费组各自独立。</li>
+        </ul>
+        <div class="followup"><b>追问：offset 提交了但消息没处理完就宕机，会怎样？</b>消息会「丢」——因为 Broker 认为已消费。这就是为什么手动提交要在处理成功后。</div>
+        <div class="pit"><b>踩坑：</b>「offset 存 ZooKeeper」是 Kafka 老版本的说法，别套到 RocketMQ 上。RocketMQ 的 offset 存 Broker。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ 模块4：特性与场景 ============ -->
+  <section class="module" id="mod4">
+    <h2>④ 特性与场景 <span class="cnt">延迟 / 死信 / 削峰 / 最终一致 / 踩坑</span></h2>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m4q1">Q1 延迟消息怎么实现？应用场景？</span><span class="lv lv1">必考</span></div><label class="ck"><input type="checkbox" data-id="m4q1">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <p>延迟消息 = 发出去后，过指定时间才投递给消费者。</p>
+        <ul>
+          <li><b>RocketMQ 原生支持 18 级延迟</b>：1s、5s、10s、30s、1m...一直到 2h。发消息时指定延迟等级，Broker 暂存，到期投递。</li>
+        </ul>
+        <h4>应用场景</h4>
+        <ul>
+          <li><b>订单超时关闭</b>：下单 30 分钟未支付自动取消，释放库存。最经典。</li>
+          <li><b>延迟重试</b>：支付回调失败，延迟一段时间再查。</li>
+          <li><b>延迟通知</b>：会员到期前 3 天提醒、会议开始前 10 分钟提醒。</li>
+        </ul>
+        <div class="followup"><b>追问：18 级延迟够用吗？想延迟 3 小时怎么办？</b>18 级最大到 2h。要更精确/更长的延迟，需要自己实现（如 RocketMQ 5.x 的定时消息，或外挂时间轮）。</div>
+        <div class="pit"><b>踩坑：</b>「订单超时取消」要配合「查询支付状态」而不是「直接取消」，避免延迟消息和支付成功的竞态。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m4q2">Q2 死信队列（DLQ）是什么？什么时候会进死信？</span><span class="lv lv1">必考</span></div><label class="ck"><input type="checkbox" data-id="m4q2">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <p>死信队列是<b>无法被正常消费的消息的最终归宿</b>。在 RocketMQ 里，消费失败会进入<b>重试队列</b>（如 <code>%RETRY%ConsumerGroup</code>），重试次数耗尽（默认 16 次）仍失败，就进入<b>死信队列</b>（<code>%DLQ%ConsumerGroup</code>）。</p>
+        <h4>价值</h4>
+        <ul>
+          <li>把「毒消息」隔离起来，不让它无限重试阻塞队列。</li>
+          <li>保留现场供人工排查、批量重放。</li>
+        </ul>
+        <div class="followup"><b>追问：死信消息怎么处理？</b>告警 + 人工介入，或写脚本批量重放。死信本身不是 bug，是「兜底」，真正的 bug 在消费逻辑。</div>
+        <div class="pit"><b>踩坑：</b>别把「重试队列」和「死信队列」混为一谈。重试是临时退回，死信是彻底放弃。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m4q3">Q3 削峰填谷怎么设计？</span><span class="lv lv1">必考</span></div><label class="ck"><input type="checkbox" data-id="m4q3">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <p>场景：秒杀/大促瞬时流量洪峰，下游（DB/订单系统）扛不住。</p>
+        <ol>
+          <li>请求先进 MQ（生产者只负责快速投递）。</li>
+          <li>消费者按<b>自己能力</b>匀速消费。</li>
+          <li>MQ 当「蓄水池」，把瞬时尖峰摊平成一段时间内的平滑流量。</li>
+        </ol>
+        <p>配合：<b>限流</b>（网关/入口）控制进入量，<b>容量规划</b>（算清峰值、堆积时长、磁盘容量）。RocketMQ 天生为亿级堆积设计，最适合这个场景。</p>
+        <div class="followup"><b>追问：削峰的代价？</b>实时性下降。用户「下单成功」可能变成「下单受理中」，要异步通知结果。业务要能接受延迟。</div>
+        <div class="pit"><b>踩坑：</b>只答「用 MQ 削峰」不给数字。要能说出「峰值多少、下游扛多少、堆积多久、需要多大磁盘」。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m4q4">Q4 分布式事务（最终一致性）用 MQ 怎么实现？</span><span class="lv lv1">必考</span></div><label class="ck"><input type="checkbox" data-id="m4q4">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <p>用「<b>本地消息表</b>」或「<b>事务消息</b>」实现最终一致，替代强一致的两阶段提交（2PC，性能差）。</p>
+        <h4>本地消息表方案</h4>
+        <ol>
+          <li>本地事务里：业务写 DB + 往「消息表」插一条待发消息（同一事务，原子）。</li>
+          <li>定时任务扫描消息表，把「待发」消息发到 MQ。</li>
+          <li>消费方消费成功后，回写消息表状态为「已消费」。</li>
+          <li>配合幂等 + 重试，保证最终一致。</li>
+        </ol>
+        <p><b>RocketMQ 的事务消息是它的「内置版」</b>，省掉自己写消息表。</p>
+        <div class="followup"><b>追问：和 2PC 比优势在哪？</b>2PC 同步阻塞、锁定资源、协调者单点。MQ 方案异步、无锁、可用性高，代价是「最终」而非「强」一致。</div>
+        <div class="pit"><b>踩坑：</b>别把「最终一致」当「弱一致」。最终一致是有兜底机制（重试+幂等+对账）保证的收敛，不是「爱一致不一致」。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m4q5">Q5 一个「下单 → 扣库存 → 发积分」的链路，用 MQ 怎么拆？</span><span class="lv lv2">高频</span></div><label class="ck"><input type="checkbox" data-id="m4q5">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <p>核心：区分「<b>强一致的核心链路</b>」和「<b>可异步的非核心链路</b>」。这道题考的就是「能不能分清哪些步骤必须同步、哪些可以异步」。</p>
+        <h4>拆法</h4>
+        <ol>
+          <li><b>下单 + 扣库存</b>：强一致，同一个本地事务，用事务消息保证原子性。</li>
+          <li><b>发积分、发通知、记埋点</b>：异步解耦，订阅「下单成功」消息各自处理。</li>
+        </ol>
+        <p>主流程只依赖核心事务，积分/通知/埋点挂了都不影响下单，各自独立重试。</p>
+        <div class="followup"><b>追问：积分系统挂了怎么办？</b>消息堆积在 MQ，积分系统恢复后继续消费，靠幂等保证不重复发积分。</div>
+        <div class="pit"><b>踩坑：</b>把「扣库存」也异步化是危险的——库存强一致关系到超卖，不能随便异步。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m4q6">Q6 RocketMQ 能保证不丢、不重、有序吗？三者的取舍？</span><span class="lv lv1">必考</span></div><label class="ck"><input type="checkbox" data-id="m4q6">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <p>这是一道「综合能力」题。核心结论：<b>三者不能同时免费获得，都是取舍。</b></p>
+        <table class="tb">
+          <thead><tr><th>目标</th><th>手段</th><th>代价</th></tr></thead>
+          <tbody>
+            <tr><td>不丢</td><td>同步刷盘 + 同步复制 + 手动提交</td><td>性能下降</td></tr>
+            <tr><td>不重</td><td>业务幂等（唯一键/幂等表）</td><td>业务复杂度</td></tr>
+            <tr><td>有序</td><td>单队列/顺序消费</td><td>并行度下降</td></tr>
+          </tbody>
+        </table>
+        <p>「不丢」由 MQ 保证，「不重」必须业务侧幂等，「有序」用单队列或局部有序。</p>
+        <div class="followup"><b>追问：什么业务必须有序？</b>状态机类业务（订单状态流转、账户余额变动）通常要「同一对象内有序」，用 key 哈希到同队列即可，不必全局有序。</div>
+        <div class="pit"><b>踩坑：</b>说「都能保证」是错的。要能清醒地讲清每个目标的代价和边界，这是高级开发和大厂的分水岭。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m4q7">Q7 什么场景不适合用 RocketMQ？</span><span class="lv lv3">加分</span></div><label class="ck"><input type="checkbox" data-id="m4q7">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <ul>
+          <li><b>强一致、低延迟</b>：实时转账、扣款，要求同步返回结果，MQ 的异步延迟不可接受。</li>
+          <li><b>简单异步调用</b>：就一个下游、量不大，线程池/异步框架够用，引 MQ 是杀鸡用牛刀。</li>
+          <li><b>纯流式处理/日志采集</b>：这种「海量数据流」场景 Kafka 更合适（RocketMQ 强在业务消息）。</li>
+          <li><b>需要请求-响应语义</b>：调用方要拿结果的 RPC 场景，MQ 是单向的。</li>
+        </ul>
+        <h4>判断标准（一句话）</h4>
+        <p>问自己三个问题：<b>① 能接受异步延迟吗？② 下游有多个且会变化吗？③ 流量有明显峰谷需要缓冲吗？</b>三个都是「是」，才值得上 RocketMQ。</p>
+        <div class="followup"><b>追问：引入 MQ 的隐性成本有哪些？</b>运维（集群、监控、扩容）、一致性（丢/重/序）、排查复杂度（消息链路追踪）。</div>
+        <div class="pit"><b>踩坑：</b>把 MQ 当「万能异步」，所有解耦都上 MQ，导致系统里 MQ 泛滥、链路难排查。</div>
+      </div>
+    </details>
+
+    <details class="q">
+      <summary><div class="q-title"><span class="qn" data-id="m4q8">Q8 你项目里 RocketMQ 踩过什么坑？怎么解决的？</span><span class="lv lv2">高频</span></div><label class="ck"><input type="checkbox" data-id="m4q8">能脱稿讲 3 分钟</label></summary>
+      <div class="bd">
+        <p>这是「项目复盘」必问题，用 STAR 结构，提前准备 2-3 个真实案例。给三个高频坑模板：</p>
+        <ul>
+          <li><b>重复消费</b>：消费端没做幂等，下游重复扣款/发货 → 加唯一键幂等。</li>
+          <li><b>消息堆积</b>：某次大促下游处理不过来 → 扩消费者 + 定位慢 SQL + 临时消峰。</li>
+          <li><b>顺序错乱</b>：多线程消费同订单消息导致状态错乱 → 按 key 哈希到同队列 + 单线程消费。</li>
+        </ul>
+        <p>要点：<b>带上具体数字</b>（堆积了多少、消费了多少 QPS、优化后提升多少），才像真踩过。</p>
+        <div class="followup"><b>追问：怎么监控 RocketMQ 的健康？</b>看堆积量、消费延迟、消息失败率、Broker 磁盘水位、消费组 lag。这些指标要有告警。</div>
+        <div class="pit"><b>踩坑：</b>答「没踩过坑」——5 年经验说没踩过坑，要么项目太简单，要么没深入。宁可说「早期踩过 XX，后来规范成 YY」。</div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ============ 模块5：三大 MQ 对比 ============ -->
+  <section class="module" id="mod5">
+    <h2>⑤ 三大 MQ 对比总结 <span class="cnt">Kafka / RocketMQ / RabbitMQ</span></h2>
+
+    <p style="margin:12px 0 4px">虽然本手册只讲 RocketMQ，但面试几乎必考「三大 MQ 区别」。一句话定位 + 一张对比表记牢即可。</p>
+
+    <table class="tb">
+      <thead><tr><th>MQ</th><th>一句话定位</th><th>核心优势</th><th>典型场景</th></tr></thead>
+      <tbody>
+        <tr><td><b>Kafka</b></td><td>分布式流处理平台</td><td>超高吞吐、持久化、分区有序、生态成熟</td><td>日志采集、埋点、流计算、大数据</td></tr>
+        <tr><td><b>RocketMQ</b></td><td>金融级业务消息</td><td>事务消息、延迟消息、亿级堆积</td><td>电商下单、削峰、事务一致性</td></tr>
+        <tr><td><b>RabbitMQ</b></td><td>通用消息中间件</td><td>AMQP 标准、路由灵活、易上手</td><td>中小厂解耦、任务分发、RPC</td></tr>
+      </tbody>
+    </table>
+
+    <h3 style="font-size:16px;margin:18px 0 8px">逐维度对比</h3>
+    <table class="tb">
+      <thead><tr><th>维度</th><th>Kafka</th><th>RocketMQ</th><th>RabbitMQ</th></tr></thead>
+      <tbody>
+        <tr><td><b>吞吐</b></td><td>极高（百万级）</td><td>高（十万级）</td><td>较低（万级）</td></tr>
+        <tr><td><b>事务消息</b></td><td>弱（较晚才支持）</td><td>原生支持，金融级</td><td>无（靠消息确认）</td></tr>
+        <tr><td><b>延迟消息</b></td><td>需外挂</td><td>原生 18 级</td><td>TTL+DLX 模拟</td></tr>
+        <tr><td><b>消息过滤</b></td><td>弱</td><td>Tag + SQL92</td><td>靠 Exchange 路由</td></tr>
+        <tr><td><b>顺序保证</b></td><td>分区内有序</td><td>队列内有序（更细粒度）</td><td>单队列有序</td></tr>
+        <tr><td><b>堆积能力</b></td><td>强（靠分区）</td><td>极强（亿级堆积）</td><td>弱（内存队列）</td></tr>
+        <tr><td><b>元数据中心</b></td><td>ZooKeeper / KRaft</td><td>NameServer（轻量）</td><td>内置 Mnesia</td></tr>
+        <tr><td><b>消费方式</b></td><td>Pull</td><td>Pull + 长轮询</td><td>Push</td></tr>
+        <tr><td><b>存储模型</b></td><td>分区日志（每分区独立）</td><td>CommitLog 统一顺序写</td><td>内存队列 + 磁盘兜底</td></tr>
+      </tbody>
+    </table>
+
+    <div class="pit"><b>选型陷阱：</b>别说「Kafka 比 RocketMQ 好」。三者的差异来自<b>场景</b>：Kafka 为吞吐牺牲了事务/延迟消息的灵活性，RocketMQ 为业务一致性做了大量增强，RabbitMQ 为易用性牺牲了吞吐上限。选型要落到「你的消息要吞吐还是要灵活」。</div>
+
+    <div class="followup"><b>选型一句话：</b>日志/埋点/流计算 → Kafka；业务消息/事务/延迟/削峰 → RocketMQ；中小厂简单解耦/RPC → RabbitMQ。</div>
+  </section>
+</main>
+</div>
+
+<script>
+(function(){
+  var STORE='rmq-progress-v1';
+  var qs=document.querySelectorAll('details.q');
+  var mods=document.querySelectorAll('section.module');
+  function load(){try{return JSON.parse(localStorage.getItem(STORE)||'{}');}catch(e){return {};}}
+  var prog=load();
+
+  function qid(q){return q.querySelector('.qn').getAttribute('data-id')||q.querySelector('.q-title').textContent.trim().slice(0,30);}
+  function qlv(q){var s=q.querySelector('.lv');return s?s.className.match(/lv(\d)/)[1]:'1';}
+
+  function save(){localStorage.setItem(STORE,JSON.stringify(prog));}
+
+  function refresh(){
+    var total=0,done=0;
+    mods.forEach(function(m){
+      if(m.id==='mod0'||m.id==='mod5')return;
+      var cks=m.querySelectorAll('.ck input');
+      var md=0,mc=0;
+      cks.forEach(function(cb){
+        var id=cb.getAttribute('data-id');
+        var on=!!prog[id];
+        cb.checked=on;
+        mc++; if(on)md++;
+      });
+      total+=mc; done+=md;
+      var pct=mc?Math.round(md/mc*100):0;
+      var nav=document.querySelector('.nav-item[data-mod="'+m.id+'"] .pct');
+      if(nav)nav.textContent=pct+'%';
+    });
+    document.getElementById('ov-total').textContent=total;
+    document.getElementById('ov-done').textContent=done;
+    document.getElementById('ov-pct').textContent=(total?Math.round(done/total*100):0)+'%';
+  }
+
+  qs.forEach(function(q){
+    var cb=q.querySelector('.ck input');
+    cb.addEventListener('change',function(){
+      var id=cb.getAttribute('data-id');
+      if(cb.checked)prog[id]=1; else delete prog[id];
+      save(); refresh();
+    });
+  });
+
+  var se=document.getElementById('search');
+  se.addEventListener('input',function(){
+    var kw=se.value.trim().toLowerCase();
+    qs.forEach(function(q){
+      var txt=q.textContent.toLowerCase();
+      var hit=!kw||txt.indexOf(kw)>=0;
+      q.classList.toggle('hide',!hit);
+    });
+  });
+
+  var btns=document.querySelectorAll('.fbtn[data-lv]');
+  var curLv='all';
+  btns.forEach(function(b){
+    b.addEventListener('click',function(){
+      curLv=b.getAttribute('data-lv');
+      btns.forEach(function(x){x.classList.toggle('active',x===b);});
+      applyFilter();
+    });
+  });
+  function applyFilter(){
+    var kw=se.value.trim().toLowerCase();
+    qs.forEach(function(q){
+      var hit=curLv==='all'||qlv(q)===curLv;
+      var kh=!kw||q.textContent.toLowerCase().indexOf(kw)>=0;
+      q.classList.toggle('hide',!(hit&&kh));
+    });
+  }
+
+  document.getElementById('btn-expand').addEventListener('click',function(){
+    qs.forEach(function(q){q.open=true;});
+  });
+  document.getElementById('btn-collapse').addEventListener('click',function(){
+    qs.forEach(function(q){q.open=false;});
+  });
+
+  refresh();
+})();
+</script>
+</body>
+</html>
