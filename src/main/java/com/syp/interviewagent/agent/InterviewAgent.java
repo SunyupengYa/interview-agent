@@ -157,13 +157,15 @@ public class InterviewAgent {
     }
 
     /**
-     * 节点：向量检索 top5。
-     * 一次检索产出两份视图：docsText（拼好 <doc> 标签的文本，供 prompt 用）与
-     * sources（元数据 Map，供响应体还原 SearchHit 用）。
-     * state 只放可序列化纯类型（LangGraph4j 节点间深拷贝 state），SearchHit 在图外组装。
+     * 检索结果的「两种视图」：同一次检索，两份消费方。
+     * docsText 给 prompt（喂模型），sources 给响应体（喂前端引用标签）。
+     * 抽成共用方法的原因：retrieve 和 plan 节点都要做同样的转换——
+     * 转换逻辑改一处（比如以后给 <doc> 标签加字段），两个节点自动生效。
      */
-    private Map<String, Object> retrieve(GraphState state) {
-        List<KnowledgeBaseService.SearchHit> hits = kb.search(state.question(), 5);
+    private record HitsView(List<String> docsText, List<Map<String, Object>> sources) {}
+
+    /** SearchHit 列表 → 两种视图的转换（唯一实现，见 {@link HitsView} 注释） */
+    private HitsView toHitsView(List<KnowledgeBaseService.SearchHit> hits) {
         List<String> docsText = hits.stream()
                 .map(h -> "<doc source=\"%s\" question=\"%s\" type=\"%s\">\n%s\n</doc>"
                         .formatted(h.source(), (h.questionNo() + " " + h.question()).trim(),
@@ -180,7 +182,17 @@ public class InterviewAgent {
                         "score", h.score(),
                         "text", h.text()))
                 .toList();
-        return Map.of(GraphState.DOCS_TEXT, docsText, GraphState.SOURCES, sources);
+        return new HitsView(docsText, sources);
+    }
+
+    /**
+     * 节点：向量检索 top5。
+     * 一次检索产出两份视图（见 {@link HitsView}），写入 state 供下游 generate 消费。
+     * state 只放可序列化纯类型（LangGraph4j 节点间深拷贝 state），SearchHit 在图外组装。
+     */
+    private Map<String, Object> retrieve(GraphState state) {
+        HitsView view = toHitsView(kb.search(state.question(), 5));
+        return Map.of(GraphState.DOCS_TEXT, view.docsText(), GraphState.SOURCES, view.sources());
     }
 
     /**
@@ -220,17 +232,18 @@ public class InterviewAgent {
     }
 
 
+    /**
+     * 节点：生成复习计划。与 generate 的两个差异：
+     * 1. 自行检索 top8 而非复用 retrieve 节点——做计划需要全模块视野，比答题的 top5 宽；
+     * 2. 用 PLAN_SYSTEM（计划规则）而非 GENERATE_SYSTEM（答题规则）。
+     * 同样写 SOURCES：前端引用标签对 plan 路径也能展示来源。
+     */
     private Map<String, Object> plan(GraphState state) {
         String question = state.question();
         List<String> history = state.history();
 
-        List<KnowledgeBaseService.SearchHit> hits = kb.search(state.question(), 8);
-        List<String> docsText = hits.stream()
-                .map(h -> "<doc source=\"%s\" question=\"%s\" type=\"%s\">\n%s\n</doc>"
-                        .formatted(h.source(), (h.questionNo() + " " + h.question()).trim(),
-                                h.type(), h.text()))
-                .toList();
-        String context = String.join("\n\n", docsText);
+        HitsView view = toHitsView(kb.search(question, 8));
+        String context = String.join("\n\n", view.docsText());
 
         // 空历史显式写「（无）」而不是留空标签：给模型明确的空信号，减少把空标签当上下文的误读
         String historyText = history.isEmpty() ? "（无）" : String.join("\n", history);
@@ -246,7 +259,7 @@ public class InterviewAgent {
                 """.formatted(historyText, question, context);
 
         String answer = chatModel.chat(PLAN_SYSTEM + "\n\n" + userPrompt);
-        return Map.of(GraphState.ANSWER, answer);
+        return Map.of(GraphState.ANSWER, answer, GraphState.SOURCES, view.sources());
     }
 
     /**
