@@ -49,6 +49,7 @@ public class InterviewAgent {
     public static final String RETRIEVE = "retrieve";
     public static final String GENERATE = "generate";
     public static final String CHAT = "chat";
+    public static final String PLAN = "plan";
 
     /**
      * 意图分类 prompt。输出约束「只输出一个单词」降低解析失败率；
@@ -56,9 +57,10 @@ public class InterviewAgent {
      */
     private static final String CLASSIFY_PROMPT = """
             你是一个意图分类器。判断用户输入属于哪一类：
-            - knowledge：面试知识问答、技术问题、让我解释知识点、要学习建议
+            - knowledge：面试知识问答、技术问题、让我解释知识点
             - chat：打招呼、寒暄、闲聊、问你是谁/你能干什么
-            只输出一个单词：knowledge 或 chat，不要任何其他内容。
+            - plan：制定复习计划、学习路线、按天安排
+            只输出一个单词：knowledge 或 chat 或 plan，不要任何其他内容。
             """;
 
     /**
@@ -84,6 +86,14 @@ public class InterviewAgent {
             介绍自己的能力，并引导用户提出技术问题。不要编造知识库内容。
             """;
 
+    private static final String PLAN_SYSTEM = """
+            你是「肥仔」，一个 Java 后端面试辅导 Agent。严格按以下规则回答：
+            1. 只依据 <context> 标签内提供的知识库内容回答，禁止编造 context 之外的知识点。
+            2. 如果 context 与问题无关，直接回答"知识库里没有覆盖这个问题"，并给出查阅方向。不要硬答。
+            3.结合知识库内容为用户制定复习计划、学习路线、按天安排
+            4.语言：简体中文，风格务实，说人话。
+            """;
+
     private final ChatModel chatModel;
     private final KnowledgeBaseService kb;
     private final CompiledGraph<GraphState> compiled;
@@ -103,15 +113,17 @@ public class InterviewAgent {
         graph.addNode(RETRIEVE, node_async(this::retrieve));
         graph.addNode(GENERATE, node_async(this::generate));
         graph.addNode(CHAT, node_async(this::chat));
+        graph.addNode(PLAN, node_async(this::plan));
 
         graph.addEdge(START, CLASSIFY);
         // 条件路由：按 state.intent 的值跳到对应节点，Map 缺 key 会抛错（编译期即可发现映射不全）
         graph.addConditionalEdges(CLASSIFY,
                 edge_async(state -> state.intent()),
-                Map.of("knowledge", RETRIEVE, "chat", CHAT));
+                Map.of("knowledge", RETRIEVE, "chat", CHAT,"plan",PLAN));
         graph.addEdge(RETRIEVE, GENERATE);
         graph.addEdge(GENERATE, END);
         graph.addEdge(CHAT, END);
+        graph.addEdge(PLAN, END);
 
         this.compiled = graph.compile();
         log.info("InterviewAgent 状态机编译完成：classify →(knowledge) retrieve→generate / (chat) chat");
@@ -132,7 +144,14 @@ public class InterviewAgent {
         String raw = chatModel.chat(CLASSIFY_PROMPT + "\n\n用户输入：" + question)
                 .trim()
                 .toLowerCase();
-        String intent = raw.contains("chat") && !raw.contains("knowledge") ? "chat" : "knowledge";
+        String intent;
+        if ( raw.contains("chat") && !raw.contains("knowledge")) {
+            intent = "chat";
+        } else if (raw.contains("plan") && !raw.contains("knowledge")){
+            intent = "plan";
+        } else {
+            intent = "knowledge";
+        }
         log.debug("意图分类: {} -> {}", question, intent);
         return Map.of(GraphState.INTENT, intent);
     }
@@ -197,6 +216,36 @@ public class InterviewAgent {
         String historyText = state.history().isEmpty() ? "（无）" : String.join("\n", state.history());
         String answer = chatModel.chat(CHAT_SYSTEM + "\n\n对话历史：\n" + historyText
                 + "\n\n用户输入：" + state.question());
+        return Map.of(GraphState.ANSWER, answer);
+    }
+
+
+    private Map<String, Object> plan(GraphState state) {
+        String question = state.question();
+        List<String> history = state.history();
+
+        List<KnowledgeBaseService.SearchHit> hits = kb.search(state.question(), 8);
+        List<String> docsText = hits.stream()
+                .map(h -> "<doc source=\"%s\" question=\"%s\" type=\"%s\">\n%s\n</doc>"
+                        .formatted(h.source(), (h.questionNo() + " " + h.question()).trim(),
+                                h.type(), h.text()))
+                .toList();
+        String context = String.join("\n\n", docsText);
+
+        // 空历史显式写「（无）」而不是留空标签：给模型明确的空信号，减少把空标签当上下文的误读
+        String historyText = history.isEmpty() ? "（无）" : String.join("\n", history);
+
+        String userPrompt = """
+                <history>%s</history>
+
+                <question>%s</question>
+
+                <context>
+                %s
+                </context>
+                """.formatted(historyText, question, context);
+
+        String answer = chatModel.chat(PLAN_SYSTEM + "\n\n" + userPrompt);
         return Map.of(GraphState.ANSWER, answer);
     }
 
