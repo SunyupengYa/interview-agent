@@ -9,3 +9,6 @@ target/
 # Milvus 数据目录与向量索引快照（可由 corpus 重建，不入库）
 data/milvus/
 data/embeddings.store
+
+# 提问覆盖统计（运行时数据，可由使用过程重新积累）
+data/progress.json

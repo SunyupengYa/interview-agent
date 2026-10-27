@@ -1,5 +1,6 @@
 package com.syp.interviewagent.agent;
 
+import com.syp.interviewagent.progress.StudyProgressService;
 import com.syp.interviewagent.rag.KnowledgeBaseService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,12 +34,14 @@ public class AgentService {
     private static final int MAX_HISTORY = 6;
 
     private final InterviewAgent agent;
+    private final StudyProgressService progress;
 
     /** sessionId → 会话记忆队列（按时间序，队头最旧）；computeIfAbsent 保证惰性创建 */
     private final Map<String, Deque<String>> sessionHistory = new ConcurrentHashMap<>();
 
-    public AgentService(InterviewAgent agent) {
+    public AgentService(InterviewAgent agent, StudyProgressService progress) {
         this.agent = agent;
+        this.progress = progress;
     }
 
     /**
@@ -89,6 +92,12 @@ public class AgentService {
 
         // 记忆写入在本轮图执行完成后进行：本轮问题/答案不进本轮的 prompt，下一轮才生效
         remember(sessionId, "用户: " + question, "肥仔: " + truncate(answer));
+
+        // 提问覆盖埋点：只记 knowledge 路径（用户真的在问技术题）。
+        // 挂在图外的理由：这是横切副作用，与记忆同理——图内节点保持纯决策，不掺 IO
+        if ("knowledge".equals(intent) && !sourceMaps.isEmpty()) {
+            progress.record(sourceMaps);
+        }
 
         log.info("会话 {} 意图={} 耗时={}ms 来源数={}", sessionId, intent, cost, sources.size());
         return new AgentResult(answer, intent, List.of(), sources);

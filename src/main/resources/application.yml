@@ -15,6 +15,10 @@ corpus:
 kb:
   store-path: ${KB_STORE_PATH:./data/embeddings.store}
 
+# 提问覆盖统计（弱信号埋点）持久化文件
+progress:
+  path: ${PROGRESS_PATH:./data/progress.json}
+
 # 向量库后端：memory（开发）| milvus（生产主流）
 vector-store:
   type: ${VECTOR_STORE_TYPE:memory}

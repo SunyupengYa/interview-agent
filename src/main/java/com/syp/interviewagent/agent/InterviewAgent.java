@@ -1,7 +1,18 @@
 package com.syp.interviewagent.agent;
 
+import com.syp.interviewagent.progress.StudyProgressService;
 import com.syp.interviewagent.rag.KnowledgeBaseService;
+import dev.langchain4j.agent.tool.ToolExecutionRequest;
+import dev.langchain4j.agent.tool.ToolSpecification;
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.SystemMessage;
+import dev.langchain4j.data.message.ToolExecutionResultMessage;
+import dev.langchain4j.data.message.UserMessage;
 import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.request.ChatRequest;
+import dev.langchain4j.model.chat.request.ChatRequestParameters;
+import dev.langchain4j.model.chat.request.DefaultChatRequestParameters;
 import org.bsc.langgraph4j.CompiledGraph;
 import org.bsc.langgraph4j.StateGraph;
 import org.bsc.langgraph4j.action.AsyncEdgeAction;
@@ -10,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,17 +37,22 @@ import static org.bsc.langgraph4j.action.AsyncNodeAction.node_async;
  *
  * 图结构：
  *
- *   START → classify ──(knowledge)→ retrieve → generate → END
- *                └────(chat)────→ chat ────────────────────→ END
+ *   START → classify ──(knowledge)→ retrieve → generate ────→ END
+ *                ├────(chat)────→ chat ──────────────────────→ END
+ *                ├────(plan)────→ plan ──────────────────────→ END
+ *                └────(tools)───→ tools（Function Calling 循环）→ END
  *
- *  - classify : LLM 意图路由（知识问答 / 闲聊寒暄）
+ *  - classify : LLM 意图路由（知识问答 / 闲聊 / 学习计划 / 数据查询）
  *  - retrieve : 向量检索知识库 top5
  *  - generate : 检索增强生成，带引用与幻觉抑制
  *  - chat     : 无需检索的直答（寒暄、关于本 Agent 的 meta 问题）
+ *  - plan     : 基于知识库生成复习计划
+ *  - tools    : Function Calling——把工具说明书交给 LLM，由模型决定调不调、调什么，
+ *               代码只负责执行工具并回传结果（与「路由」的本质区别：决策权在模型）
  *
- * 为什么用图而不是 if-else：图的节点/边是一等公民，加新意图（如「生成学习计划」）
- * 只需加节点 + 改条件路由，不改既有节点；且天然支持后续扩展出循环
- * （生成 → 校验 → 不合格回炉），if-else 写到那一层就会变成嵌套地狱。
+ * 为什么用图而不是 if-else：图的节点/边是一等公民，加新意图只需加节点 + 改条件路由，
+ * 不改既有节点；且天然支持后续扩展出循环（生成 → 校验 → 回炉），if-else 写到那一层
+ * 就会变成嵌套地狱。
  *
  * 线程安全：构造时完成编译，compiled 不可变，可并发执行。
  */
@@ -50,6 +67,10 @@ public class InterviewAgent {
     public static final String GENERATE = "generate";
     public static final String CHAT = "chat";
     public static final String PLAN = "plan";
+    public static final String TOOLS = "tools";
+
+    /** Function Calling 循环的轮数上限：防模型在「调工具 → 回结果 → 再调工具」里打转 */
+    private static final int MAX_TOOL_ROUNDS = 3;
 
     /**
      * 意图分类 prompt。输出约束「只输出一个单词」降低解析失败率；
@@ -60,7 +81,8 @@ public class InterviewAgent {
             - knowledge：面试知识问答、技术问题、让我解释知识点
             - chat：打招呼、寒暄、闲聊、问你是谁/你能干什么
             - plan：制定复习计划、学习路线、按天安排
-            只输出一个单词：knowledge 或 chat 或 plan，不要任何其他内容。
+            - tools：查询用户自己的提问记录/学习进度/统计（关于"我"的数据，不是技术问题）
+            只输出一个单词：knowledge 或 chat 或 plan 或 tools，不要任何其他内容。
             """;
 
     /**
@@ -94,8 +116,22 @@ public class InterviewAgent {
             4.语言：简体中文，风格务实，说人话。
             """;
 
+    /**
+     * Function Calling 模式的 system prompt。
+     * 规则 1 是工具版幻觉抑制：数字只能来自工具返回，模型不许自己"算"统计；
+     * 规则 3 呼应 StudyProgressService 的语义红线：弱信号数据不许说成"掌握"。
+     */
+    private static final String TOOLS_SYSTEM = """
+            你是「肥仔」，一个 Java 后端面试辅导 Agent。当前处于数据查询模式，严格按以下规则回答：
+            1. 回答中的所有数字和事实必须来自工具返回的结果，禁止编造或估算任何统计数字。
+            2. 工具返回的是原始统计文本，把它们组织成友好、有洞察的回答（比如指出覆盖薄弱的模块）。
+            3. 措辞红线：只能说"问过/接触过"，禁止说"掌握/学会"——提问不等于学会。
+            4. 语言：简体中文，风格务实，说人话。
+            """;
+
     private final ChatModel chatModel;
     private final KnowledgeBaseService kb;
+    private final StudyProgressService progress;
     private final CompiledGraph<GraphState> compiled;
 
     /**
@@ -104,9 +140,10 @@ public class InterviewAgent {
      *
      * @throws Exception 图结构非法（如条件路由映射缺失目标节点）时编译失败，应用拒绝启动
      */
-    public InterviewAgent(ChatModel chatModel, KnowledgeBaseService kb) throws Exception {
+    public InterviewAgent(ChatModel chatModel, KnowledgeBaseService kb, StudyProgressService progress) throws Exception {
         this.chatModel = chatModel;
         this.kb = kb;
+        this.progress = progress;
 
         StateGraph<GraphState> graph = new StateGraph<>(GraphState::new);
         graph.addNode(CLASSIFY, node_async(this::classify));
@@ -114,19 +151,21 @@ public class InterviewAgent {
         graph.addNode(GENERATE, node_async(this::generate));
         graph.addNode(CHAT, node_async(this::chat));
         graph.addNode(PLAN, node_async(this::plan));
+        graph.addNode(TOOLS, node_async(this::tools));
 
         graph.addEdge(START, CLASSIFY);
         // 条件路由：按 state.intent 的值跳到对应节点，Map 缺 key 会抛错（编译期即可发现映射不全）
         graph.addConditionalEdges(CLASSIFY,
                 edge_async(state -> state.intent()),
-                Map.of("knowledge", RETRIEVE, "chat", CHAT,"plan",PLAN));
+                Map.of("knowledge", RETRIEVE, "chat", CHAT, "plan", PLAN, "tools", TOOLS));
         graph.addEdge(RETRIEVE, GENERATE);
         graph.addEdge(GENERATE, END);
         graph.addEdge(CHAT, END);
         graph.addEdge(PLAN, END);
+        graph.addEdge(TOOLS, END);
 
         this.compiled = graph.compile();
-        log.info("InterviewAgent 状态机编译完成：classify →(knowledge) retrieve→generate / (chat) chat");
+        log.info("InterviewAgent 状态机编译完成：classify → knowledge/chat/plan/tools 四路");
     }
 
     /** 编译后的图，暴露给调试/测试场景（如查看节点执行轨迹） */
@@ -136,8 +175,9 @@ public class InterviewAgent {
 
     /**
      * 节点：LLM 意图分类。
-     * 解析策略：不做严格 equals 匹配——只要输出含 "chat" 且不含 "knowledge" 才判 chat，
-     * 其余一律兜底 knowledge。宁可多检索（浪费一次检索），不可漏答（用户体验事故）。
+     * 解析策略：不做严格 equals 匹配——按 contains + 排除项防御性解析，
+     * 兜底 knowledge。宁可多检索（浪费一次检索），不可漏答（用户体验事故）。
+     * 分支顺序即优先级：chat（寒暄措辞最特殊）> tools > plan > knowledge（兜底）。
      */
     private Map<String, Object> classify(GraphState state) {
         String question = state.question();
@@ -145,9 +185,11 @@ public class InterviewAgent {
                 .trim()
                 .toLowerCase();
         String intent;
-        if ( raw.contains("chat") && !raw.contains("knowledge")) {
+        if (raw.contains("chat") && !raw.contains("knowledge")) {
             intent = "chat";
-        } else if (raw.contains("plan") && !raw.contains("knowledge")){
+        } else if (raw.contains("tool")) {
+            intent = "tools";
+        } else if (raw.contains("plan") && !raw.contains("knowledge")) {
             intent = "plan";
         } else {
             intent = "knowledge";
@@ -229,6 +271,69 @@ public class InterviewAgent {
         String answer = chatModel.chat(CHAT_SYSTEM + "\n\n对话历史：\n" + historyText
                 + "\n\n用户输入：" + state.question());
         return Map.of(GraphState.ANSWER, answer);
+    }
+
+    /**
+     * 节点：Function Calling 数据查询。
+     *
+     * 与 generate/plan 的本质区别：那里是「我们把材料塞进 prompt」，这里是
+     * 「把工具说明书交给模型，由模型决定调不调、调什么」，代码只负责执行并回传。
+     *
+     * FC 循环骨架（这就是所有 Agent 框架内部在干的事，写一遍就脱敏了）：
+     *   1. 带 toolSpecifications 发起请求
+     *   2. 响应 AiMessage 若带 toolExecutionRequests → 逐个执行工具
+     *   3. 把每个结果包成 ToolExecutionResultMessage 追加回消息列表 → 再发请求
+     *   4. 循环，直到模型给出纯文本回答（或达到 MAX_TOOL_ROUNDS 兜底）
+     */
+    private Map<String, Object> tools(GraphState state) {
+        List<ChatMessage> messages = new ArrayList<>();
+        messages.add(SystemMessage.from(TOOLS_SYSTEM));
+        String historyText = state.history().isEmpty() ? "（无）" : String.join("\n", state.history());
+        messages.add(UserMessage.from(
+                "<history>" + historyText + "</history>\n\n<question>" + state.question() + "</question>"));
+
+        // 工具说明书：描述写给模型看，它靠描述决定何时调用——描述的质量直接影响调用准确率
+        ChatRequestParameters params = DefaultChatRequestParameters.builder()
+                .toolSpecifications(List.of(ToolSpecification.builder()
+                        .name("get_question_coverage")
+                        .description("""
+                                查询用户在知识库中的提问覆盖情况：总共问过多少道不同的题、覆盖哪些手册模块、\
+                                哪些题追问过、最近问了什么。当用户询问自己的学习进度、提问记录、\
+                                学过哪些内容、统计信息时调用本工具；用户询问技术知识本身时不要调用。""")
+                        .build()))
+                .build();
+
+        for (int round = 1; round <= MAX_TOOL_ROUNDS; round++) {
+            ChatRequest request = ChatRequest.builder().messages(messages).parameters(params).build();
+            AiMessage ai = chatModel.chat(request).aiMessage();
+            messages.add(ai);
+
+            // 没有工具调用请求 = 模型认为信息够了，给出最终回答，循环结束
+            if (!ai.hasToolExecutionRequests()) {
+                return Map.of(GraphState.ANSWER, ai.text() == null ? "" : ai.text());
+            }
+
+            // 逐个执行模型点名的工具，结果回传（工具层永远假设数据可能是脏的，出错返回文本而非抛异常）
+            for (ToolExecutionRequest req : ai.toolExecutionRequests()) {
+                String result = executeTool(req.name());
+                log.info("FC 工具调用: {}（返回 {} 字）", req.name(), result.length());
+                messages.add(ToolExecutionResultMessage.from(req, result));
+            }
+        }
+
+        // 兜底：3 轮还在循环，掐掉工具权限让它基于已有数据作答
+        messages.add(UserMessage.from("不要再调用工具，基于上面工具返回的数据直接给出最终回答。"));
+        AiMessage fallback = chatModel.chat(messages).aiMessage();
+        return Map.of(GraphState.ANSWER, fallback.text() == null ? "" : fallback.text());
+    }
+
+    /** 工具注册表：名字 → 执行。新增工具在这里加分支 + 在 tools() 的 spec 列表里加说明书 */
+    private String executeTool(String name) {
+        if ("get_question_coverage".equals(name)) {
+            return progress.summary();
+        }
+        // 未知工具不抛异常：把错误作为文本喂回模型，让它自行调整（异常会让整个请求 500）
+        return "错误：未知工具 " + name + "。可用工具：get_question_coverage";
     }
 
 
